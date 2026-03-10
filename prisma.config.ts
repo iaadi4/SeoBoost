@@ -1,17 +1,14 @@
+// This file configures the Prisma CLI (migrate, studio, etc.)
+// The adapter for PrismaClient is configured separately in lib/prisma.ts
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
-  adapter: () => {
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-    });
-    return new PrismaPg(pool);
+  datasource: {
+    url: process.env["DATABASE_URL"],
   },
 });
