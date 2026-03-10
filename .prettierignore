@@ -1,0 +1,10 @@
+.next
+node_modules
+public
+package-lock.json
+.prettierrc
+.prettierignore
+README.md
+walkthrough.md
+task.md
+implementation_plan.md

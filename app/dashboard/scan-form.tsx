@@ -1,39 +1,39 @@
-"use client";
+'use client'
 
-import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { useState, useRef } from 'react'
+import { Button } from '@/components/ui/button'
+import { ArrowRight, Loader2 } from 'lucide-react'
 
 export function ScanForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [isLoading, setIsLoading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!inputRef.current) return;
+    e.preventDefault()
+    if (!inputRef.current) return
 
-    let value = inputRef.current.value.trim();
-    if (!value) return;
+    let value = inputRef.current.value.trim()
+    if (!value) return
 
     // Prepend https:// if no protocol present
-    if (!value.startsWith("http://") && !value.startsWith("https://")) {
-      value = `https://${value}`;
+    if (!value.startsWith('http://') && !value.startsWith('https://')) {
+      value = `https://${value}`
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     // Use native form submission with corrected value
-    const form = formRef.current!;
-    const hiddenInput = document.createElement("input");
-    hiddenInput.type = "hidden";
-    hiddenInput.name = "url";
-    hiddenInput.value = value;
-    form.appendChild(hiddenInput);
+    const form = formRef.current!
+    const hiddenInput = document.createElement('input')
+    hiddenInput.type = 'hidden'
+    hiddenInput.name = 'url'
+    hiddenInput.value = value
+    form.appendChild(hiddenInput)
     // Remove the visible input so we don't send a duplicate
-    inputRef.current.name = "";
-    form.submit();
-  };
+    inputRef.current.name = ''
+    form.submit()
+  }
 
   return (
     <form
@@ -77,5 +77,5 @@ export function ScanForm() {
         )}
       </Button>
     </form>
-  );
+  )
 }

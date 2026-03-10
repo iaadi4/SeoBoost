@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Globe, Zap } from "lucide-react";
-import Image from "next/image";
+import { motion, useScroll, useTransform } from 'framer-motion'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { ArrowRight, CheckCircle2, Globe, Zap } from 'lucide-react'
+import Image from 'next/image'
 
 // Floating orb
 function Orb({
@@ -12,9 +12,9 @@ function Orb({
   delay = 0,
   duration = 8,
 }: {
-  className: string;
-  delay?: number;
-  duration?: number;
+  className: string
+  delay?: number
+  duration?: number
 }) {
   return (
     <motion.div
@@ -24,9 +24,9 @@ function Orb({
         x: [-10, 10, -10],
         opacity: [0.4, 0.7, 0.4],
       }}
-      transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
+      transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
     />
-  );
+  )
 }
 
 // Dot grid background
@@ -36,35 +36,35 @@ function DotGrid() {
       className="absolute inset-0 pointer-events-none -z-10"
       style={{
         backgroundImage:
-          "radial-gradient(circle, rgba(62,207,142,0.12) 1px, transparent 1px)",
-        backgroundSize: "32px 32px",
+          'radial-gradient(circle, rgba(62,207,142,0.12) 1px, transparent 1px)',
+        backgroundSize: '32px 32px',
         maskImage:
-          "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 100%)",
+          'radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 100%)',
       }}
     />
-  );
+  )
 }
 
 // Mini scan result card
 function ScanPreviewCard() {
   const items = [
-    { label: "Title Tag", status: "pass" },
-    { label: "Meta Description", status: "fail" },
-    { label: "Open Graph", status: "pass" },
-    { label: "Image Alt Text", status: "warning" },
-    { label: "Canonical URL", status: "pass" },
-  ];
+    { label: 'Title Tag', status: 'pass' },
+    { label: 'Meta Description', status: 'fail' },
+    { label: 'Open Graph', status: 'pass' },
+    { label: 'Image Alt Text', status: 'warning' },
+    { label: 'Canonical URL', status: 'pass' },
+  ]
   const colors: Record<string, string> = {
-    pass: "#3ecf8e",
-    fail: "#ef4444",
-    warning: "#f59e0b",
-  };
+    pass: '#3ecf8e',
+    fail: '#ef4444',
+    warning: '#f59e0b',
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.7, delay: 0.7, ease: "easeOut" }}
+      transition={{ duration: 0.7, delay: 0.7, ease: 'easeOut' }}
       className="mt-14 max-w-2xl mx-auto"
     >
       <div className="rounded-2xl border border-primary/20 bg-card/80 backdrop-blur-sm shadow-2xl shadow-primary/10 overflow-hidden">
@@ -117,14 +117,14 @@ function ScanPreviewCard() {
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
             <span className="text-muted-foreground">
-              Found <span className="text-primary font-semibold">3 issues</span>{" "}
+              Found <span className="text-primary font-semibold">3 issues</span>{' '}
               — add meta description, compress images, fix broken link
             </span>
           </div>
         </div>
       </div>
     </motion.div>
-  );
+  )
 }
 
 export function HeroAnimations() {
@@ -167,7 +167,7 @@ export function HeroAnimations() {
         transition={{ duration: 0.55, delay: 0.1 }}
         className="text-6xl sm:text-8xl font-black tracking-tight mb-8 leading-[1.05] text-foreground"
       >
-        Dominate
+        Dominate <span className="sr-only">Google</span>
         <br className="hidden sm:block" />
         <span className="text-primary [text-shadow:0_0_40px_rgba(62,207,142,0.25)]">
           Search Results.
@@ -210,7 +210,7 @@ export function HeroAnimations() {
                   width={32}
                   height={32}
                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`}
-                  alt="user"
+                  alt={`SEO Boost founder avatar ${i}`}
                   className="w-full h-full rounded-full"
                   unoptimized
                 />
@@ -224,5 +224,5 @@ export function HeroAnimations() {
       {/* Animated scan preview */}
       <ScanPreviewCard />
     </>
-  );
+  )
 }

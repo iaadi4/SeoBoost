@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import {
   Search,
   TrendingUp,
@@ -13,35 +13,35 @@ import {
   Zap,
   Sparkles,
   AlertTriangle,
-} from "lucide-react";
+} from 'lucide-react'
 
-const FREE_SCAN_LIMIT = 3;
+const FREE_SCAN_LIMIT = 3
 
 interface Report {
-  id: string;
-  domainUrl: string;
-  score: number;
-  createdAt: string;
+  id: string
+  domainUrl: string
+  score: number
+  createdAt: string
 }
 
 interface Props {
-  userName: string;
-  subscriptionPlan: string;
-  totalScans: number;
-  avgScore: number;
-  recentReports: Report[];
-  children: React.ReactNode;
+  userName: string
+  subscriptionPlan: string
+  totalScans: number
+  avgScore: number
+  recentReports: Report[]
+  children: React.ReactNode
 }
 
 const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
+}
 
 const item: Variants = {
   hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
-};
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+}
 
 // Floating background orb
 function Orb({
@@ -49,9 +49,9 @@ function Orb({
   delay = 0,
   duration = 8,
 }: {
-  className: string;
-  delay?: number;
-  duration?: number;
+  className: string
+  delay?: number
+  duration?: number
 }) {
   return (
     <motion.div
@@ -61,16 +61,16 @@ function Orb({
         x: [-10, 10, -10],
         opacity: [0.4, 0.7, 0.4],
       }}
-      transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
+      transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
     />
-  );
+  )
 }
 
 function ScoreRing({ score }: { score: number }) {
-  const color = score >= 80 ? "#3ecf8e" : score >= 50 ? "#f59e0b" : "#ef4444";
-  const radius = 18;
-  const circumference = 2 * Math.PI * radius;
-  const dash = (score / 100) * circumference;
+  const color = score >= 80 ? '#3ecf8e' : score >= 50 ? '#f59e0b' : '#ef4444'
+  const radius = 18
+  const circumference = 2 * Math.PI * radius
+  const dash = (score / 100) * circumference
 
   return (
     <div className="relative flex items-center justify-center h-12 w-12 shrink-0">
@@ -98,7 +98,7 @@ function ScoreRing({ score }: { score: number }) {
         {score}
       </span>
     </div>
-  );
+  )
 }
 
 export function DashboardClient({
@@ -109,38 +109,38 @@ export function DashboardClient({
   recentReports,
   children,
 }: Props) {
-  const isPro = subscriptionPlan === "pro";
+  const isPro = subscriptionPlan === 'pro'
   const scansRemaining = isPro
     ? Infinity
-    : Math.max(0, FREE_SCAN_LIMIT - totalScans);
-  const limitReached = !isPro && totalScans >= FREE_SCAN_LIMIT;
+    : Math.max(0, FREE_SCAN_LIMIT - totalScans)
+  const limitReached = !isPro && totalScans >= FREE_SCAN_LIMIT
 
   const stats = [
     {
-      label: "Total Scans",
+      label: 'Total Scans',
       value: totalScans,
       icon: Globe,
-      suffix: "",
-      description: "domains analyzed",
+      suffix: '',
+      description: 'domains analyzed',
     },
     {
-      label: "Avg. Score",
+      label: 'Avg. Score',
       value: avgScore,
       icon: TrendingUp,
-      suffix: "/100",
-      description: "across all reports",
+      suffix: '/100',
+      description: 'across all reports',
     },
     {
-      label: "Plan",
-      value: isPro ? "Pro" : "Free",
+      label: 'Plan',
+      value: isPro ? 'Pro' : 'Free',
       icon: Zap,
-      suffix: "",
+      suffix: '',
       description: isPro
-        ? "unlimited scans"
-        : `${scansRemaining} scan${scansRemaining === 1 ? "" : "s"} remaining`,
+        ? 'unlimited scans'
+        : `${scansRemaining} scan${scansRemaining === 1 ? '' : 's'} remaining`,
       highlight: isPro,
     },
-  ];
+  ]
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
@@ -242,10 +242,10 @@ export function DashboardClient({
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className={`rounded-xl border p-5 flex items-center gap-4 hover:border-primary/30 transition-colors duration-200 bg-card ${stat.highlight ? "border-primary/40 shadow-md shadow-primary/5" : "border-border/60"}`}
+              className={`rounded-xl border p-5 flex items-center gap-4 hover:border-primary/30 transition-colors duration-200 bg-card ${stat.highlight ? 'border-primary/40 shadow-md shadow-primary/5' : 'border-border/60'}`}
             >
               <div
-                className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${stat.highlight ? "bg-primary/15" : "bg-primary/10"}`}
+                className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${stat.highlight ? 'bg-primary/15' : 'bg-primary/10'}`}
               >
                 <stat.icon className="h-5 w-5 text-primary" />
               </div>
@@ -289,13 +289,13 @@ export function DashboardClient({
               {limitReached ? (
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/60 text-sm text-muted-foreground">
                   <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-                  Free scan limit reached.{" "}
+                  Free scan limit reached.{' '}
                   <Link
                     href="/pricing"
                     className="text-primary hover:underline font-medium"
                   >
                     Upgrade for $9
-                  </Link>{" "}
+                  </Link>{' '}
                   to scan unlimited domains.
                 </div>
               ) : (
@@ -338,14 +338,14 @@ export function DashboardClient({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentReports.map((report, idx) => {
-                let hostname = report.domainUrl;
+                let hostname = report.domainUrl
                 try {
-                  hostname = new URL(report.domainUrl).hostname;
+                  hostname = new URL(report.domainUrl).hostname
                 } catch {}
                 const date = new Date(report.createdAt).toLocaleDateString(
-                  "en-US",
-                  { month: "short", day: "numeric", year: "numeric" },
-                );
+                  'en-US',
+                  { month: 'short', day: 'numeric', year: 'numeric' }
+                )
                 return (
                   <motion.div
                     key={report.id}
@@ -367,12 +367,12 @@ export function DashboardClient({
                       </div>
                     </Link>
                   </motion.div>
-                );
+                )
               })}
             </div>
           )}
         </motion.div>
       </motion.div>
     </div>
-  );
+  )
 }

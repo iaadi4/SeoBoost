@@ -1,0 +1,33 @@
+name: Main Production CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Formatting check
+        run: npx prettier --check .
+      - name: Lint & Type check
+        run: npm run check
+      - name: Build production bundle
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
+          DODO_WEBHOOK_KEY: ${{ secrets.DODO_WEBHOOK_KEY }}
+          NEXT_PUBLIC_DODO_PRODUCT_ID: ${{ secrets.NEXT_PUBLIC_DODO_PRODUCT_ID }}

@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   CheckCircle2,
   X,
@@ -9,22 +9,22 @@ import {
   Loader2,
   Sparkles,
   Lock,
-} from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+} from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
 const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.1 } },
-};
+}
 const item: Variants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+}
 
 // Floating background orb
 function Orb({
@@ -32,9 +32,9 @@ function Orb({
   delay = 0,
   duration = 8,
 }: {
-  className: string;
-  delay?: number;
-  duration?: number;
+  className: string
+  delay?: number
+  duration?: number
 }) {
   return (
     <motion.div
@@ -44,33 +44,33 @@ function Orb({
         x: [-10, 10, -10],
         opacity: [0.4, 0.6, 0.4],
       }}
-      transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
+      transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
     />
-  );
+  )
 }
 
 const features = [
-  { name: "Scans per domain", free: "3 total", pro: "Unlimited" },
-  { name: "SEO Health Score", free: true, pro: true },
-  { name: "Title & Meta checks", free: true, pro: true },
-  { name: "Image optimization", free: false, pro: true },
-  { name: "Internal link analysis", free: false, pro: true },
-  { name: "Broken link detection", free: false, pro: true },
-  { name: "Export reports to PDF", free: false, pro: true },
-  { name: "Priority support", free: false, pro: true },
-];
+  { name: 'Scans per domain', free: '3 total', pro: 'Unlimited' },
+  { name: 'SEO Health Score', free: true, pro: true },
+  { name: 'Title & Meta checks', free: true, pro: true },
+  { name: 'Image optimization', free: false, pro: true },
+  { name: 'Internal link analysis', free: false, pro: true },
+  { name: 'Broken link detection', free: false, pro: true },
+  { name: 'Export reports to PDF', free: false, pro: true },
+  { name: 'Priority support', free: false, pro: true },
+]
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (value === true)
-    return <CheckCircle2 className="h-5 w-5 text-primary mx-auto" />;
+    return <CheckCircle2 className="h-5 w-5 text-primary mx-auto" />
   if (value === false)
-    return <X className="h-5 w-5 text-muted-foreground/40 mx-auto" />;
-  return <span className="text-sm font-medium">{value}</span>;
+    return <X className="h-5 w-5 text-muted-foreground/40 mx-auto" />
+  return <span className="text-sm font-medium">{value}</span>
 }
 
 function LimitBanner() {
-  const params = useSearchParams();
-  if (params.get("limit") !== "reached") return null;
+  const params = useSearchParams()
+  if (params.get('limit') !== 'reached') return null
   return (
     <motion.div
       variants={item}
@@ -78,33 +78,33 @@ function LimitBanner() {
     >
       <Lock className="h-5 w-5 text-amber-500 shrink-0" />
       <p className="text-sm font-medium">
-        You&apos;ve used all 3 free scans. Upgrade once for{" "}
+        You&apos;ve used all 3 free scans. Upgrade once for{' '}
         <span className="text-primary font-bold">$9</span> and scan unlimited
         domains forever.
       </p>
     </motion.div>
-  );
+  )
 }
 
 function PricingContent() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubscribe = async (productId: string) => {
     try {
-      setIsLoading(true);
-      const res = await fetch("/api/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      setIsLoading(true)
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
     } catch (error) {
-      console.error("Payment failed", error);
+      console.error('Payment failed', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -163,11 +163,13 @@ function PricingContent() {
               Simple Pricing
             </span>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
-              Pay once. <span className="text-primary">Scan forever.</span>
+              One-Time <span className="text-primary">SEO Boost.</span> Scan
+              Forever.
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              No subscription. No monthly fees. One payment unlocks unlimited
-              scans for life.
+              Get unlimited technical audits, Core Web Vitals checks, and search
+              visibility insights with a single one-time payment. No monthly
+              fees.
             </p>
           </motion.div>
 
@@ -192,9 +194,9 @@ function PricingContent() {
               </div>
               <ul className="space-y-3 flex-1 mb-8">
                 {[
-                  "3 scans total",
-                  "Full SEO Health Score",
-                  "Title & Meta tag checks",
+                  '3 scans total',
+                  'Full SEO Health Score',
+                  'Title & Meta tag checks',
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2.5 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -218,7 +220,7 @@ function PricingContent() {
               className="relative rounded-2xl bg-card flex flex-col overflow-hidden"
               style={{
                 boxShadow:
-                  "0 0 0 1px rgba(62,207,142,0.35), 0 8px 48px -8px rgba(62,207,142,0.25)",
+                  '0 0 0 1px rgba(62,207,142,0.35), 0 8px 48px -8px rgba(62,207,142,0.25)',
               }}
             >
               <div className="absolute inset-0 rounded-2xl border border-primary/50 pointer-events-none" />
@@ -245,12 +247,12 @@ function PricingContent() {
                 </div>
                 <ul className="space-y-3 flex-1 mb-8">
                   {[
-                    "Unlimited scans — forever",
-                    "Advanced internal link analysis",
-                    "Image optimization insights",
-                    "Broken link detection",
-                    "Export reports to PDF",
-                    "Priority support",
+                    'Unlimited scans — forever',
+                    'Advanced internal link analysis',
+                    'Image optimization insights',
+                    'Broken link detection',
+                    'Export reports to PDF',
+                    'Priority support',
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-2.5 text-sm">
                       <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -263,7 +265,7 @@ function PricingContent() {
                   className="w-full rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all gap-2"
                   onClick={() =>
                     handleSubscribe(
-                      process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || "pdt_123456",
+                      process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || 'pdt_123456'
                     )
                   }
                   disabled={isLoading}
@@ -309,7 +311,7 @@ function PricingContent() {
                   {features.map((feature, i) => (
                     <tr
                       key={feature.name}
-                      className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? "" : "bg-muted/10"}`}
+                      className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}
                     >
                       <td className="px-6 py-3.5 text-muted-foreground">
                         {feature.name}
@@ -329,7 +331,7 @@ function PricingContent() {
 
           <motion.div variants={item} className="mt-12 text-center">
             <p className="text-muted-foreground text-sm">
-              Questions?{" "}
+              Questions?{' '}
               <a
                 href="mailto:hello@seoboost.app"
                 className="text-primary hover:underline"
@@ -341,9 +343,9 @@ function PricingContent() {
         </motion.div>
       </main>
     </div>
-  );
+  )
 }
 
 export default function PricingPage() {
-  return <PricingContent />;
+  return <PricingContent />
 }

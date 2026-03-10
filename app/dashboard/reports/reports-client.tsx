@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { motion } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import {
   Search,
   ArrowUpRight,
@@ -12,23 +12,23 @@ import {
   ArrowLeft,
   Calendar,
   Filter,
-} from "lucide-react";
+} from 'lucide-react'
 
 interface Report {
-  id: string;
-  domainUrl: string;
-  score: number;
-  createdAt: string;
+  id: string
+  domainUrl: string
+  score: number
+  createdAt: string
 }
 
 const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.04 } },
-};
+}
 const item: Variants = {
   hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-};
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+}
 
 // Floating background orb
 function Orb({
@@ -36,9 +36,9 @@ function Orb({
   delay = 0,
   duration = 8,
 }: {
-  className: string;
-  delay?: number;
-  duration?: number;
+  className: string
+  delay?: number
+  duration?: number
 }) {
   return (
     <motion.div
@@ -48,18 +48,18 @@ function Orb({
         x: [-10, 10, -10],
         opacity: [0.4, 0.6, 0.4],
       }}
-      transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
+      transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
     />
-  );
+  )
 }
 
-type TimeFilter = "all" | "today" | "week" | "month";
+type TimeFilter = 'all' | 'today' | 'week' | 'month'
 
 function ScoreRing({ score }: { score: number }) {
-  const color = score >= 80 ? "#3ecf8e" : score >= 50 ? "#f59e0b" : "#ef4444";
-  const radius = 18;
-  const circumference = 2 * Math.PI * radius;
-  const dash = (score / 100) * circumference;
+  const color = score >= 80 ? '#3ecf8e' : score >= 50 ? '#f59e0b' : '#ef4444'
+  const radius = 18
+  const circumference = 2 * Math.PI * radius
+  const dash = (score / 100) * circumference
 
   return (
     <div className="relative flex items-center justify-center h-12 w-12 shrink-0">
@@ -87,44 +87,44 @@ function ScoreRing({ score }: { score: number }) {
         {score}
       </span>
     </div>
-  );
+  )
 }
 
 export function ReportsClient({ reports }: { reports: Report[] }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  const [searchQuery, setSearchQuery] = useState('')
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
 
   const filtered = useMemo(() => {
-    let result = reports;
+    let result = reports
 
     // Search filter
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter((r) => r.domainUrl.toLowerCase().includes(q));
+      const q = searchQuery.toLowerCase().trim()
+      result = result.filter((r) => r.domainUrl.toLowerCase().includes(q))
     }
 
     // Time filter
-    const now = new Date();
-    if (timeFilter === "today") {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      result = result.filter((r) => new Date(r.createdAt) >= start);
-    } else if (timeFilter === "week") {
-      const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      result = result.filter((r) => new Date(r.createdAt) >= start);
-    } else if (timeFilter === "month") {
-      const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      result = result.filter((r) => new Date(r.createdAt) >= start);
+    const now = new Date()
+    if (timeFilter === 'today') {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      result = result.filter((r) => new Date(r.createdAt) >= start)
+    } else if (timeFilter === 'week') {
+      const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      result = result.filter((r) => new Date(r.createdAt) >= start)
+    } else if (timeFilter === 'month') {
+      const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      result = result.filter((r) => new Date(r.createdAt) >= start)
     }
 
-    return result;
-  }, [reports, searchQuery, timeFilter]);
+    return result
+  }, [reports, searchQuery, timeFilter])
 
   const timeOptions: { value: TimeFilter; label: string }[] = [
-    { value: "all", label: "All Time" },
-    { value: "today", label: "Today" },
-    { value: "week", label: "Last 7 Days" },
-    { value: "month", label: "Last 30 Days" },
-  ];
+    { value: 'all', label: 'All Time' },
+    { value: 'today', label: 'Today' },
+    { value: 'week', label: 'Last 7 Days' },
+    { value: 'month', label: 'Last 30 Days' },
+  ]
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
@@ -176,7 +176,7 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
             All Reports
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {reports.length} total domain{reports.length !== 1 ? "s" : ""}{" "}
+            {reports.length} total domain{reports.length !== 1 ? 's' : ''}{' '}
             scanned
           </p>
         </div>
@@ -203,8 +203,8 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
                 onClick={() => setTimeFilter(opt.value)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   timeFilter === opt.value
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
               >
                 {opt.label}
@@ -214,7 +214,7 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
         </div>
 
         {/* Results count */}
-        {(searchQuery || timeFilter !== "all") && (
+        {(searchQuery || timeFilter !== 'all') && (
           <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
             <Filter className="h-3.5 w-3.5" />
             Showing {filtered.length} of {reports.length} reports
@@ -229,23 +229,23 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
               <Search className="h-6 w-6 text-primary/60" />
             </div>
             <h3 className="text-base font-semibold mb-2">
-              {searchQuery || timeFilter !== "all"
-                ? "No matching reports"
-                : "No reports yet"}
+              {searchQuery || timeFilter !== 'all'
+                ? 'No matching reports'
+                : 'No reports yet'}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {searchQuery || timeFilter !== "all"
-                ? "Try adjusting your search or time filter."
-                : "Run your first scan from the dashboard."}
+              {searchQuery || timeFilter !== 'all'
+                ? 'Try adjusting your search or time filter.'
+                : 'Run your first scan from the dashboard.'}
             </p>
-            {(searchQuery || timeFilter !== "all") && (
+            {(searchQuery || timeFilter !== 'all') && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="mt-4 text-primary"
                 onClick={() => {
-                  setSearchQuery("");
-                  setTimeFilter("all");
+                  setSearchQuery('')
+                  setTimeFilter('all')
                 }}
               >
                 Clear filters
@@ -260,20 +260,20 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
             animate="show"
           >
             {filtered.map((report) => {
-              let hostname = report.domainUrl;
+              let hostname = report.domainUrl
               try {
-                hostname = new URL(report.domainUrl).hostname;
+                hostname = new URL(report.domainUrl).hostname
               } catch {}
-              const date = new Date(report.createdAt);
-              const dateStr = date.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              });
-              const timeStr = date.toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-              });
+              const date = new Date(report.createdAt)
+              const dateStr = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })
+              const timeStr = date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+              })
 
               return (
                 <motion.div key={report.id} variants={item}>
@@ -293,11 +293,11 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
                     </div>
                   </Link>
                 </motion.div>
-              );
+              )
             })}
           </motion.div>
         )}
       </div>
     </div>
-  );
+  )
 }

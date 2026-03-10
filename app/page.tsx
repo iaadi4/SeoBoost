@@ -1,40 +1,34 @@
-import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Zap,
-  LayoutDashboard,
-  CheckCircle2,
-  X,
-} from "lucide-react";
-import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
-import { SignOutButton } from "@/components/sign-out-button";
-import { HeroAnimations } from "./hero-animations";
-import { BentoGrid } from "./bento-grid";
+import { Button } from '@/components/ui/button'
+import { ArrowRight, Zap, LayoutDashboard, CheckCircle2, X } from 'lucide-react'
+import Link from 'next/link'
+import { createClient } from '@/utils/supabase/server'
+import { SignOutButton } from '@/components/sign-out-button'
+import { HeroAnimations } from './hero-animations'
+import { BentoGrid } from './bento-grid'
 
 const features = [
-  { name: "Scans per domain", free: "3 total", pro: "Unlimited" },
-  { name: "SEO Health Score", free: true, pro: true },
-  { name: "Title & Meta checks", free: true, pro: true },
-  { name: "Image optimization", free: false, pro: true },
-  { name: "Internal link analysis", free: false, pro: true },
-  { name: "Broken link detection", free: false, pro: true },
-  { name: "Export reports to PDF", free: false, pro: true },
-];
+  { name: 'Scans per domain', free: '3 total', pro: 'Unlimited' },
+  { name: 'SEO Health Score', free: true, pro: true },
+  { name: 'Title & Meta checks', free: true, pro: true },
+  { name: 'Image optimization', free: false, pro: true },
+  { name: 'Internal link analysis', free: false, pro: true },
+  { name: 'Broken link detection', free: false, pro: true },
+  { name: 'Export reports to PDF', free: false, pro: true },
+]
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (value === true)
-    return <CheckCircle2 className="h-4 w-4 text-primary mx-auto" />;
+    return <CheckCircle2 className="h-4 w-4 text-primary mx-auto" />
   if (value === false)
-    return <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />;
-  return <span className="text-sm font-medium text-foreground">{value}</span>;
+    return <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+  return <span className="text-sm font-medium text-foreground">{value}</span>
 }
 
 export default async function Home() {
-  const supabase = await createClient();
+  const supabase = await createClient()
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser()
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans overflow-hidden">
@@ -47,7 +41,7 @@ export default async function Home() {
             </div>
             <span className="font-bold text-xl tracking-tight">SEO Boost</span>
           </div>
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-6" aria-label="Main Navigation">
             <Link
               href="#features"
               className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -103,11 +97,12 @@ export default async function Home() {
                 Features
               </span>
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-                Everything you need to rank higher
+                Full-Scale Technical SEO Analysis
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Stop guessing what Google wants. Our algorithm tells you exactly
-                what to fix in seconds.
+                Our advanced algorithm performs a deep technical audit, checking
+                Core Web Vitals, meta robots, and internal linking to boost your
+                search visibility instantly.
               </p>
             </div>
             <BentoGrid />
@@ -119,10 +114,10 @@ export default async function Home() {
           <div className="container mx-auto px-4 sm:px-8 max-w-5xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               {[
-                { value: "50+", label: "Founders using SEO Boost" },
-                { value: "8s", label: "Average scan time" },
-                { value: "12+", label: "SEO checks per report" },
-                { value: "$9", label: "One-time unlock price" },
+                { value: '50+', label: 'Founders using SEO Boost' },
+                { value: '8s', label: 'Average scan time' },
+                { value: '12+', label: 'SEO checks per report' },
+                { value: '$9', label: 'One-time unlock price' },
               ].map((s) => (
                 <div key={s.label}>
                   <p className="text-4xl font-black text-primary mb-1">
@@ -142,12 +137,14 @@ export default async function Home() {
               <span className="inline-flex items-center text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4">
                 Pricing
               </span>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-                Pay once. <span className="text-primary">Scan forever.</span>
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 text-foreground">
+                One-Time SEO Investment.{' '}
+                <span className="text-primary">Boost Forever.</span>
               </h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                No subscriptions, no renewals. One payment unlocks unlimited
-                scans for life.
+                No monthly subscriptions or hidden fees. Our one-time payment
+                unlocks unlimited technical audits and search visibility reports
+                for life.
               </p>
             </div>
 
@@ -166,9 +163,9 @@ export default async function Home() {
                 </p>
                 <ul className="space-y-2.5 flex-1 mb-8 text-sm">
                   {[
-                    "3 scans total",
-                    "Full SEO Health Score",
-                    "Meta & title checks",
+                    '3 scans total',
+                    'Full SEO Health Score',
+                    'Meta & title checks',
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-2.5">
                       <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -192,7 +189,7 @@ export default async function Home() {
                 className="relative rounded-2xl bg-card flex flex-col overflow-hidden"
                 style={{
                   boxShadow:
-                    "0 0 0 1px rgba(62,207,142,0.4), 0 8px 48px -8px rgba(62,207,142,0.2)",
+                    '0 0 0 1px rgba(62,207,142,0.4), 0 8px 48px -8px rgba(62,207,142,0.2)',
                 }}
               >
                 <div className="absolute inset-0 rounded-2xl border border-primary/50 pointer-events-none" />
@@ -216,11 +213,11 @@ export default async function Home() {
                   </p>
                   <ul className="space-y-2.5 flex-1 mb-8 text-sm">
                     {[
-                      "Unlimited scans — forever",
-                      "Advanced link analysis",
-                      "Image optimization insights",
-                      "PDF report export",
-                      "Priority support",
+                      'Unlimited scans — forever',
+                      'Advanced link analysis',
+                      'Image optimization insights',
+                      'PDF report export',
+                      'Priority support',
                     ].map((f) => (
                       <li key={f} className="flex items-center gap-2.5">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -260,7 +257,7 @@ export default async function Home() {
                   {features.map((f, i) => (
                     <tr
                       key={f.name}
-                      className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? "" : "bg-muted/10"}`}
+                      className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}
                     >
                       <td className="px-6 py-3 text-muted-foreground">
                         {f.name}
@@ -285,7 +282,7 @@ export default async function Home() {
             className="absolute inset-0 -z-10"
             style={{
               background:
-                "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(62,207,142,0.07) 0%, transparent 70%)",
+                'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(62,207,142,0.07) 0%, transparent 70%)',
             }}
           />
           <div className="container mx-auto px-4 text-center max-w-2xl">
@@ -348,10 +345,33 @@ export default async function Home() {
               </p>
               <ul className="space-y-2.5">
                 {[
-                  { label: "Features", href: "#features" },
-                  { label: "Pricing", href: "#pricing" },
-                  { label: "Dashboard", href: "/dashboard" },
-                  { label: "All Reports", href: "/dashboard/reports" },
+                  { label: 'Technical Audit', href: '#features' },
+                  { label: 'SEO Health Score', href: '#features' },
+                  { label: 'Pricing Analysis', href: '#pricing' },
+                  { label: 'Instant Reports', href: '/dashboard' },
+                ].map((l) => (
+                  <li key={l.label}>
+                    <Link
+                      href={l.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                Resources
+              </p>
+              <ul className="space-y-2.5">
+                {[
+                  { label: 'Documentation', href: '/dashboard' },
+                  { label: 'SEO Dashboard', href: '/dashboard' },
+                  { label: 'Support', href: 'mailto:hello@seoboost.app' },
                 ].map((l) => (
                   <li key={l.label}>
                     <Link
@@ -372,8 +392,8 @@ export default async function Home() {
               </p>
               <ul className="space-y-2.5">
                 {[
-                  { label: "Sign In", href: "/sign-in" },
-                  { label: "Sign Up", href: "/sign-up" },
+                  { label: 'Sign In', href: '/sign-in' },
+                  { label: 'Sign Up', href: '/sign-up' },
                 ].map((l) => (
                   <li key={l.label}>
                     <Link
@@ -394,8 +414,8 @@ export default async function Home() {
               </p>
               <ul className="space-y-2.5">
                 {[
-                  { label: "Privacy Policy", href: "#" },
-                  { label: "Terms of Service", href: "#" },
+                  { label: 'Privacy Policy', href: '#' },
+                  { label: 'Terms of Service', href: '#' },
                 ].map((l) => (
                   <li key={l.label}>
                     <Link
@@ -423,5 +443,5 @@ export default async function Home() {
         </div>
       </footer>
     </div>
-  );
+  )
 }
