@@ -1,13 +1,16 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BarChart, CheckCircle2, Zap, Star, Shield, TrendingUp, Globe } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Zap, Star, Shield, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { motion } from "framer-motion";
+import { createClient } from "@/utils/supabase/server";
+import { SignOutButton } from "@/components/sign-out-button";
+import { HeroAnimations } from "./hero-animations";
+import { BentoGrid } from "./bento-grid";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <div className="flex min-h-screen flex-col bg-background selection:bg-primary/30 font-sans overflow-hidden">
       {/* Header */}
@@ -27,11 +30,27 @@ export default function Home() {
               Pricing
             </Link>
             <ThemeToggle />
-            <Link href="/dashboard">
-              <Button className="rounded-full rounded-br-none shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all">
-                Get Started <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <SignOutButton />
+                <Link href="/dashboard">
+                  <Button className="rounded-full shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all bg-primary text-[#1c1c1c] font-semibold hover:bg-primary/90">
+                    Dashboard <LayoutDashboard className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-in" className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Sign In
+                </Link>
+                <Link href="/sign-up">
+                  <Button className="rounded-full rounded-br-none shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all bg-primary text-[#1c1c1c] font-semibold hover:bg-primary/90">
+                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -42,59 +61,7 @@ export default function Home() {
           {/* Background Gradients */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10" />
           
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium transition-colors border-primary/20 bg-primary/5 text-primary mb-8 gap-2"
-          >
-            <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary),0.8)]"></span>
-            SEO Analytics Engine 2.0 Live
-          </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-6xl sm:text-8xl font-black tracking-tight mb-8 leading-[1.1]"
-          >
-            Dominate <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-teal-400">
-              Search Results.
-            </span>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed font-light"
-          >
-            Scan your domain instantly. Get a beautiful, readable report with actionable fixes to boost your organic traffic today.
-          </motion.p>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link href="/dashboard">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-xl shadow-primary/20 hover:scale-105 transition-transform duration-300">
-                Start Free Scan <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-4 sm:mt-0 sm:ml-4">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                    <Image width={32} height={32} src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="user" className="w-full h-full rounded-full" unoptimized />
-                  </div>
-                ))}
-              </div>
-              <span>Trusted by 5,000+ founders</span>
-            </div>
-          </motion.div>
+          <HeroAnimations />
         </section>
 
         {/* Feature Bento Grid */}
@@ -105,57 +72,7 @@ export default function Home() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Stop guessing what Google wants. Our algorithm tells you exactly what to fix in seconds.</p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-6">
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="md:col-span-2 p-8 rounded-3xl bg-gradient-to-br from-card to-background border flex flex-col justify-between shadow-sm relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
-                <div>
-                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-                    <Globe className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3">Deep Technical Scan</h3>
-                  <p className="text-muted-foreground text-lg max-w-md">We crawl your page, analyzing title tags, viewport configurations, robots meta, open graph data, and missing alt texts instantly.</p>
-                </div>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="p-8 rounded-3xl bg-gradient-to-br from-card to-background border flex flex-col shadow-sm group"
-              >
-                <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6">
-                  <BarChart className="h-7 w-7 text-orange-500" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3">Health Score</h3>
-                <p className="text-muted-foreground text-lg">Instantly see where you stand with our proprietary SEO Health Score out of 100.</p>
-              </motion.div>
-
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="p-8 rounded-3xl bg-gradient-to-br from-card to-background border flex flex-col shadow-sm group"
-              >
-                <div className="h-14 w-14 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6">
-                  <CheckCircle2 className="h-7 w-7 text-green-500" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3">Actionable Fixes</h3>
-                <p className="text-muted-foreground text-lg">We don&apos;t just point out problems. We tell you exactly how to fix them in plain English.</p>
-              </motion.div>
-
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="md:col-span-2 p-8 rounded-3xl bg-gradient-to-br from-card to-background border flex flex-col justify-between shadow-sm relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-bl-full blur-3xl -z-10 group-hover:bg-blue-500/10 transition-colors" />
-                <div>
-                  <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6">
-                    <TrendingUp className="h-7 w-7 text-blue-500" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3">Content Analysis</h3>
-                  <p className="text-muted-foreground text-lg max-w-md">We verify your content volume and keyword structures to ensure pages aren&apos;t penalized for thin content.</p>
-                </div>
-              </motion.div>
-            </div>
+            <BentoGrid />
           </div>
         </section>
 

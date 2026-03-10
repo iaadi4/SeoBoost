@@ -9,13 +9,13 @@ import { useState } from "react";
 export default function PricingPage() {
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubscribe = async (priceId: string) => {
+    const handleSubscribe = async (productId: string) => {
         try {
             setIsLoading(true);
-            const res = await fetch("/api/stripe/checkout", {
+            const res = await fetch("/api/billing/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ priceId }),
+                body: JSON.stringify({ productId }),
             });
             const data = await res.json();
             if (data.url) {
@@ -125,7 +125,7 @@ export default function PricingPage() {
                             <Button 
                                 className="w-full" 
                                 size="lg" 
-                                onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || "price_123456")}
+                                onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || "pdt_123456")}
                                 disabled={isLoading}
                             >
                                 {isLoading ? "Processing..." : "Upgrade to Pro"}

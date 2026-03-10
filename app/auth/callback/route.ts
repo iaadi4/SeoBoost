@@ -27,9 +27,6 @@ export async function GET(request: Request) {
             email: user.email!,
             name: user.user_metadata?.full_name || user.user_metadata?.name || '',
             image: user.user_metadata?.avatar_url || '',
-            emailVerified: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
         }
       });
 

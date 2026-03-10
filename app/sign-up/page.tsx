@@ -8,31 +8,62 @@ import { Zap } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
 
-export default function SignInPage() {
-    const router = useRouter();
+export default function SignUpPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
-    const handleSignIn = async (e: React.FormEvent) => {
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
 
         const supabase = createClient();
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { full_name: name },
+                emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+            },
+        });
 
         if (error) {
             setError(error.message);
             setIsLoading(false);
         } else {
-            router.push("/dashboard");
-            router.refresh();
+            setSuccess(true);
+            setIsLoading(false);
         }
     };
+
+    if (success) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -z-10" />
+                <Card className="w-full max-w-md border shadow-xl bg-background/50 backdrop-blur-md text-center">
+                    <CardHeader className="space-y-2 pb-2">
+                        <div className="mx-auto h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center mb-2">
+                            <Zap className="h-7 w-7 text-primary" />
+                        </div>
+                        <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
+                        <CardDescription>
+                            We&apos;ve sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Click it to activate your account.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Link href="/sign-in">
+                            <Button variant="outline" className="w-full mt-2">Back to Sign In</Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
@@ -48,13 +79,24 @@ export default function SignInPage() {
 
             <Card className="w-full max-w-md border shadow-xl bg-background/50 backdrop-blur-md">
                 <CardHeader className="text-center space-y-2">
-                    <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
                     <CardDescription>
-                        Sign in to your account to continue scanning domains.
+                        Get started with 3 free scans per day. No credit card required.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSignIn} className="space-y-4">
+                    <form onSubmit={handleSignUp} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                placeholder="Your Name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                autoComplete="name"
+                            />
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -72,11 +114,12 @@ export default function SignInPage() {
                             <Input
                                 id="password"
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="At least 8 characters"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                autoComplete="current-password"
+                                minLength={8}
+                                autoComplete="new-password"
                             />
                         </div>
 
@@ -87,14 +130,14 @@ export default function SignInPage() {
                         )}
 
                         <Button type="submit" size="lg" className="w-full font-medium h-12" disabled={isLoading}>
-                            {isLoading ? <span className="animate-pulse">Signing in...</span> : "Sign In"}
+                            {isLoading ? <span className="animate-pulse">Creating account...</span> : "Create Account"}
                         </Button>
                     </form>
 
                     <div className="mt-6 text-center text-sm text-muted-foreground">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/sign-up" className="text-primary hover:underline font-medium">
-                            Sign up for free
+                        Already have an account?{" "}
+                        <Link href="/sign-in" className="text-primary hover:underline font-medium">
+                            Sign in
                         </Link>
                     </div>
                 </CardContent>

@@ -15,7 +15,7 @@ model User {
   updatedAt        DateTime       @updatedAt
   
   // Custom fields
-  stripeCustomerId String?        @unique
+  dodoCustomerId   String?        @unique
   subscriptionPlan String         @default("free") // "free", "pro"
   domainReports    DomainReport[] 
 }

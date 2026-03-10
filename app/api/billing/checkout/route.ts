@@ -1,0 +1,75 @@
+import { createClient } from "@/utils/supabase/server";
+import { dodopayments } from "@/lib/dodopayments";
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { productId } = await req.json();
+
+    if (!productId) {
+      return new NextResponse("Product ID is required", { status: 400 });
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { dodoCustomerId: true, email: true, name: true },
+    });
+
+    if (!dbUser) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    let customerId = dbUser.dodoCustomerId;
+
+    if (!customerId) {
+        // Create a new DodoPayments Customer
+        const customer = await dodopayments.customers.create({
+            email: dbUser.email,
+            name: dbUser.name || "Customer",
+        });
+        
+        customerId = customer.customer_id;
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { dodoCustomerId: customerId },
+        });
+    }
+
+    // Create a DodoPayment payment session url map
+    const payment = await dodopayments.payments.create({
+      billing: {
+        city: "",
+        country: "US", // Defaulting to US, user fills the rest
+        state: "",
+        street: "",
+        zipcode: ""
+      },
+      customer: {
+        customer_id: customerId as string
+      },
+      product_cart: [
+        {
+          product_id: productId,
+          quantity: 1,
+        },
+      ],
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+    });
+
+    // We can also attach metadata during creation if supported, but typically customer mapping is enough.
+    
+    return NextResponse.json({ url: payment.payment_link });
+  } catch (error) {
+    console.error("DodoPayments error:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
