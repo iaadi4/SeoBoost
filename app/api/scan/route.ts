@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import { scanDomain } from "@/lib/scanner";
 import { NextResponse } from "next/server";
 
+const FREE_SCAN_LIMIT = 3;
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();
@@ -25,7 +27,8 @@ export async function POST(req: Request) {
       ? urlMatch
       : `https://${urlMatch}`;
 
-    await prisma.user.upsert({
+    // Ensure the Supabase user exists in the Prisma User table (FK guard)
+    const dbUser = await prisma.user.upsert({
       where: { id: user.id },
       update: {
         email: user.email!,
@@ -39,6 +42,19 @@ export async function POST(req: Request) {
         image: user.user_metadata?.avatar_url ?? null,
       },
     });
+
+    // Enforce free tier scan limit
+    if (dbUser.subscriptionPlan === "free") {
+      const scanCount = await prisma.domainReport.count({
+        where: { userId: user.id },
+      });
+      if (scanCount >= FREE_SCAN_LIMIT) {
+        return NextResponse.redirect(
+          new URL("/pricing?limit=reached", req.url),
+          { status: 303 }
+        );
+      }
+    }
 
     // Perform the scan
     const report = await scanDomain(domainUrl);
@@ -58,7 +74,7 @@ export async function POST(req: Request) {
       new URL(`/dashboard/report/${savedReport.id}`, req.url),
       {
         status: 303, // See Other (forces GET instead of POST on redirect)
-      },
+      }
     );
   } catch (error) {
     console.error("Scan error:", error);
