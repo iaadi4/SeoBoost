@@ -1,17 +1,15 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
 import prisma from "@/lib/prisma";
 import { scanDomain } from "@/lib/scanner";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers()
-        });
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (!session) {
-            return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+        if (!user) {
+            return NextResponse.redirect(new URL("/sign-in", req.url));
         }
 
         const formData = await req.formData();
@@ -29,7 +27,7 @@ export async function POST(req: Request) {
         // Save report to database
         const savedReport = await prisma.domainReport.create({
             data: {
-                userId: session.user.id,
+                userId: user.id,
                 domainUrl: domainUrl,
                 score: report.score,
                 reportData: JSON.stringify(report),

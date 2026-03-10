@@ -1,22 +1,20 @@
-import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { headers } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, CheckCircle2, Link as LinkIcon, AlertCircle, Type, ImageIcon, FileText, Code, Globe } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Link as LinkIcon, AlertCircle, Type, ImageIcon, FileText, Code } from "lucide-react";
 import Link from "next/link";
 import { SEOReport } from "@/lib/scanner";
 
 export default async function ReportPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     
-    const session = await auth.api.getSession({
-        headers: await headers()
-    });
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
         redirect("/sign-in");
     }
 
@@ -24,7 +22,7 @@ export default async function ReportPage(props: { params: Promise<{ id: string }
         where: { id: params.id }
     });
 
-    if (!reportRecord || reportRecord.userId !== session.user.id) {
+    if (!reportRecord || reportRecord.userId !== user.id) {
         redirect("/dashboard");
     }
 

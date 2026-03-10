@@ -1,16 +1,14 @@
+import { createClient } from "@/utils/supabase/server";
 import { stripe } from "@/lib/stripe";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers()
-    });
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
@@ -20,30 +18,30 @@ export async function POST(req: Request) {
       return new NextResponse("Price ID is required", { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
       select: { stripeCustomerId: true, email: true },
     });
 
-    if (!user) {
+    if (!dbUser) {
       return new NextResponse("User not found", { status: 404 });
     }
 
-    let customerId = user.stripeCustomerId;
+    let customerId = dbUser.stripeCustomerId;
 
     if (!customerId) {
         // Create a new Stripe Customer
         const customer = await stripe.customers.create({
-            email: user.email,
+            email: dbUser.email,
             metadata: {
-                userId: session.user.id,
+                userId: user.id,
             },
         });
         
         customerId = customer.id;
 
         await prisma.user.update({
-            where: { id: session.user.id },
+            where: { id: user.id },
             data: { stripeCustomerId: customer.id },
         });
     }
@@ -61,7 +59,7 @@ export async function POST(req: Request) {
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/pricing`,
       metadata: {
-        userId: session.user.id,
+        userId: user.id,
       },
     });
 
