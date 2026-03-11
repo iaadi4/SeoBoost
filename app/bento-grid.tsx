@@ -17,7 +17,7 @@ const card: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
-// Animated counter
+// Animated Incrementing Counter Component
 function Counter({ to, duration = 1500 }: { to: number; duration?: number }) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
@@ -40,7 +40,7 @@ function Counter({ to, duration = 1500 }: { to: number; duration?: number }) {
   return <span ref={ref}>{count}</span>
 }
 
-// Animated scan lines
+// CSS animated background scan lines
 function ScanLines() {
   return (
     <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
@@ -62,7 +62,7 @@ function ScanLines() {
   )
 }
 
-// Pulsing nodes network
+// SVG animated node networking web
 function NodeNetwork() {
   const nodes = [
     { x: 20, y: 30 },
@@ -119,23 +119,26 @@ function NodeNetwork() {
   )
 }
 
-// Typing effect
+// Simulated DOM typing effect
+const DOMAINS = ['example.com', 'myshop.io', 'startup.app', 'blog.co']
+
 function TypedDomain() {
-  const domains = ['example.com', 'myshop.io', 'startup.app', 'blog.co']
   const [idx, setIdx] = useState(0)
   const [text, setText] = useState('')
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    const full = domains[idx]
+    const full = DOMAINS[idx]
     if (!deleting && text === full) {
       const t = setTimeout(() => setDeleting(true), 1400)
       return () => clearTimeout(t)
     }
     if (deleting && text === '') {
-      setDeleting(false)
-      setIdx((i) => (i + 1) % domains.length)
-      return
+      const t = setTimeout(() => {
+        setDeleting(false)
+        setIdx((i) => (i + 1) % DOMAINS.length)
+      }, 40)
+      return () => clearTimeout(t)
     }
     const t = setTimeout(
       () => {
@@ -144,7 +147,7 @@ function TypedDomain() {
       deleting ? 40 : 80
     )
     return () => clearTimeout(t)
-  }, [text, deleting, idx, domains])
+  }, [text, deleting, idx])
 
   return (
     <span className="text-primary font-mono">
@@ -171,7 +174,7 @@ export function BentoGrid() {
       initial="hidden"
       animate={inView ? 'show' : 'hidden'}
     >
-      {/* Card 1: Deep Technical Scan — col-span-2, animated scan lines */}
+      {/* Deep Technical Scan Module */}
       <motion.div
         variants={card}
         whileHover={{ y: -4 }}
@@ -204,7 +207,7 @@ export function BentoGrid() {
         </div>
       </motion.div>
 
-      {/* Card 2: Health Score — animated counter */}
+      {/* Analytics Score Counter */}
       <motion.div
         variants={card}
         whileHover={{ y: -4 }}
@@ -237,7 +240,7 @@ export function BentoGrid() {
         </div>
       </motion.div>
 
-      {/* Card 3: Actionable Fixes */}
+      {/* Actionable Remedies Display */}
       <motion.div
         variants={card}
         whileHover={{ y: -4 }}
@@ -281,7 +284,7 @@ export function BentoGrid() {
         </div>
       </motion.div>
 
-      {/* Card 4: Content Analysis — col-span-2, node network */}
+      {/* Content Network Analysis */}
       <motion.div
         variants={card}
         whileHover={{ y: -4 }}

@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
     // We can also attach metadata during creation if supported, but typically customer mapping is enough.
 
-    const checkoutUrl = payment.payment_link || (payment as any).checkout_url || (payment as any).payment_url
+    const checkoutUrl = payment.payment_link || (payment as unknown as Record<string, unknown>).checkout_url || (payment as unknown as Record<string, unknown>).payment_url
     
     if (!checkoutUrl) {
       console.error('No checkout URL found in Dodo response:', payment)

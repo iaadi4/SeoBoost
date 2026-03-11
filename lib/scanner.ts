@@ -40,7 +40,7 @@ export interface SEOReport {
 
 export async function scanDomain(url: string): Promise<SEOReport> {
   try {
-    // Ensure URL has protocol
+    // Normalize URL with protocol prefix
     const targetUrl = url.startsWith('http') ? url : `https://${url}`
 
     const response = await fetch(targetUrl, {
@@ -61,24 +61,24 @@ export async function scanDomain(url: string): Promise<SEOReport> {
 
     let score = 100
 
-    // 1. Title Tag Check (10 pts)
+    // Diagnostic: Title Tag (10pts)
     const title = $('title').text().trim()
     const titlePass = title.length >= 30 && title.length <= 65
     if (!titlePass) score -= 10
 
-    // 2. Meta Description Check (10 pts)
+    // Diagnostic: Meta Description (10pts)
     const description =
       $('meta[name="description"]').attr('content')?.trim() || ''
     const descPass = description.length >= 70 && description.length <= 160
     if (!descPass) score -= 10
 
-    // 3. H1 Check (10 pts)
+    // Diagnostic: H1 Hierarchy (10pts)
     const h1s = $('h1')
     const h1Count = h1s.length
     const h1Pass = h1Count === 1
     if (!h1Pass) score -= 10
 
-    // 4. Images Alt Check (10 pts)
+    // Diagnostic: Image Accessibility (10pts)
     const images = $('img')
     let missingAlt = 0
     images.each((_, el) => {
@@ -90,7 +90,7 @@ export async function scanDomain(url: string): Promise<SEOReport> {
     const imagesPass = images.length === 0 || missingAlt / images.length <= 0.2 // Less than 20% missing alt allowed
     if (!imagesPass) score -= 10
 
-    // 5. Links Analysis (5 pts)
+    // Diagnostic: Link Architecture (5pts)
     const links = $('a')
     let internal = 0
     let external = 0
@@ -109,14 +109,14 @@ export async function scanDomain(url: string): Promise<SEOReport> {
     // We just penalize if there are absolutely no internal links (poor architecture)
     if (internal === 0 && links.length > 0) score -= 5
 
-    // 6. Content Volume / Word Count check (10 pts)
+    // Diagnostic: Content Volume (10pts)
     $('script, style, noscript, svg, nav, footer').remove()
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim()
     const wordCount = bodyText.split(' ').filter((w) => w.length > 0).length
     const wordPass = wordCount >= 300
     if (!wordPass) score -= 10
 
-    // 7. Technical Core Checks (15 pts)
+    // Diagnostic: Technical Core (15pts)
     const hasViewport = $('meta[name="viewport"]').length > 0
     const hasFavicon =
       $('link[rel="icon"], link[rel="shortcut icon"]').length > 0
@@ -130,7 +130,7 @@ export async function scanDomain(url: string): Promise<SEOReport> {
 
     const technicalPass = hasViewport && isIndexable && hasFavicon
 
-    // 8. Social Tags (OpenGraph & Twitter) (10 pts)
+    // Diagnostic: Social Metadata (10pts)
     const hasOGTitle = $('meta[property="og:title"]').length > 0
     const hasOGDescription = $('meta[property="og:description"]').length > 0
     const hasOGImage = $('meta[property="og:image"]').length > 0
@@ -139,7 +139,7 @@ export async function scanDomain(url: string): Promise<SEOReport> {
     const socialPass = hasOGTitle && hasOGDescription && hasOGImage && hasTwitterCard
     if (!socialPass) score -= 10
 
-    // 9. Semantic HTML Elements (10 pts)
+    // Diagnostic: Semantic Structure (10pts)
     const hasMain = $('main').length > 0
     const hasHeader = $('header').length > 0
     const hasNav = $('nav').length > 0
@@ -148,12 +148,12 @@ export async function scanDomain(url: string): Promise<SEOReport> {
     const semanticPass = hasMain && hasHeader && hasNav && hasFooter
     if (!semanticPass) score -= 10
 
-    // 10. Structured Data (JSON-LD) (10 pts)
+    // Diagnostic: Structured Data (10pts)
     const hasJsonLd = $('script[type="application/ld+json"]').length > 0
     const structuredPass = hasJsonLd
     if (!structuredPass) score -= 10
 
-    // Normalize score
+    // Clamp score between 0-100
     score = Math.max(0, Math.min(100, score))
 
     return {

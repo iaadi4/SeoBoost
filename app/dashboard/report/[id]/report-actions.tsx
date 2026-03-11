@@ -17,6 +17,7 @@ export function ReportActions({ report, domainUrl }: ReportActionsProps) {
     window.print()
   }
 
+  // Generates a descriptive prompt for LLMs based on diagnostic failures
   const handleCopyPrompt = () => {
     const failures: string[] = []
 

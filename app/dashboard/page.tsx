@@ -30,7 +30,7 @@ export default async function DashboardPage(props: {
     },
   })
 
-  // Synchronous Webhook Verification (Fallback for Local Testing / Instant UI refresh)
+  // Synchronous webhoook verification fallback for immediate UI state hydration
   if (
     searchParams?.payment_id && 
     searchParams?.status === 'succeeded' &&
@@ -61,7 +61,7 @@ export default async function DashboardPage(props: {
 
   const avgScore = recentReports.length
     ? Math.round(
-        recentReports.reduce((a: any, b: any) => a + b.score, 0) /
+        recentReports.reduce((a: number, b: { score: number }) => a + b.score, 0) /
           recentReports.length
       )
     : 0

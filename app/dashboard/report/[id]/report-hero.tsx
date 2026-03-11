@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { motion, useMotionValue, useSpring, animate } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { motion, animate } from 'framer-motion'
 
 interface ReportHeroProps {
   score: number
@@ -44,9 +44,9 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative flex items-center justify-center">
       <svg width="180" height="180" viewBox="0 0 180 180" className="-rotate-90">
-        {/* Track */}
+        {/* Background circle track */}
         <circle cx="90" cy="90" r={r} fill="none" stroke="currentColor" strokeWidth="12" className="text-muted/30" />
-        {/* Progress */}
+        {/* Animated progress indicator */}
         <motion.circle
           cx="90" cy="90" r={r}
           fill="none"
@@ -58,7 +58,7 @@ function ScoreRing({ score }: { score: number }) {
           style={{ filter: `drop-shadow(0 0 8px ${scoreColor}88)` }}
         />
       </svg>
-      {/* Score number */}
+      {/* Centered score display */}
       <div className="absolute flex flex-col items-center">
         <span className="text-5xl font-black tabular-nums" style={{ color: scoreColor }}>
           {displayScore}
@@ -84,13 +84,13 @@ export function ReportHero({ score, domain, scannedAt, domainUrl }: ReportHeroPr
 
   return (
     <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-card mb-8 print:hidden">
-      {/* Animated orbs */}
+      {/* Visual background decoration */}
       <Orb className="w-72 h-72 bg-primary/10 -top-16 -left-16" delay={0} duration={12} />
       <Orb className="w-56 h-56 bg-primary/8 top-8 -right-20" delay={3} duration={9} />
       <Orb className="w-40 h-40 bg-blue-500/8 bottom-0 left-1/2" delay={1.5} duration={14} />
 
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 p-8">
-        {/* Score ring */}
+        {/* Primary score visualization */}
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -100,7 +100,7 @@ export function ReportHero({ score, domain, scannedAt, domainUrl }: ReportHeroPr
           <ScoreRing score={score} />
         </motion.div>
 
-        {/* Domain info */}
+        {/* Audited site metadata */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -129,7 +129,7 @@ export function ReportHero({ score, domain, scannedAt, domainUrl }: ReportHeroPr
           </a>
         </motion.div>
 
-        {/* Metric chips */}
+        {/* Performance grade summary */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

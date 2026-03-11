@@ -43,7 +43,7 @@ const item: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 }
 
-// Floating background orb
+// Ambient background elements for visual depth
 function Orb({
   className,
   delay = 0,
@@ -144,7 +144,7 @@ export function DashboardClient({
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
-      {/* Top nav */}
+      {/* Global Navigation Header */}
       <div className="border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-8 max-w-6xl h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export function DashboardClient({
         initial="hidden"
         animate="show"
       >
-        {/* Background orbs for "living" feel */}
+        {/* Ambient background interaction layer */}
         <Orb
           className="w-[600px] h-[600px] bg-primary/10 -top-20 -left-40"
           duration={10}
@@ -199,7 +199,7 @@ export function DashboardClient({
           duration={14}
         />
 
-        {/* Header */}
+        {/* User Greeting Header */}
         <motion.div variants={item} className="mb-8">
           <p className="text-sm text-muted-foreground mb-1">Welcome back</p>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -207,7 +207,7 @@ export function DashboardClient({
           </h1>
         </motion.div>
 
-        {/* Limit warning banner */}
+        {/* Free-tier usage limit alert banner */}
         {limitReached && (
           <motion.div variants={item} className="mb-6">
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-center gap-4">
@@ -216,7 +216,7 @@ export function DashboardClient({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">
-                  You've used all 3 free scans
+                  You&apos;ve used all 3 free scans
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Pay once for $9 and get unlimited scans forever.
@@ -234,7 +234,7 @@ export function DashboardClient({
           </motion.div>
         )}
 
-        {/* Stats */}
+        {/* Key Performance Indicators (KPIs) */}
         <motion.div
           variants={item}
           className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
@@ -269,7 +269,7 @@ export function DashboardClient({
           ))}
         </motion.div>
 
-        {/* Scan Card */}
+        {/* Domain Scan Input Module */}
         <motion.div variants={item} className="mb-10">
           <div className="rounded-2xl border border-primary/25 bg-card shadow-xl shadow-primary/5 overflow-hidden">
             <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
@@ -305,7 +305,7 @@ export function DashboardClient({
           </div>
         </motion.div>
 
-        {/* Recent Reports */}
+        {/* Historical Report Interactions */}
         <motion.div variants={item}>
           <div className="flex items-center justify-between mb-5">
             <div>

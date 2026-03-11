@@ -1,12 +1,12 @@
 'use client'
 
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, CheckCircle2, Globe, Zap } from 'lucide-react'
 import Image from 'next/image'
 
-// Floating orb
+// Ambient background floating element
 function Orb({
   className,
   delay = 0,
@@ -29,7 +29,7 @@ function Orb({
   )
 }
 
-// Dot grid background
+// Radial dot-pattern background grid
 function DotGrid() {
   return (
     <div
@@ -45,7 +45,7 @@ function DotGrid() {
   )
 }
 
-// Mini scan result card
+// UI mock-up for SEO scan preview
 function ScanPreviewCard() {
   const items = [
     { label: 'Title Tag', status: 'pass' },
@@ -68,7 +68,7 @@ function ScanPreviewCard() {
       className="mt-14 max-w-2xl mx-auto"
     >
       <div className="rounded-2xl border border-primary/20 bg-card/80 backdrop-blur-sm shadow-2xl shadow-primary/10 overflow-hidden">
-        {/* Window chrome */}
+        {/* Decorative browser-window UI frame */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60 bg-muted/30">
           <div className="h-3 w-3 rounded-full bg-red-500/60" />
           <div className="h-3 w-3 rounded-full bg-amber-500/60" />
@@ -83,7 +83,7 @@ function ScanPreviewCard() {
             <Zap className="h-3 w-3" /> 87/100
           </div>
         </div>
-        {/* Scan results */}
+        {/* Simulated diagnostic results list */}
         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {items.map((item, i) => (
             <motion.div
@@ -112,7 +112,7 @@ function ScanPreviewCard() {
             </motion.div>
           ))}
         </div>
-        {/* Bottom bar */}
+        {/* Summary findings footer */}
         <div className="px-5 pb-4">
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -130,7 +130,7 @@ function ScanPreviewCard() {
 export function HeroAnimations() {
   return (
     <>
-      {/* Animated background orbs */}
+      {/* Interactive background layer elements */}
       <Orb
         className="w-[500px] h-[500px] bg-primary/15 -top-32 -left-32"
         delay={0}
@@ -149,7 +149,7 @@ export function HeroAnimations() {
 
       <DotGrid />
 
-      {/* Live badge */}
+      {/* Dynamic service status indicator */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -160,7 +160,7 @@ export function HeroAnimations() {
         SEO Analytics Engine 2.0 — Live
       </motion.div>
 
-      {/* Headline */}
+      {/* Primary marketing headline */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -184,7 +184,7 @@ export function HeroAnimations() {
         tells you exactly what to fix — and how.
       </motion.p>
 
-      {/* CTA */}
+      {/* Call-to-action engagement section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -221,7 +221,7 @@ export function HeroAnimations() {
         </div>
       </motion.div>
 
-      {/* Animated scan preview */}
+      {/* Final landing page visual preview */}
       <ScanPreviewCard />
     </>
   )

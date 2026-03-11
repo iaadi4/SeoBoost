@@ -83,7 +83,7 @@ export default async function ReportPage(props: {
         ? 'text-yellow-600 dark:text-yellow-400'
         : 'text-red-600 dark:text-red-400'
 
-  // Build deductions list for score breakdown
+  // Compute deductive score breakdown array
   const deductions: { label: string; pts: number }[] = []
   if (!report.title.pass) deductions.push({ label: 'Title Tag', pts: 10 })
   if (!report.description.pass) deductions.push({ label: 'Meta Description', pts: 10 })
@@ -100,7 +100,7 @@ export default async function ReportPage(props: {
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
       
-      {/* --- Ambient Background Elements --- */}
+      {/* Ambient Background Decoration */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden print:hidden">
         {/* Subtle dot pattern */}
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] opacity-50"></div>
@@ -111,10 +111,10 @@ export default async function ReportPage(props: {
         <div className={`absolute bottom-[-5%] left-[15%] w-[40%] h-[30%] rounded-full opacity-60 blur-[120px] animate-pulse ${report.score >= 80 ? 'bg-green-600/10' : report.score >= 50 ? 'bg-yellow-600/10' : 'bg-red-600/10'}`} style={{ animationDuration: '10s', animationDelay: '4s' }}></div>
       </div>
       
-      {/* --- Main Content --- */}
+      {/* Report Viewport Container */}
       <div className="container relative z-10 mx-auto px-4 sm:px-8 py-10 max-w-4xl print:max-w-none print:py-4 print:px-4">
 
-      {/* Nav bar — hidden in print */}
+      {/* Screen-Only Navigation Header */}
       <div className="flex justify-between items-center mb-6 print:hidden">
         <Link
           href="/dashboard"
@@ -125,7 +125,7 @@ export default async function ReportPage(props: {
         <ReportActions report={report} domainUrl={reportRecord.domainUrl} />
       </div>
 
-      {/* Animated hero — hidden in print, replaced by simple heading */}
+      {/* Interactive Hero Component (Screen Only) */}
       <div className="print:hidden">
         <ReportHero
           score={report.score}
@@ -134,13 +134,13 @@ export default async function ReportPage(props: {
           domainUrl={reportRecord.domainUrl}
         />
       </div>
-      {/* Print-only simple header */}
+      {/* Static Header Component (Print Only) */}
       <div className="hidden print:block mb-6">
         <h1 className="text-2xl font-bold">SEO Audit: {domainHost}</h1>
         <p className="text-sm text-muted-foreground">Score: {report.score}/100 · Scanned {new Date(reportRecord.createdAt).toLocaleString()}</p>
       </div>
 
-      {/* Score Breakdown — only if there are deductions */}
+      {/* Deductive Score Breakdown Module */}
       {deductions.length > 0 && (
         <Card className="mb-6 border-yellow-500/30 bg-yellow-500/5 print:mb-4">
           <CardHeader className="pb-2">
@@ -176,7 +176,7 @@ export default async function ReportPage(props: {
 
       <AnimatedSection>
 
-        {/* ── 1. Title Tag ─────────────────────────────────── */}
+        {/* Diagnostic Module: Title Tag */}
         <AnimatedItem>
         <Card className={report.title.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -205,7 +205,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 2. Meta Description ──────────────────────────── */}
+        {/* Diagnostic Module: Meta Description */}
         <AnimatedItem>
         <Card className={report.description.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -234,7 +234,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 3. H1 & Heading ──────────────────────────────── */}
+        {/* Diagnostic Module: H1 & Heading */}
         <AnimatedItem>
         <Card className={report.h1.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -266,7 +266,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 4. Images ────────────────────────────────────── */}
+        {/* Diagnostic Module: Images */}
         <AnimatedItem>
         <Card className={report.images.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -299,7 +299,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 5. Content Volume ────────────────────────────── */}
+        {/* Diagnostic Module: Content Volume */}
         <AnimatedItem>
         <Card className={report.content?.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -326,7 +326,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 6. Technical Core Tags ───────────────────────── */}
+        {/* Diagnostic Module: Technical Core Tags */}
         <AnimatedItem>
         <Card className={report.technical?.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -359,7 +359,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 7. Social Sharing Tags ───────────────────────── */}
+        {/* Diagnostic Module: Social Sharing Tags */}
         <AnimatedItem>
         <Card className={report.socialTags?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -386,7 +386,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 8. Semantic HTML ─────────────────────────────── */}
+        {/* Diagnostic Module: Semantic HTML */}
         <AnimatedItem>
         <Card className={report.semanticHtml?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
@@ -413,7 +413,7 @@ export default async function ReportPage(props: {
         </Card>
         </AnimatedItem>
 
-        {/* ── 9. Structured Data ───────────────────────────── */}
+        {/* Diagnostic Module: Structured Data */}
         <AnimatedItem>
         <Card className={report.structuredData?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
