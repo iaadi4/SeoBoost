@@ -371,6 +371,7 @@ export default async function Home() {
                 {[
                   { label: 'Documentation', href: '/dashboard' },
                   { label: 'SEO Dashboard', href: '/dashboard' },
+                  { label: 'SEO Glossary', href: '/glossary' },
                   { label: 'Support', href: 'mailto:hello@seoboost.app' },
                 ].map((l) => (
                   <li key={l.label}>

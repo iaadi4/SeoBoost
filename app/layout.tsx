@@ -78,25 +78,43 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'SEO Boost',
-    operatingSystem: 'Web',
-    applicationCategory: 'BusinessApplication',
-    offers: {
-      '@type': 'Offer',
-      price: '9.00',
-      priceCurrency: 'USD',
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'SEO Boost',
+      operatingSystem: 'Web',
+      applicationCategory: 'BusinessApplication',
+      offers: {
+        '@type': 'Offer',
+        price: '9.00',
+        priceCurrency: 'USD',
+      },
+      description:
+        'Professional technical SEO audits in seconds. Fix your website issues and rank higher.',
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.9',
+        ratingCount: '120',
+      },
     },
-    description:
-      'Professional technical SEO audits in seconds. Fix your website issues and rank higher.',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      ratingCount: '120',
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'SEO Boost',
+      url: 'https://seoboost.app',
+      logo: 'https://seoboost.app/icon.png',
+      sameAs: [
+        'https://twitter.com/seoboost'
+      ]
     },
-  }
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'SEO Boost',
+      url: 'https://seoboost.app',
+    }
+  ]
 
   return (
     <html lang="en" suppressHydrationWarning>
