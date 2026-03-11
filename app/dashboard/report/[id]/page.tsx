@@ -28,6 +28,8 @@ import {
 import Link from 'next/link'
 import { SEOReport } from '@/lib/scanner'
 import { ReportActions } from './report-actions'
+import { ReportHero } from './report-hero'
+import { AnimatedSection, AnimatedItem } from './animated-section'
 
 function PassBadge({ pass, partial }: { pass: boolean; partial?: boolean }) {
   if (pass) return <Badge className="bg-green-500 hover:bg-green-600 text-white shrink-0">Passed</Badge>
@@ -81,13 +83,6 @@ export default async function ReportPage(props: {
         ? 'text-yellow-600 dark:text-yellow-400'
         : 'text-red-600 dark:text-red-400'
 
-  const scoreBorder =
-    report.score >= 80
-      ? 'border-green-500/50 bg-green-500/5'
-      : report.score >= 50
-        ? 'border-yellow-500/50 bg-yellow-500/5'
-        : 'border-red-500/50 bg-red-500/5'
-
   // Build deductions list for score breakdown
   const deductions: { label: string; pts: number }[] = []
   if (!report.title.pass) deductions.push({ label: 'Title Tag', pts: 10 })
@@ -103,10 +98,24 @@ export default async function ReportPage(props: {
   if (!report.structuredData?.pass) deductions.push({ label: 'Structured Data (JSON-LD)', pts: 10 })
 
   return (
-    <div className="container mx-auto px-4 sm:px-8 py-10 max-w-4xl print:max-w-none print:py-4 print:px-4">
+    <div className="min-h-screen relative overflow-hidden bg-background">
+      
+      {/* --- Ambient Background Elements --- */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden print:hidden">
+        {/* Subtle dot pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] opacity-50"></div>
+        
+        {/* Glowing orbs */}
+        <div className={`absolute top-[-5%] left-[-5%] w-[30%] h-[30%] rounded-full opacity-60 blur-[100px] animate-pulse ${report.score >= 80 ? 'bg-green-500/10' : report.score >= 50 ? 'bg-yellow-500/10' : 'bg-red-500/10'}`} style={{ animationDuration: '8s' }}></div>
+        <div className={`absolute top-[20%] right-[-5%] w-[25%] h-[40%] rounded-full opacity-60 blur-[120px] animate-pulse ${report.score >= 80 ? 'bg-green-400/10' : report.score >= 50 ? 'bg-yellow-400/10' : 'bg-red-400/10'}`} style={{ animationDuration: '12s', animationDelay: '2s' }}></div>
+        <div className={`absolute bottom-[-5%] left-[15%] w-[40%] h-[30%] rounded-full opacity-60 blur-[120px] animate-pulse ${report.score >= 80 ? 'bg-green-600/10' : report.score >= 50 ? 'bg-yellow-600/10' : 'bg-red-600/10'}`} style={{ animationDuration: '10s', animationDelay: '4s' }}></div>
+      </div>
+      
+      {/* --- Main Content --- */}
+      <div className="container relative z-10 mx-auto px-4 sm:px-8 py-10 max-w-4xl print:max-w-none print:py-4 print:px-4">
 
       {/* Nav bar — hidden in print */}
-      <div className="flex justify-between items-center mb-8 print:hidden">
+      <div className="flex justify-between items-center mb-6 print:hidden">
         <Link
           href="/dashboard"
           className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -116,35 +125,19 @@ export default async function ReportPage(props: {
         <ReportActions report={report} domainUrl={reportRecord.domainUrl} />
       </div>
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 print:mb-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">
-            SEO Audit: <span className="text-primary">{domainHost}</span>
-          </h1>
-          <p className="text-muted-foreground text-sm flex items-center gap-2 flex-wrap">
-            Scanned on {new Date(reportRecord.createdAt).toLocaleString()}
-            <a
-              href={reportRecord.domainUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-primary hover:underline inline-flex items-center print:hidden"
-            >
-              Visit site <LinkIcon className="ml-1 h-3 w-3" />
-            </a>
-          </p>
-        </div>
-        <Card className={`shrink-0 border-2 w-full md:w-auto text-center ${scoreBorder}`}>
-          <CardContent className="pt-4 px-10 pb-4">
-            <div className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-widest">
-              Health Score
-            </div>
-            <div className={`text-7xl font-black tabular-nums ${scoreColor}`}>
-              {report.score}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">out of 100</div>
-          </CardContent>
-        </Card>
+      {/* Animated hero — hidden in print, replaced by simple heading */}
+      <div className="print:hidden">
+        <ReportHero
+          score={report.score}
+          domain={domainHost}
+          scannedAt={reportRecord.createdAt.toISOString()}
+          domainUrl={reportRecord.domainUrl}
+        />
+      </div>
+      {/* Print-only simple header */}
+      <div className="hidden print:block mb-6">
+        <h1 className="text-2xl font-bold">SEO Audit: {domainHost}</h1>
+        <p className="text-sm text-muted-foreground">Score: {report.score}/100 · Scanned {new Date(reportRecord.createdAt).toLocaleString()}</p>
       </div>
 
       {/* Score Breakdown — only if there are deductions */}
@@ -181,9 +174,10 @@ export default async function ReportPage(props: {
 
       <h2 className="text-xl font-bold mb-4">Detailed Analysis</h2>
 
-      <div className="grid gap-5">
+      <AnimatedSection>
 
         {/* ── 1. Title Tag ─────────────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.title.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.title.pass} />
@@ -209,8 +203,10 @@ export default async function ReportPage(props: {
             <Progress value={Math.min(100, (report.title.value.length / 65) * 100)} className="h-1.5 mt-1" />
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 2. Meta Description ──────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.description.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.description.pass} />
@@ -236,8 +232,10 @@ export default async function ReportPage(props: {
             <Progress value={Math.min(100, (report.description.value.length / 160) * 100)} className="h-1.5 mt-1" />
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 3. H1 & Heading ──────────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.h1.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.h1.pass} />
@@ -266,8 +264,10 @@ export default async function ReportPage(props: {
             </div>
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 4. Images ────────────────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.images.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.images.pass} />
@@ -297,8 +297,10 @@ export default async function ReportPage(props: {
             </div>
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 5. Content Volume ────────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.content?.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.content?.pass ?? false} />
@@ -322,8 +324,10 @@ export default async function ReportPage(props: {
             <p className="text-xs text-center text-muted-foreground mt-1">Target: 300+ words for strong rankings</p>
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 6. Technical Core Tags ───────────────────────── */}
+        <AnimatedItem>
         <Card className={report.technical?.pass ? 'border-green-500/20' : 'border-red-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.technical?.pass ?? false} />
@@ -353,8 +357,10 @@ export default async function ReportPage(props: {
             )}
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 7. Social Sharing Tags ───────────────────────── */}
+        <AnimatedItem>
         <Card className={report.socialTags?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.socialTags?.pass ?? false} />
@@ -378,8 +384,10 @@ export default async function ReportPage(props: {
             )}
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 8. Semantic HTML ─────────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.semanticHtml?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.semanticHtml?.pass ?? false} />
@@ -403,8 +411,10 @@ export default async function ReportPage(props: {
             )}
           </CardContent>
         </Card>
+        </AnimatedItem>
 
         {/* ── 9. Structured Data ───────────────────────────── */}
+        <AnimatedItem>
         <Card className={report.structuredData?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <StatusIcon pass={report.structuredData?.pass ?? false} />
@@ -427,8 +437,9 @@ export default async function ReportPage(props: {
             )}
           </CardContent>
         </Card>
+        </AnimatedItem>
 
-        {/* ── 10. Link Analysis ────────────────────────────── */}
+      <AnimatedItem>
         <Card>
           <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
             <LinkIcon className="h-5 w-5 text-blue-500" />
@@ -455,7 +466,9 @@ export default async function ReportPage(props: {
             <p className="text-xs text-muted-foreground mt-3">{report.links.message}</p>
           </CardContent>
         </Card>
+      </AnimatedItem>
 
+      </AnimatedSection>
       </div>
     </div>
   )
