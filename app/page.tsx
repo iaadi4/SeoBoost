@@ -8,12 +8,19 @@ import { BentoGrid } from './bento-grid'
 
 const features = [
   { name: 'Scans per domain', free: '3 total', pro: 'Unlimited' },
-  { name: 'SEO Health Score', free: true, pro: true },
-  { name: 'Title & Meta checks', free: true, pro: true },
-  { name: 'Image optimization', free: false, pro: true },
-  { name: 'Internal link analysis', free: false, pro: true },
-  { name: 'Broken link detection', free: false, pro: true },
-  { name: 'Export reports to PDF', free: false, pro: true },
+  { name: 'Pages crawled per scan', free: '5', pro: '5' },
+  { name: 'SEO Health Score (A–F grade)', free: true, pro: true },
+  { name: 'Title, meta & canonical checks', free: true, pro: true },
+  { name: 'Social (OG + Twitter Cards)', free: true, pro: true },
+  { name: 'Content & heading analysis', free: true, pro: true },
+  { name: 'Accessibility (WCAG hints)', free: false, pro: true },
+  { name: 'Performance & Core Web Vitals', free: false, pro: true },
+  { name: 'Security headers audit', free: false, pro: true },
+  { name: 'Structured data / JSON-LD', free: false, pro: true },
+  { name: 'Internal link graph analysis', free: false, pro: true },
+  { name: 'Image optimisation insights', free: false, pro: true },
+  { name: 'AI-ready prompt export', free: false, pro: true },
+  { name: 'Export report to PDF', free: false, pro: true },
 ]
 
 function FeatureValue({ value }: { value: boolean | string }) {
@@ -97,12 +104,12 @@ export default async function Home() {
                 Features
               </span>
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-                Full-Scale Technical SEO Analysis
+                45+ Checks. 11 Audit Categories.
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Our advanced algorithm performs a deep technical audit, checking
-                Core Web Vitals, meta robots, and internal linking to boost your
-                search visibility instantly.
+                Our crawler scans up to 5 pages per domain and runs deep checks
+                across Meta, Content, Performance, Accessibility, Security,
+                Structured Data, and more — giving you a full picture, fast.
               </p>
             </div>
             <BentoGrid />
@@ -114,9 +121,9 @@ export default async function Home() {
           <div className="container mx-auto px-4 sm:px-8 max-w-5xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               {[
-                { value: '50+', label: 'Founders using SEO Boost' },
-                { value: '8s', label: 'Average scan time' },
-                { value: '12+', label: 'SEO checks per report' },
+                { value: '45+', label: 'SEO checks per scan' },
+                { value: '5', label: 'Pages crawled per domain' },
+                { value: '11', label: 'Audit categories covered' },
                 { value: '$9', label: 'One-time unlock price' },
               ].map((s) => (
                 <div key={s.label}>
@@ -164,8 +171,10 @@ export default async function Home() {
                 <ul className="space-y-2.5 flex-1 mb-8 text-sm">
                   {[
                     '3 scans total',
-                    'Full SEO Health Score',
-                    'Meta & title checks',
+                    'Full SEO Health Score (A–F)',
+                    'Meta, title & canonical checks',
+                    'Open Graph & Twitter Cards',
+                    'Content & heading analysis',
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-2.5">
                       <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -214,10 +223,15 @@ export default async function Home() {
                   <ul className="space-y-2.5 flex-1 mb-8 text-sm">
                     {[
                       'Unlimited scans — forever',
-                      'Advanced link analysis',
-                      'Image optimization insights',
+                      '5 pages crawled per scan',
+                      '45+ detailed SEO checks',
+                      'Performance & Core Web Vitals',
+                      'Accessibility (WCAG) audit',
+                      'Security headers analysis',
+                      'Structured data / JSON-LD',
+                      'Image & link optimisation',
+                      'AI-ready prompt export',
                       'PDF report export',
-                      'Priority support',
                     ].map((f) => (
                       <li key={f} className="flex items-center gap-2.5">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />

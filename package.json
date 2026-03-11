@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
-    "check": "next lint && tsc --noEmit"
+    "check": "eslint && tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

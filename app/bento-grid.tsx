@@ -189,12 +189,13 @@ export function BentoGrid() {
         <div>
           <h3 className="text-2xl font-bold mb-2">Deep Technical Scan</h3>
           <p className="text-muted-foreground text-base max-w-md leading-relaxed">
-            Analyzing <TypedDomain /> — title tags, viewport, robots meta, open
-            graph, alt texts, and more.
+            Scanning <TypedDomain /> — crawling up to 5 pages, checking titles,
+            meta, canonical URLs, Open Graph, Twitter Cards, security headers,
+            JSON-LD, and 45+ more signals.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap mt-auto">
-          {['Meta Tags', 'OG Data', 'Alt Texts', 'Robots', 'Viewport'].map(
+          {['Meta & Canonical', 'OG + Twitter', 'Security Headers', 'JSON-LD', 'WCAG', 'Core Web Vitals', 'Image Alt', 'Sitemaps'].map(
             (t) => (
               <span
                 key={t}
@@ -222,7 +223,8 @@ export function BentoGrid() {
         </div>
         <h3 className="text-2xl font-bold mb-2">Health Score</h3>
         <p className="text-muted-foreground text-base mb-6">
-          Proprietary SEO score out of 100 — know exactly where you stand.
+          Proprietary A–F SEO grade out of 100 — calculated from 45+ checks
+          across your entire site.
         </p>
         <div className="mt-auto flex items-end gap-2">
           <span className="text-6xl font-black text-primary tabular-nums">
@@ -299,15 +301,15 @@ export function BentoGrid() {
           </div>
           <h3 className="text-2xl font-bold mb-2">Content Analysis</h3>
           <p className="text-muted-foreground text-base max-w-md leading-relaxed">
-            Verify content volume, keyword structure, and internal linking to
-            prevent thin-content penalties.
+            Word count, heading hierarchy, keyword density, and internal linking
+            — spot thin-content penalties before Google does.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-4 mt-8">
           {[
-            { label: 'Word Count', value: '1,842', icon: Shield },
+            { label: 'SEO Checks', value: '45+', icon: Shield },
             { label: 'Internal Links', value: '17', icon: Zap },
-            { label: 'Keyword Density', value: '2.3%', icon: TrendingUp },
+            { label: 'Audit Categories', value: '11', icon: TrendingUp },
           ].map((s) => (
             <div
               key={s.label}
