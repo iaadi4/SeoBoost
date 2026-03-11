@@ -1,150 +1,219 @@
-# 🚀 SEO Boost
+<div align="center">
 
-**Instant SEO audits for founders, marketers, and developers who want to rank.**
+# 🔍 SeoBoost Scanner
 
-SEO Boost is a modern SaaS application designed to provide deep, actionable insights into website SEO health in seconds. Built with speed and usability in mind, it helps you identify critical issues that impact your search engine rankings.
+**Production-grade SEO auditing engine for Next.js applications.**  
+Crawls a domain, runs 40+ checks across 11 categories, and returns a fully typed, prioritised `SEOReport`.
 
-## ✨ Features
+</div>
 
-- **Lightning Fast Scanning**: Analyze any domain in under 8 seconds.
-- **Deep Technical Audit**: Checks for title tags, meta descriptions, image optimization, link health, and more.
-- **Actionable Reports**: Beautifully visualized data with clear instructions on how to fix issues.
-- **One-Time Pricing**: No monthly subscriptions. Pay once, use forever.
-- **"Pro" Dashboard**: Track all your past reports and progress in one place.
-- **Living UI**: Premium glassmorphic design with subtle animations for a modern feel.
+---
 
-## 🛠️ Tech Stack
-
-- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) (via [Supabase](https://supabase.com/))
-- **ORM**: [Prisma](https://www.prisma.io/)
-- **Authentication**: [Supabase Auth](https://supabase.com/auth)
-- **Payments**: [DodoPayments](https://dodopayments.com/)
-
-## 🏗️ System Architecture
-
-```mermaid
-graph TD
-  subgraph Client
-    Browser[Client Browser]
-  end
-
-  subgraph NextJS_App["Next.js App (Server & Client)"]
-    Router[App Router]
-    ClientComponents[Interative UI Components]
-    APIRoutes[API Routes]
-  end
-
-  subgraph Infrastructure
-    SupabaseAuth[Supabase Auth]
-    PostgreSQL[(PostgreSQL Database)]
-    PrismaORM[Prisma ORM]
-    ScanEngine[SEO Scan Engine]
-    DodoPaymentsAPI[DodoPayments API]
-  end
-
-  Browser <--> ClientComponents
-  ClientComponents <--> Router
-  Router <--> APIRoutes
-  APIRoutes <--> SupabaseAuth
-  APIRoutes <--> PrismaORM
-  PrismaORM <--> PostgreSQL
-  APIRoutes <--> ScanEngine
-  APIRoutes <--> DodoPaymentsAPI
-```
-
-## 📊 Data Model
-
-```mermaid
-erDiagram
-  USER ||--o{ DOMAIN_REPORT : "owns"
-  USER {
-    string id PK
-    string email "Unique"
-    string name "Optional"
-    string subscriptionPlan "free | pro"
-    string dodoCustomerId "Nullable"
-    datetime createdAt
-  }
-  DOMAIN_REPORT {
-    string id PK "cuid"
-    string userId FK
-    string domainUrl
-    int score "0-100"
-    string reportData "JSON representation"
-    datetime createdAt
-  }
-```
-
-## 🔄 User Flow
+## ⚙️ How It Works
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant A as SEO Boost App
-    participant S as Supabase Auth
-    participant D as DodoPayments
-    
-    U->>A: Visit Landing Page
-    U->>A: Enter Domain & Click Scan
-    A->>A: Run Technical Audit (8s)
-    A->>U: Display SEO Health Report
-    
-    Note over U,A: User authentication flow
-    U->>A: Sign Up / Sign In
-    A->>S: Authenticate Request
-    S-->>A: User Session
-    
-    Note over U,A: Subscription Upgrade
-    U->>A: Click "Unlock Unlimited"
-    A->>D: Create Checkout session
-    D-->>U: Redirect to Checkout
-    U->>D: Complete $9 Payment
-    D->>A: Webhook (payment.succeeded)
-    A->>A: Update User to "pro"
-    A->>U: Grant Unlimited Scan Access
+    participant Caller
+    participant scanDomain
+    participant fetchUrl
+    participant analysePage
+    participant runDomainChecks
+
+    Caller->>scanDomain: domain + ScanOptions
+    scanDomain->>scanDomain: Normalise seed URL, init BFS queue
+
+    loop BFS — up to maxPages
+        scanDomain->>fetchUrl: GET page
+        fetchUrl-->>scanDomain: html, headers, finalUrl
+        scanDomain->>analysePage: html + response headers
+        analysePage-->>scanDomain: CheckResult[], outboundLinks[]
+        scanDomain->>scanDomain: Enqueue new same-origin links
+    end
+
+    scanDomain->>runDomainChecks: origin
+    runDomainChecks->>fetchUrl: /robots.txt, /sitemap.xml, / (security headers)
+    runDomainChecks-->>scanDomain: domain CheckResult[]
+
+    scanDomain->>scanDomain: Aggregate → score → sort → top priorities
+    scanDomain-->>Caller: SEOReport
 ```
 
-## 🚀 Getting Started
+---
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd seo-boost
-   ```
+## 🗂️ Check Categories
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment Variables:**
-   Create a `.env` file in the root directory and add:
-   ```env
-   # Database
-   DATABASE_URL="your_postgresql_url"
-
-   # Supabase
-   NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
-   NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
-
-   # DodoPayments
-   DODO_PAYMENTS_API_KEY="your_api_key"
-   DODO_WEBHOOK_KEY="your_webhook_secret"
-   NEXT_PUBLIC_DODO_PRODUCT_ID="pdt_your_id"
-   ```
-
-4. **Run Database Migrations:**
-   ```bash
-   npx prisma db push
-   ```
-
-5. **Start Development Server:**
-   ```bash
-   npm run dev
-   ```
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Checks</th>
+  </tr>
+  <tr>
+    <td><b>📋 meta</b></td>
+    <td>Title Tag · Meta Description · Canonical URL · Meta Robots · URL Structure · Keyword in URL · hreflang</td>
+  </tr>
+  <tr>
+    <td><b>📝 content</b></td>
+    <td>H1 Heading · Heading Hierarchy · Word Count · Keyword in Intro · Readability</td>
+  </tr>
+  <tr>
+    <td><b>⚙️ technical</b></td>
+    <td>Doctype · Charset · Viewport · Compression · Caching · Page Size · Favicon</td>
+  </tr>
+  <tr>
+    <td><b>⚡ performance</b></td>
+    <td>Lazy Loading · Render Blocking · Resource Hints</td>
+  </tr>
+  <tr>
+    <td><b>📣 social</b></td>
+    <td>Open Graph · Twitter Cards</td>
+  </tr>
+  <tr>
+    <td><b>♿ accessibility</b></td>
+    <td>HTML lang · Skip Navigation · Semantic Landmarks · Form Labels · ARIA Usage</td>
+  </tr>
+  <tr>
+    <td><b>🔒 security</b></td>
+    <td>HTTPS · HSTS · Security Headers</td>
+  </tr>
+  <tr>
+    <td><b>🔗 links</b></td>
+    <td>Internal Links · Anchor Text Quality · External rel Security · Placeholder Links</td>
+  </tr>
+  <tr>
+    <td><b>🖼️ images</b></td>
+    <td>Alt Text · Image Dimensions</td>
+  </tr>
+  <tr>
+    <td><b>🧩 structured-data</b></td>
+    <td>JSON-LD Validity · Breadcrumb Schema · FAQ Schema · Video Schema</td>
+  </tr>
+  <tr>
+    <td><b>🌐 domain</b></td>
+    <td>Robots.txt · XML Sitemap</td>
+  </tr>
+</table>
 
 ---
-Made with ♥ for founders who want to rank.
+
+## 🧱 Data Model
+
+```mermaid
+classDiagram
+    class SEOReport {
+        +string domain
+        +ScanSummary summary
+        +number pagesScanned
+        +PageAnalysis[] pageAnalysis
+        +AggregatedCheck[] aggregatedChecks
+        +Record~CheckCategory, AggregatedCheck[]~ checksByCategory
+        +string scannedAt
+        +number durationMs
+    }
+
+    class ScanSummary {
+        +number score
+        +"A"|"B"|"C"|"D"|"F" grade
+        +number criticalIssues
+        +number warningIssues
+        +number passedChecks
+        +AggregatedCheck[] topPriorities
+    }
+
+    class PageAnalysis {
+        +string url
+        +string path
+        +number score
+        +number issuesCount
+        +CheckResult[] checks
+    }
+
+    class AggregatedCheck {
+        +string id
+        +CheckStatus status
+        +string currentValue
+        +number issueCount
+        +string worstPage
+        +PageBreakdown[] pageBreakdown
+    }
+
+    class CheckResult {
+        +string id
+        +CheckCategory category
+        +CheckStatus status
+        +string value
+        +string message
+        +string whyItMatters
+        +string howToFix
+        +string snippet
+        +string wcag
+        +"low"|"medium"|"high" effort
+        +"low"|"medium"|"high" impact
+    }
+
+    SEOReport --> ScanSummary
+    SEOReport --> PageAnalysis
+    SEOReport --> AggregatedCheck
+    PageAnalysis --> CheckResult
+    ScanSummary --> AggregatedCheck : topPriorities
+```
+
+---
+
+## 📊 Scoring
+
+Each page starts at **100 points**. Checks deduct based on severity. Domain-level checks apply the same penalties to the final averaged score.
+
+| Status | Delta |
+|:---|:---:|
+| 🔴 `critical` | −15 pts |
+| 🟡 `warning` | −5 pts |
+| 🟢 `good` | 0 pts |
+
+```mermaid
+flowchart LR
+    A[100 pts] -->|each critical| B[-15]
+    A -->|each warning| C[-5]
+    B & C --> D[Page Score\nclamped 0–100]
+    D --> E[Avg across pages]
+    E -->|domain check penalties| F[Final Score]
+    F --> G{Grade}
+    G -->|≥90| A1[A]
+    G -->|≥75| B1[B]
+    G -->|≥60| C1[C]
+    G -->|≥45| D1[D]
+    G -->|<45| F1[F]
+```
+
+---
+
+## 🕷️ Crawl Behaviour
+
+The crawler runs a BFS loop capped at `maxPages`. It automatically skips non-canonical paths to avoid wasting crawl budget:
+
+| Skipped | Examples |
+|:---|:---|
+| Static assets | `.js` `.css` `.png` `.woff2` |
+| Framework internals | `/_next/` `/wp-admin/` `/api/` |
+| Feeds & archives | `/feed/` `/rss/` `/2024/01/15/` |
+| Search & filter URLs | `?s=` `?filter=` `?sort=` |
+| Transactional paths | `/checkout/` `/account/` `/login/` |
+
+> Tracking parameters (`utm_*`, `fbclid`, `gclid`, etc.) are stripped before deduplication. Redirect chains are fully resolved — both the original and final URLs are marked visited to prevent loops.
+
+---
+
+## 🚦 Check Severity Reference
+
+| Category | Check | 🔴 Critical | 🟡 Warning |
+|:---|:---|:---|:---|
+| `meta` | Title | Missing | < 30 or > 65 chars |
+| `meta` | Meta Description | Missing | < 70 or > 160 chars |
+| `meta` | Meta Robots | `noindex` detected | `nofollow` detected |
+| `meta` | Canonical | — | Missing or cross-page |
+| `content` | H1 | Missing | Multiple H1s or > 70 chars |
+| `content` | Word Count | < 100 words | < 300 words |
+| `technical` | Viewport | Missing | `user-scalable=no` or no `width=device-width` |
+| `technical` | Page Size | > 500 KB | > 150 KB |
+| `security` | SSL | HTTP origin | — |
+| `domain` | Robots.txt | `Disallow: /` traps all crawlers | Missing or no `Sitemap:` ref |
+| `images` | Alt Text | > 3 images missing `alt` | Any image missing `alt` |
