@@ -7,7 +7,7 @@ import { HeroAnimations } from './hero-animations'
 import { BentoGrid } from './bento-grid'
 
 const features = [
-  { name: 'Scans per domain', free: '3 total', pro: 'Unlimited' },
+  { name: 'Scans (total / monthly)', free: '3 lifetime', pro: 'Unlimited' },
   { name: 'Pages crawled per scan', free: '5', pro: '5' },
   { name: 'SEO Health Score (A–F grade)', free: true, pro: true },
   { name: 'Title, meta & canonical checks', free: true, pro: true },
@@ -145,13 +145,12 @@ export default async function Home() {
                 Pricing
               </span>
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 text-foreground">
-                One-Time SEO Investment.{' '}
-                <span className="text-primary">Boost Forever.</span>
+                Simple, Transparent{' '}
+                <span className="text-primary">Pricing.</span>
               </h2>
               <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                No monthly subscriptions or hidden fees. Our one-time payment
-                unlocks unlimited technical audits and search visibility reports
-                for life.
+                Start for free with 3 total scans. Upgrade to Pro for unlimited
+                audits — cancel any time.
               </p>
             </div>
 
@@ -166,7 +165,7 @@ export default async function Home() {
                   <span className="text-muted-foreground mb-1">forever</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Try it with 3 free scans
+                  3 total scans — no credit card needed
                 </p>
                 <ul className="space-y-2.5 flex-1 mb-8 text-sm">
                   {[
@@ -215,14 +214,14 @@ export default async function Home() {
                     <span className="text-5xl font-extrabold text-primary">
                       $9
                     </span>
-                    <span className="text-muted-foreground mb-1">one‑time</span>
+                    <span className="text-muted-foreground mb-1">/mo</span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Pay once, scan unlimited domains
+                    Unlimited scans, cancel any time
                   </p>
                   <ul className="space-y-2.5 flex-1 mb-8 text-sm">
                     {[
-                      'Unlimited scans — forever',
+                      'Unlimited scans',
                       '5 pages crawled per scan',
                       '45+ detailed SEO checks',
                       'Performance & Core Web Vitals',
@@ -244,7 +243,7 @@ export default async function Home() {
                       size="lg"
                       className="w-full rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-lg shadow-primary/25 gap-2"
                     >
-                      Unlock for $9 <ArrowRight className="h-4 w-4" />
+                      Subscribe for $9/mo <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </div>

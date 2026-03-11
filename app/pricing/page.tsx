@@ -50,14 +50,20 @@ function Orb({
 }
 
 const features = [
-  { name: 'Scans per domain', free: '3 total', pro: 'Unlimited' },
-  { name: 'SEO Health Score', free: true, pro: true },
-  { name: 'Title & Meta checks', free: true, pro: true },
-  { name: 'Image optimization', free: false, pro: true },
-  { name: 'Internal link analysis', free: false, pro: true },
-  { name: 'Broken link detection', free: false, pro: true },
-  { name: 'Export reports to PDF', free: false, pro: true },
-  { name: 'Priority support', free: false, pro: true },
+  { name: 'Scans (total / monthly)', free: '3 lifetime', pro: 'Unlimited' },
+  { name: 'Pages crawled per scan', free: '5', pro: '5' },
+  { name: 'SEO Health Score (A–F)', free: true, pro: true },
+  { name: 'Title, meta & canonical checks', free: true, pro: true },
+  { name: 'Social (OG + Twitter Cards)', free: true, pro: true },
+  { name: 'Content & heading analysis', free: true, pro: true },
+  { name: 'Accessibility (WCAG) audit', free: false, pro: true },
+  { name: 'Performance & Core Web Vitals', free: false, pro: true },
+  { name: 'Security headers analysis', free: false, pro: true },
+  { name: 'Structured data / JSON-LD', free: false, pro: true },
+  { name: 'Internal link graph analysis', free: false, pro: true },
+  { name: 'Image optimisation insights', free: false, pro: true },
+  { name: 'AI-ready prompt export', free: false, pro: true },
+  { name: 'Export report to PDF', free: false, pro: true },
 ]
 
 function FeatureValue({ value }: { value: boolean | string }) {
@@ -78,9 +84,9 @@ function LimitBanner() {
     >
       <Lock className="h-5 w-5 text-amber-500 shrink-0" />
       <p className="text-sm font-medium">
-        You&apos;ve used all 3 free scans. Upgrade once for{' '}
-        <span className="text-primary font-bold">$9</span> and scan unlimited
-        domains forever.
+        You&apos;ve used all 3 free scans. Subscribe to Pro for{' '}
+        <span className="text-primary font-bold">$9/mo</span> and scan unlimited
+        domains — cancel any time.
       </p>
     </motion.div>
   )
@@ -163,13 +169,12 @@ function PricingContent() {
               Simple Pricing
             </span>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
-              One-Time <span className="text-primary">SEO Boost.</span> Scan
-              Forever.
+              Simple Pricing.{' '}
+              <span className="text-primary">Unlimited Scans.</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Get unlimited technical audits, Core Web Vitals checks, and search
-              visibility insights with a single one-time payment. No monthly
-              fees.
+              Start free with 3 total scans. Go Pro for $9/mo and run unlimited
+              audits across any domain — cancel any time.
             </p>
           </motion.div>
 
@@ -239,20 +244,24 @@ function PricingContent() {
                     <span className="text-5xl font-extrabold text-primary">
                       $9
                     </span>
-                    <span className="text-muted-foreground mb-1">one‑time</span>
+                    <span className="text-muted-foreground mb-1">/mo</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Pay once. Use forever. No renewals.
+                    Unlimited scans. Cancel any time.
                   </p>
                 </div>
                 <ul className="space-y-3 flex-1 mb-8">
                   {[
-                    'Unlimited scans — forever',
-                    'Advanced internal link analysis',
-                    'Image optimization insights',
-                    'Broken link detection',
-                    'Export reports to PDF',
-                    'Priority support',
+                    'Unlimited scans',
+                    '5 pages crawled per scan',
+                    '45+ detailed SEO checks',
+                    'Performance & Core Web Vitals',
+                    'Accessibility (WCAG) audit',
+                    'Security headers analysis',
+                    'Structured data / JSON-LD',
+                    'Image & link optimisation',
+                    'AI-ready prompt export',
+                    'PDF report export',
                   ].map((f) => (
                     <li key={f} className="flex items-center gap-2.5 text-sm">
                       <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -276,7 +285,7 @@ function PricingContent() {
                     </>
                   ) : (
                     <>
-                      Unlock Unlimited — $9 <ArrowRight className="h-4 w-4" />
+                      Subscribe — $9/mo <ArrowRight className="h-4 w-4" />
                     </>
                   )}
                 </Button>

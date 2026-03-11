@@ -18,7 +18,7 @@ export default async function ReportsPage() {
     orderBy: { createdAt: 'desc' },
   })
 
-  const reportsForClient = allReports.map((r) => ({
+  const reportsForClient = allReports.map((r: (typeof allReports)[number]) => ({
     id: r.id,
     domainUrl: r.domainUrl,
     score: r.score,

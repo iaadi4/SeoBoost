@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { scanDomain } from '@/lib/scanner'
 import { NextResponse } from 'next/server'
 
+/** Lifetime scan limit for free-tier users (3 scans total, any domain). */
 const FREE_SCAN_LIMIT = 3
 
 export async function POST(req: Request) {
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       },
     })
 
-    // Enforce free tier scan limit
+    // Enforce free tier lifetime scan limit (3 total scans across all domains)
     if (dbUser.subscriptionPlan === 'free') {
       const scanCount = await prisma.domainReport.count({
         where: { userId: user.id },

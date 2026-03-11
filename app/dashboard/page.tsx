@@ -71,7 +71,7 @@ export default async function DashboardPage(props: {
     user.email?.split('@')[0] ||
     'there'
 
-  const reportsForClient = recentReports.map((r) => ({
+  const reportsForClient = recentReports.map((r: (typeof recentReports)[number]) => ({
     id: r.id,
     domainUrl: r.domainUrl,
     score: r.score,
