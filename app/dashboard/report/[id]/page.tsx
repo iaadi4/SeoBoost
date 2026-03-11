@@ -485,16 +485,6 @@ export default async function ReportPage(props: {
                   {report.technical?.hasFavicon ? 'Found' : 'Missing'}
                 </div>
               </div>
-              <div
-                className={`p-4 rounded-lg text-center border ${report.technical?.hasOGTags ? 'bg-green-500/5 border-green-500/20' : 'bg-yellow-500/5 border-yellow-500/20'}`}
-              >
-                <div className="text-sm font-medium">Open Graph</div>
-                <div
-                  className={`text-xs mt-1 ${report.technical?.hasOGTags ? 'text-green-500' : 'text-yellow-600'}`}
-                >
-                  {report.technical?.hasOGTags ? 'Valid' : 'Missing'}
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>

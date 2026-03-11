@@ -12,7 +12,27 @@ export interface SEOReport {
     hasViewport: boolean
     hasFavicon: boolean
     isIndexable: boolean
-    hasOGTags: boolean
+    pass: boolean
+    message: string
+  }
+  socialTags: {
+    hasOGTitle: boolean
+    hasOGDescription: boolean
+    hasOGImage: boolean
+    hasTwitterCard: boolean
+    pass: boolean
+    message: string
+  }
+  semanticHtml: {
+    hasMain: boolean
+    hasHeader: boolean
+    hasNav: boolean
+    hasFooter: boolean
+    pass: boolean
+    message: string
+  }
+  structuredData: {
+    hasJsonLd: boolean
     pass: boolean
     message: string
   }
@@ -25,7 +45,7 @@ export async function scanDomain(url: string): Promise<SEOReport> {
 
     const response = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'SEOBoostBot/2.0 (+https://seoboost.com)',
+        'User-Agent': 'SEOBoostBot/3.0 (+https://seoboost.com)',
         Accept:
           'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
@@ -41,16 +61,16 @@ export async function scanDomain(url: string): Promise<SEOReport> {
 
     let score = 100
 
-    // 1. Title Tag Check (15 pts)
+    // 1. Title Tag Check (10 pts)
     const title = $('title').text().trim()
     const titlePass = title.length >= 30 && title.length <= 65
-    if (!titlePass) score -= 15
+    if (!titlePass) score -= 10
 
-    // 2. Meta Description Check (15 pts)
+    // 2. Meta Description Check (10 pts)
     const description =
       $('meta[name="description"]').attr('content')?.trim() || ''
     const descPass = description.length >= 70 && description.length <= 160
-    if (!descPass) score -= 15
+    if (!descPass) score -= 10
 
     // 3. H1 Check (10 pts)
     const h1s = $('h1')
@@ -89,34 +109,49 @@ export async function scanDomain(url: string): Promise<SEOReport> {
     // We just penalize if there are absolutely no internal links (poor architecture)
     if (internal === 0 && links.length > 0) score -= 5
 
-    // 6. Content Volume / Word Count check (15 pts)
-    // Extract plain text from body, removing scripts and styles
+    // 6. Content Volume / Word Count check (10 pts)
     $('script, style, noscript, svg, nav, footer').remove()
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim()
     const wordCount = bodyText.split(' ').filter((w) => w.length > 0).length
-    const wordPass = wordCount >= 300 // General rule of thumb for indexable pages
-    if (!wordPass) score -= 15
+    const wordPass = wordCount >= 300
+    if (!wordPass) score -= 10
 
-    // 7. Technical Checks (30 pts combined)
+    // 7. Technical Core Checks (15 pts)
     const hasViewport = $('meta[name="viewport"]').length > 0
     const hasFavicon =
       $('link[rel="icon"], link[rel="shortcut icon"]').length > 0
-
     const robotsMeta =
       $('meta[name="robots"]').attr('content')?.toLowerCase() || ''
     const isIndexable = !robotsMeta.includes('noindex')
 
-    const hasOGTitle = $('meta[property="og:title"]').length > 0
-    const hasOGImage = $('meta[property="og:image"]').length > 0
-    const hasOGTags = hasOGTitle || hasOGImage
-
-    // Penalties for critical technical failures
-    if (!hasViewport) score -= 10
+    if (!hasViewport) score -= 5
     if (!hasFavicon) score -= 5
-    if (!isIndexable) score -= 15 // Critical error if they want SEO
-    if (!hasOGTags) score -= 5
+    if (!isIndexable) score -= 15 // Critical
 
-    const technicalPass = hasViewport && isIndexable && hasOGTags
+    const technicalPass = hasViewport && isIndexable && hasFavicon
+
+    // 8. Social Tags (OpenGraph & Twitter) (10 pts)
+    const hasOGTitle = $('meta[property="og:title"]').length > 0
+    const hasOGDescription = $('meta[property="og:description"]').length > 0
+    const hasOGImage = $('meta[property="og:image"]').length > 0
+    const hasTwitterCard = $('meta[name="twitter:card"]').length > 0
+    
+    const socialPass = hasOGTitle && hasOGDescription && hasOGImage && hasTwitterCard
+    if (!socialPass) score -= 10
+
+    // 9. Semantic HTML Elements (10 pts)
+    const hasMain = $('main').length > 0
+    const hasHeader = $('header').length > 0
+    const hasNav = $('nav').length > 0
+    const hasFooter = $('footer').length > 0
+
+    const semanticPass = hasMain && hasHeader && hasNav && hasFooter
+    if (!semanticPass) score -= 10
+
+    // 10. Structured Data (JSON-LD) (10 pts)
+    const hasJsonLd = $('script[type="application/ld+json"]').length > 0
+    const structuredPass = hasJsonLd
+    if (!structuredPass) score -= 10
 
     // Normalize score
     score = Math.max(0, Math.min(100, score))
@@ -178,14 +213,40 @@ export async function scanDomain(url: string): Promise<SEOReport> {
         hasViewport,
         hasFavicon,
         isIndexable,
-        hasOGTags,
         pass: technicalPass,
         message: isIndexable
           ? technicalPass
             ? 'Core technical tags present'
-            : 'Missing some technical tags (viewport, favicon, or OG)'
+            : 'Missing some technical tags (viewport or favicon)'
           : 'CRITICAL: Page is blocked from search engines (noindex detected)!',
       },
+      socialTags: {
+        hasOGTitle,
+        hasOGDescription,
+        hasOGImage,
+        hasTwitterCard,
+        pass: socialPass,
+        message: socialPass 
+          ? 'Rich social sharing tags configured'
+          : 'Missing foundational OpenGraph or Twitter Card attributes.',
+      },
+      semanticHtml: {
+        hasMain,
+        hasHeader,
+        hasNav,
+        hasFooter,
+        pass: semanticPass,
+        message: semanticPass
+          ? 'Strong semantic HTML5 site structure'
+          : 'Refactor body markup to leverage <main>, <header>, <nav>, and <footer> tags.',
+      },
+      structuredData: {
+        hasJsonLd,
+        pass: structuredPass,
+        message: structuredPass
+          ? 'Schema.org JSON-LD found'
+          : 'Implement JSON-LD Schema to capture Rich Snippets on Google Search.',
+      }
     }
   } catch (error) {
     console.error('Scan error:', error)
