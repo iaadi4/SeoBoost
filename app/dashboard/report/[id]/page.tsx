@@ -1,120 +1,46 @@
 import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Link as LinkIcon,
-  AlertCircle,
-  XCircle,
-  Type,
-  ImageIcon,
-  FileText,
-  Code,
-  Share2,
-  LayoutTemplate,
-  Database,
-  TrendingDown,
-} from 'lucide-react'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { SEOReport } from '@/lib/scanner'
-import { ReportActions } from './report-actions'
+import { ArrowLeft, ArrowRight, Sparkles, Lightbulb, CheckCircle2, AlertCircle, XCircle, LayoutTemplate } from 'lucide-react'
 import { ReportHero } from './report-hero'
-import { AnimatedSection, AnimatedItem } from './animated-section'
+import { ReportActions } from './report-actions'
+import { Badge } from '@/components/ui/badge'
 
-function PassBadge({ pass, partial }: { pass: boolean; partial?: boolean }) {
-  if (pass) return <Badge className="bg-green-500 hover:bg-green-600 text-white shrink-0">Passed</Badge>
-  if (partial) return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 shrink-0">Incomplete</Badge>
-  return <Badge variant="destructive" className="shrink-0">Needs Fix</Badge>
-}
-
-function StatusIcon({ pass }: { pass: boolean }) {
-  if (pass) return <CheckCircle2 className="h-5 w-5 text-green-500" />
-  return <AlertCircle className="h-5 w-5 text-red-500" />
-}
-
-function CheckRow({ label, ok, note }: { label: string; ok: boolean; note?: string }) {
-  return (
-    <div className={`flex items-center justify-between p-3 rounded-lg border text-sm ${ok ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-      <div className="flex items-center gap-2">
-        {ok ? <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> : <XCircle className="h-4 w-4 text-red-500 shrink-0" />}
-        <span className="font-medium">{label}</span>
-        {note && <span className="text-muted-foreground text-xs hidden sm:inline">— {note}</span>}
-      </div>
-      <span className={`text-xs font-bold ${ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{ok ? 'OK' : 'FAIL'}</span>
-    </div>
-  )
-}
-
-export default async function ReportPage(props: {
-  params: Promise<{ id: string }>
-}) {
-  const params = await props.params
-
+export default async function ReportPage(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/sign-in')
+  if (!user) {
+    redirect('/sign-in')
+  }
 
   const reportRecord = await prisma.domainReport.findUnique({
-    where: { id: params.id },
+    where: { id: id },
   })
 
-  if (!reportRecord || reportRecord.userId !== user.id) redirect('/dashboard')
+  if (!reportRecord || reportRecord.userId !== user.id) {
+    redirect('/dashboard')
+  }
 
-  const report: SEOReport = JSON.parse(reportRecord.reportData)
-  const domainHost = new URL(reportRecord.domainUrl).hostname
+  const report = JSON.parse(reportRecord.reportData) as SEOReport
+  
+  // Backwards compatibility check for older legacy single-page reports
+  const isLegacy = !report.aggregatedChecks
 
-  const scoreColor =
-    report.score >= 80
-      ? 'text-green-600 dark:text-green-400'
-      : report.score >= 50
-        ? 'text-yellow-600 dark:text-yellow-400'
-        : 'text-red-600 dark:text-red-400'
+  // Use pre-sorted checks from the scanner, fallback to empty array
+  const sortedChecks = report.aggregatedChecks || []
+  const actionPlanItems = report.summary?.topPriorities || sortedChecks.filter(c => c.status !== 'good')
 
-  // Compute deductive score breakdown array
-  const deductions: { label: string; pts: number }[] = []
-  if (!report.title.pass) deductions.push({ label: 'Title Tag', pts: 10 })
-  if (!report.description.pass) deductions.push({ label: 'Meta Description', pts: 10 })
-  if (!report.h1.pass) deductions.push({ label: 'H1 Heading', pts: 10 })
-  if (!report.images.pass) deductions.push({ label: 'Image Alt Text', pts: 10 })
-  if (!report.content?.pass) deductions.push({ label: 'Content Volume', pts: 10 })
-  if (!report.technical?.hasViewport) deductions.push({ label: 'Viewport Meta', pts: 5 })
-  if (!report.technical?.hasFavicon) deductions.push({ label: 'Favicon', pts: 5 })
-  if (!report.technical?.isIndexable) deductions.push({ label: 'Indexability (noindex)', pts: 15 })
-  if (!report.socialTags?.pass) deductions.push({ label: 'Social Tags (OG/Twitter)', pts: 10 })
-  if (!report.semanticHtml?.pass) deductions.push({ label: 'Semantic HTML5', pts: 10 })
-  if (!report.structuredData?.pass) deductions.push({ label: 'Structured Data (JSON-LD)', pts: 10 })
+  const score = report.summary?.score ?? (report as SEOReport & { score?: number }).score ?? 0
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
+    <div className="min-h-screen relative bg-background">
       
-      {/* Ambient Background Decoration */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden print:hidden">
-        {/* Subtle dot pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] opacity-50"></div>
-        
-        {/* Glowing orbs */}
-        <div className={`absolute top-[-5%] left-[-5%] w-[30%] h-[30%] rounded-full opacity-60 blur-[100px] animate-pulse ${report.score >= 80 ? 'bg-green-500/10' : report.score >= 50 ? 'bg-yellow-500/10' : 'bg-red-500/10'}`} style={{ animationDuration: '8s' }}></div>
-        <div className={`absolute top-[20%] right-[-5%] w-[25%] h-[40%] rounded-full opacity-60 blur-[120px] animate-pulse ${report.score >= 80 ? 'bg-green-400/10' : report.score >= 50 ? 'bg-yellow-400/10' : 'bg-red-400/10'}`} style={{ animationDuration: '12s', animationDelay: '2s' }}></div>
-        <div className={`absolute bottom-[-5%] left-[15%] w-[40%] h-[30%] rounded-full opacity-60 blur-[120px] animate-pulse ${report.score >= 80 ? 'bg-green-600/10' : report.score >= 50 ? 'bg-yellow-600/10' : 'bg-red-600/10'}`} style={{ animationDuration: '10s', animationDelay: '4s' }}></div>
-      </div>
-      
-      {/* Report Viewport Container */}
       <div className="container relative z-10 mx-auto px-4 sm:px-8 py-10 max-w-4xl print:max-w-none print:py-4 print:px-4">
 
-      {/* Screen-Only Navigation Header */}
       <div className="flex justify-between items-center mb-6 print:hidden">
         <Link
           href="/dashboard"
@@ -125,350 +51,238 @@ export default async function ReportPage(props: {
         <ReportActions report={report} domainUrl={reportRecord.domainUrl} />
       </div>
 
-      {/* Interactive Hero Component (Screen Only) */}
       <div className="print:hidden">
         <ReportHero
-          score={report.score}
-          domain={domainHost}
-          scannedAt={reportRecord.createdAt.toISOString()}
-          domainUrl={reportRecord.domainUrl}
+           score={score}
+           domain={new URL(report.domain || reportRecord.domainUrl).hostname}
+           scannedAt={reportRecord.createdAt.toISOString()}
+           domainUrl={reportRecord.domainUrl}
         />
       </div>
-      {/* Static Header Component (Print Only) */}
-      <div className="hidden print:block mb-6">
-        <h1 className="text-2xl font-bold">SEO Audit: {domainHost}</h1>
-        <p className="text-sm text-muted-foreground">Score: {report.score}/100 · Scanned {new Date(reportRecord.createdAt).toLocaleString()}</p>
-      </div>
 
-      {/* Deductive Score Breakdown Module */}
-      {deductions.length > 0 && (
-        <Card className="mb-6 border-yellow-500/30 bg-yellow-500/5 print:mb-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingDown className="h-5 w-5 text-yellow-600" />
-              Score Breakdown — Where Points Were Lost
-            </CardTitle>
-            <CardDescription>
-              These checks failed and reduced your score from 100.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2">
-              {deductions.map((d) => (
-                <div key={d.label} className="flex items-center justify-between text-sm p-2 rounded-md bg-background border">
-                  <div className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500 shrink-0" />
-                    <span>{d.label}</span>
+      {isLegacy ? (
+        <div className="p-8 border border-amber-500/30 bg-amber-500/5 rounded-xl text-center">
+          <AlertCircle className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+          <h3 className="text-lg font-bold">Legacy Report Format</h3>
+          <p className="text-sm text-muted-foreground mb-4">This report was generated using an older version of our scanner. Rescan the domain for multi-page actionable insights.</p>
+          <Link href="/dashboard" className="text-primary hover:underline text-sm font-semibold">Run New Scan</Link>
+        </div>
+      ) : (
+        <div>
+          
+          <div className="mb-12">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <LayoutTemplate className="h-5 w-5 text-primary" />
+              Site-Wide Page Analysis
+            </h2>
+            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 border-b border-border text-muted-foreground uppercase text-xs font-semibold tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">Page</th>
+                    <th className="px-6 py-4">Score</th>
+                    <th className="px-6 py-4">Issues</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {report.pageAnalysis.map((p, i) => (
+                    <tr key={i} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-mono font-medium">{p.path}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${p.score >= 80 ? 'bg-green-500/10 text-green-600' : p.score >= 50 ? 'bg-yellow-500/10 text-yellow-600' : 'bg-red-500/10 text-red-600'}`}>
+                          {p.score}/100
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground">{p.issuesCount} issues</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Action Plan Section */}
+          {actionPlanItems.length > 0 && (
+            <div className="mb-16">
+              <div className="bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 rounded-2xl p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="bg-orange-100 dark:bg-orange-900/50 p-2 rounded-lg">
+                    <Lightbulb className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <span className="font-bold text-red-600 dark:text-red-400">−{d.pts} pts</span>
+                  <h2 className="text-2xl font-bold">Your Action Plan</h2>
                 </div>
-              ))}
-              <div className="flex justify-between text-sm font-semibold mt-2 pt-2 border-t">
-                <span>Final Score</span>
-                <span className={scoreColor}>{report.score} / 100</span>
+                <p className="text-muted-foreground text-sm mb-6 ml-12">Prioritized steps to improve your SEO score</p>
+
+                <div className="space-y-4">
+                  {actionPlanItems.map((item, index) => (
+                    <div key={'action-' + item.id} className="bg-background rounded-xl p-5 border shadow-sm flex items-start gap-4 transition-all hover:shadow-md">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center font-bold text-sm text-foreground/70">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="font-bold text-base">{item.label}</h3>
+                            {item.status === 'critical' ? (
+                              <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-900 border-none px-2 py-0 font-bold uppercase text-[10px] tracking-wider">🔥 High</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-900 border-none px-2 py-0 font-bold uppercase text-[10px] tracking-wider">⚡ Medium</Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground mb-4">{item.issueText}</p>
+
+                        <div className="border-l-2 border-primary/20 pl-4 py-1">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">How to Fix</h4>
+                          <p className="text-sm leading-relaxed text-foreground/90">
+                            {item.howToFix}
+                            {item.worstPage && (
+                              <span className="inline-block ml-1 opacity-60">(worst: {item.worstPage})</span>
+                            )}
+                          </p>
+                        </div>
+                        
+                        <div className="mt-4 flex justify-end">
+                          <ArrowRight className="h-4 w-4 text-muted-foreground/40" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+
+          {/* Detailed Analysis Section */}
+          <div className="mb-6 flex items-center gap-3">
+            <Sparkles className="h-6 w-6 text-primary" />
+            <h2 className="text-2xl font-bold">Detailed Analysis</h2>
+          </div>
+          
+          <p className="text-muted-foreground text-sm mb-8 ml-9">
+            A comprehensive breakdown of every metric evaluated during the crawl.
+          </p>
+
+          <div className="space-y-12">
+            {report.checksByCategory && Object.entries(report.checksByCategory).map(([category, checks]) => {
+              if (!checks || checks.length === 0) return null;
+              
+              return (
+                <div key={category} className="space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-widest border-b pb-2 mb-4 text-muted-foreground flex items-center justify-between gap-4">
+                    {category.replace('-', ' ')}
+                    <div className="flex-1 h-px bg-border/40"></div>
+                  </h3>
+                  
+                  <div className="grid gap-4">
+                    {checks.map((item) => {
+                      const StatusIcon = item.status === 'critical' ? XCircle : 
+                                         item.status === 'warning' ? AlertCircle : CheckCircle2;
+                                         
+                      const statusColor = item.status === 'critical' ? 'text-red-500' :
+                                          item.status === 'warning' ? 'text-amber-500' : 'text-green-500';
+
+                      const statusBadgeColor = item.status === 'critical' ? 'bg-red-50 text-red-600 dark:bg-red-950' :
+                                               item.status === 'warning' ? 'bg-amber-50 text-amber-600 dark:bg-amber-950' : 'bg-green-50 text-green-600 dark:bg-green-950';
+
+                      return (
+                        <div key={item.id} className="rounded-xl border bg-card overflow-hidden shadow-sm transition-all hover:shadow-md group">
+                          
+                          {/* Header Row */}
+                          <div className="flex items-center p-5 cursor-default relative">
+                             {/* Subtle highlight line on the left for severe issues */}
+                            {item.status !== 'good' && (
+                              <div className={`absolute left-0 top-0 bottom-0 w-1 ${item.status === 'critical' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                            )}
+                            
+                            <StatusIcon className={`h-5 w-5 mr-3 shrink-0 ${statusColor}`} />
+                            <h3 className="text-base font-bold flex-1">{item.label}</h3>
+                            
+                            <Badge variant="secondary" className={`capitalize font-bold text-xs uppercase tracking-wider ${statusBadgeColor}`}>
+                              {item.status}
+                            </Badge>
+                          </div>
+
+                          {/* Expandable Body Area */}
+                          <div className="p-5 pt-0 border-t border-border/40 space-y-6 mt-4">
+                            
+                            {/* Current Value */}
+                            <div>
+                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Current Value</h4>
+                              <div className="font-mono text-sm bg-muted/40 px-3 py-2.5 rounded-lg border border-border/40 text-foreground/90 break-all">
+                                {item.currentValue}
+                              </div>
+                            </div>
+
+                            {/* Issue Statement */}
+                            <div>
+                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Issue</h4>
+                              <p className="text-sm font-medium text-foreground">{item.issueText}</p>
+                            </div>
+
+                            {/* Why It Matters */}
+                            <div>
+                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Why It Matters</h4>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{item.whyItMatters}</p>
+                            </div>
+
+                            {/* How To Fix */}
+                            {item.status !== 'good' && (
+                              <div>
+                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">How To Fix</h4>
+                                <p className="text-sm text-foreground leading-relaxed mb-3">
+                                  {item.howToFix}
+                                  {item.worstPage && (
+                                     <span className="inline-block ml-1 opacity-60">(worst: {item.worstPage})</span>
+                                  )}
+                                </p>
+                                
+                                {/* Snippet block */}
+                                {item.snippet && (
+                                  <pre className="text-xs bg-slate-950 dark:bg-black text-slate-50 p-4 rounded-lg overflow-x-auto border border-slate-800">
+                                    <code>{item.snippet}</code>
+                                  </pre>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Good Snippet (sometimes passing objects have snippets to show as examples) */}
+                            {item.status === 'good' && item.snippet && (
+                               <pre className="text-xs bg-slate-950 dark:bg-black text-slate-50 p-4 rounded-lg overflow-x-auto border border-slate-800">
+                                 <code>{item.snippet}</code>
+                               </pre>
+                            )}
+
+                            {/* Reference Link */}
+                            {item.reference && (
+                              <div className="pt-2">
+                                <a href={item.reference} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 font-semibold">
+                                  Read Official Documentation <ArrowRight className="h-3.5 w-3.5" />
+                                </a>
+                              </div>
+                            )}
+
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Fallback for old reports without checksByCategory */}
+            {!report.checksByCategory && (
+               <div className="grid gap-4">
+                 {/* Reused map logic for flat array if necessary, omitted for brevity since we expect new schema */}
+                 <p className="text-muted-foreground text-sm italic">Categorized mapping not available for this legacy report.</p>
+               </div>
+            )}
+          </div>
+
+        </div>
       )}
-
-      <h2 className="text-xl font-bold mb-4">Detailed Analysis</h2>
-
-      <AnimatedSection>
-
-        {/* Diagnostic Module: Title Tag */}
-        <AnimatedItem>
-        <Card className={report.title.pass ? 'border-green-500/20' : 'border-red-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.title.pass} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <Type className="h-4 w-4 text-muted-foreground" /> Title Tag
-            </CardTitle>
-            <PassBadge pass={report.title.pass} />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">{report.title.message}</p>
-            {!report.title.pass && (
-              <div className="mb-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Update your <code className="bg-muted px-1 rounded">&lt;title&gt;</code> tag to be between 30–65 characters. Include your primary keyword near the beginning. Example: <code className="bg-muted px-1 rounded">&lt;title&gt;Keyword-Rich Page Title | Brand&lt;/title&gt;</code>
-              </div>
-            )}
-            <div className="bg-muted p-3 rounded-lg font-mono text-sm break-all border">
-              {report.title.value || <span className="italic text-muted-foreground">No title found</span>}
-            </div>
-            <div className="mt-2 text-xs flex justify-between text-muted-foreground">
-              <span>{report.title.value.length} chars</span>
-              <span>Target: 30–65 chars</span>
-            </div>
-            <Progress value={Math.min(100, (report.title.value.length / 65) * 100)} className="h-1.5 mt-1" />
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Meta Description */}
-        <AnimatedItem>
-        <Card className={report.description.pass ? 'border-green-500/20' : 'border-red-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.description.pass} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <FileText className="h-4 w-4 text-muted-foreground" /> Meta Description
-            </CardTitle>
-            <PassBadge pass={report.description.pass} />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">{report.description.message}</p>
-            {!report.description.pass && (
-              <div className="mb-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Add a <code className="bg-muted px-1 rounded">&lt;meta name=&quot;description&quot; content=&quot;...&quot;&gt;</code> tag with a compelling, keyword-rich summary between 70–160 characters. This text appears in Google search results under your page title.
-              </div>
-            )}
-            <div className="bg-muted p-3 rounded-lg font-mono text-sm break-all border">
-              {report.description.value || <span className="italic text-muted-foreground">No description found</span>}
-            </div>
-            <div className="mt-2 text-xs flex justify-between text-muted-foreground">
-              <span>{report.description.value.length} chars</span>
-              <span>Target: 70–160 chars</span>
-            </div>
-            <Progress value={Math.min(100, (report.description.value.length / 160) * 100)} className="h-1.5 mt-1" />
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: H1 & Heading */}
-        <AnimatedItem>
-        <Card className={report.h1.pass ? 'border-green-500/20' : 'border-red-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.h1.pass} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <span className="font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-xs">&lt;h1&gt;</span> Heading Structure
-            </CardTitle>
-            <PassBadge pass={report.h1.pass} />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">{report.h1.message}</p>
-            {!report.h1.pass && (
-              <div className="mb-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong>{' '}
-                {report.h1.count === 0
-                  ? 'Add exactly one <h1> tag to your page containing your primary keyword. Every page must have one H1 as its main topic signal for search engines.'
-                  : 'Remove extra <h1> tags — only one is allowed per page. Demote additional headings to <h2> or <h3>.'}
-              </div>
-            )}
-            {report.h1.value && (
-              <div className="bg-muted p-3 rounded-lg font-mono text-sm break-all border mb-3">
-                {report.h1.value}
-              </div>
-            )}
-            <div className="text-sm text-muted-foreground">
-              Found <strong className={report.h1.count === 1 ? 'text-green-500' : 'text-red-500'}>{report.h1.count}</strong> H1 tag{report.h1.count !== 1 ? 's' : ''} on this page. Best practice: exactly 1.
-            </div>
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Images */}
-        <AnimatedItem>
-        <Card className={report.images.pass ? 'border-green-500/20' : 'border-red-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.images.pass} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <ImageIcon className="h-4 w-4 text-muted-foreground" /> Image Optimization
-            </CardTitle>
-            <PassBadge pass={report.images.pass} />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">{report.images.message}</p>
-            {!report.images.pass && (
-              <div className="mb-4 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Add an <code className="bg-muted px-1 rounded">alt</code> attribute to every <code className="bg-muted px-1 rounded">&lt;img&gt;</code> tag describing what the image shows. Example: <code className="bg-muted px-1 rounded">&lt;img src=&quot;hero.jpg&quot; alt=&quot;Dashboard showing SEO health score&quot; /&gt;</code>. Alt text helps search engines index your images and improves accessibility.
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-muted p-4 rounded-lg text-center border">
-                <div className="text-2xl font-bold">{report.images.total}</div>
-                <div className="text-xs text-muted-foreground uppercase mt-1">Total Images</div>
-              </div>
-              <div className={`p-4 rounded-lg text-center border ${report.images.missingAlt > 0 ? 'bg-red-500/5 border-red-500/20' : 'bg-green-500/5 border-green-500/20'}`}>
-                <div className={`text-2xl font-bold ${report.images.missingAlt > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                  {report.images.missingAlt}
-                </div>
-                <div className="text-xs text-muted-foreground uppercase mt-1">Missing Alt Text</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Content Volume */}
-        <AnimatedItem>
-        <Card className={report.content?.pass ? 'border-green-500/20' : 'border-red-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.content?.pass ?? false} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <FileText className="h-4 w-4 text-muted-foreground" /> Content Volume
-            </CardTitle>
-            <PassBadge pass={report.content?.pass ?? false} />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">{report.content?.message}</p>
-            {!report.content?.pass && (
-              <div className="mb-4 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Expand your page content to at least 300 words. Add meaningful paragraphs, a detailed product/service description, FAQs, or a blog section. Thin content is a strong negative ranking signal — Google prefers comprehensive pages that fully cover a topic.
-              </div>
-            )}
-            <div className="bg-muted p-4 rounded-lg border flex flex-col items-center">
-              <span className="text-4xl font-black">{report.content?.wordCount || 0}</span>
-              <span className="text-xs text-muted-foreground uppercase mt-1">Words Detected</span>
-            </div>
-            <Progress value={Math.min(100, ((report.content?.wordCount || 0) / 500) * 100)} className="h-1.5 mt-3" />
-            <p className="text-xs text-center text-muted-foreground mt-1">Target: 300+ words for strong rankings</p>
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Technical Core Tags */}
-        <AnimatedItem>
-        <Card className={report.technical?.pass ? 'border-green-500/20' : 'border-red-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.technical?.pass ?? false} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <Code className="h-4 w-4 text-muted-foreground" /> Technical Core Tags
-            </CardTitle>
-            <PassBadge pass={report.technical?.pass ?? false} />
-          </CardHeader>
-          <CardContent>
-            {!report.technical?.isIndexable && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 p-3 rounded-lg mb-4 text-sm font-semibold">
-                🚨 CRITICAL: noindex detected — search engines cannot index this page!
-              </div>
-            )}
-            <div className="grid gap-2">
-              <CheckRow label="Viewport Meta Tag" ok={report.technical?.hasViewport ?? false} note='<meta name="viewport" ...>' />
-              <CheckRow label="Indexable by Search Engines" ok={report.technical?.isIndexable ?? false} note="No noindex directive" />
-              <CheckRow label="Favicon Defined" ok={report.technical?.hasFavicon ?? false} note="<link rel=icon>" />
-            </div>
-            {!report.technical?.pass && (
-              <div className="mt-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                <strong>How to fix:</strong>
-                {!report.technical?.hasViewport && <p>• Add <code className="bg-muted px-1 rounded">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;</code> inside your <code className="bg-muted px-1 rounded">&lt;head&gt;</code> for mobile responsiveness.</p>}
-                {!report.technical?.isIndexable && <p>• Remove <code className="bg-muted px-1 rounded">noindex</code> from your robots meta tag or <code className="bg-muted px-1 rounded">X-Robots-Tag</code> header so search engines can crawl this page.</p>}
-                {!report.technical?.hasFavicon && <p>• Add <code className="bg-muted px-1 rounded">&lt;link rel=&quot;icon&quot; href=&quot;/favicon.ico&quot;&gt;</code> to your <code className="bg-muted px-1 rounded">&lt;head&gt;</code>, or place a <code className="bg-muted px-1 rounded">favicon.ico</code> in the <code className="bg-muted px-1 rounded">/public</code> folder.</p>}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Social Sharing Tags */}
-        <AnimatedItem>
-        <Card className={report.socialTags?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.socialTags?.pass ?? false} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <Share2 className="h-4 w-4 text-muted-foreground" /> Social Sharing (OpenGraph & Twitter)
-            </CardTitle>
-            <PassBadge pass={report.socialTags?.pass ?? false} partial />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">{report.socialTags?.message}</p>
-            <div className="grid gap-2">
-              <CheckRow label="og:title" ok={report.socialTags?.hasOGTitle ?? false} note="OpenGraph title for social shares" />
-              <CheckRow label="og:description" ok={report.socialTags?.hasOGDescription ?? false} note="OpenGraph description" />
-              <CheckRow label="og:image" ok={report.socialTags?.hasOGImage ?? false} note="Social share image (1200×630px)" />
-              <CheckRow label="twitter:card" ok={report.socialTags?.hasTwitterCard ?? false} note="Twitter card type" />
-            </div>
-            {!report.socialTags?.pass && (
-              <div className="mt-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Add these tags inside your <code className="bg-muted px-1 rounded">&lt;head&gt;</code>. In Next.js, use the <code className="bg-muted px-1 rounded">metadata</code> export with an <code className="bg-muted px-1 rounded">openGraph</code> object, or add them manually as <code className="bg-muted px-1 rounded">&lt;meta property=&quot;og:title&quot; content=&quot;...&quot;&gt;</code> etc. An og:image should be 1200×630px and an absolute URL.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Semantic HTML */}
-        <AnimatedItem>
-        <Card className={report.semanticHtml?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.semanticHtml?.pass ?? false} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <LayoutTemplate className="h-4 w-4 text-muted-foreground" /> Semantic HTML5 Structure
-            </CardTitle>
-            <PassBadge pass={report.semanticHtml?.pass ?? false} partial />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">{report.semanticHtml?.message}</p>
-            <div className="grid gap-2">
-              <CheckRow label="<main> element" ok={report.semanticHtml?.hasMain ?? false} note="Primary content wrapper" />
-              <CheckRow label="<header> element" ok={report.semanticHtml?.hasHeader ?? false} note="Site header landmark" />
-              <CheckRow label="<nav> element" ok={report.semanticHtml?.hasNav ?? false} note="Navigation landmark" />
-              <CheckRow label="<footer> element" ok={report.semanticHtml?.hasFooter ?? false} note="Page footer" />
-            </div>
-            {!report.semanticHtml?.pass && (
-              <div className="mt-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Wrap your page sections with the correct HTML5 landmark elements. Use <code className="bg-muted px-1 rounded">&lt;header&gt;</code> for the site header, <code className="bg-muted px-1 rounded">&lt;nav&gt;</code> for navigation menus, <code className="bg-muted px-1 rounded">&lt;main&gt;</code> around your primary content, and <code className="bg-muted px-1 rounded">&lt;footer&gt;</code> at the bottom. These are used by search engines to understand your page structure.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-        {/* Diagnostic Module: Structured Data */}
-        <AnimatedItem>
-        <Card className={report.structuredData?.pass ? 'border-green-500/20' : 'border-yellow-500/20'}>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <StatusIcon pass={report.structuredData?.pass ?? false} />
-            <CardTitle className="text-lg flex items-center gap-2 flex-1">
-              <Database className="h-4 w-4 text-muted-foreground" /> Structured Data (JSON-LD / Schema.org)
-            </CardTitle>
-            <PassBadge pass={report.structuredData?.pass ?? false} partial />
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">{report.structuredData?.message}</p>
-            <CheckRow
-              label='<script type="application/ld+json"> block'
-              ok={report.structuredData?.hasJsonLd ?? false}
-              note="Powers Google Rich Snippets"
-            />
-            {!report.structuredData?.pass && (
-              <div className="mt-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                <strong>How to fix:</strong> Add a <code className="bg-muted px-1 rounded">&lt;script type=&quot;application/ld+json&quot;&gt;</code> block to your page with Schema.org markup. Start with <code className="bg-muted px-1 rounded">WebSite</code> or <code className="bg-muted px-1 rounded">Organization</code> schema. In Next.js, add it via a <code className="bg-muted px-1 rounded">&lt;Script&gt;</code> tag in your root layout or as a component. Structured data enables rich results (star ratings, FAQs, breadcrumbs) in Google Search.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </AnimatedItem>
-
-      <AnimatedItem>
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2 space-y-0">
-            <LinkIcon className="h-5 w-5 text-blue-500" />
-            <div className="flex-1">
-              <CardTitle className="text-lg">Link Structure</CardTitle>
-              <CardDescription className="text-sm">Internal vs external link distribution</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-muted p-4 rounded-lg text-center border">
-                <div className="text-2xl font-bold">{report.links.total}</div>
-                <div className="text-xs text-muted-foreground uppercase mt-1">Total</div>
-              </div>
-              <div className="bg-muted p-4 rounded-lg text-center border">
-                <div className="text-2xl font-bold text-blue-500">{report.links.internal}</div>
-                <div className="text-xs text-muted-foreground uppercase mt-1">Internal</div>
-              </div>
-              <div className="bg-muted p-4 rounded-lg text-center border">
-                <div className="text-2xl font-bold">{report.links.external}</div>
-                <div className="text-xs text-muted-foreground uppercase mt-1">External</div>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">{report.links.message}</p>
-          </CardContent>
-        </Card>
-      </AnimatedItem>
-
-      </AnimatedSection>
       </div>
     </div>
   )

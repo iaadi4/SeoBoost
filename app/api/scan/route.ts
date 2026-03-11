@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       data: {
         userId: user.id,
         domainUrl: domainUrl,
-        score: report.score,
+        score: report.summary.score,
         reportData: JSON.stringify(report),
       },
     })

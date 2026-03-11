@@ -21,36 +21,43 @@ export function ReportActions({ report, domainUrl }: ReportActionsProps) {
   const handleCopyPrompt = () => {
     const failures: string[] = []
 
-    if (!report.title.pass)
-      failures.push(`- **Title Tag**: ${report.title.message}`)
-    if (!report.description.pass)
-      failures.push(`- **Meta Description**: ${report.description.message}`)
-    if (!report.h1.pass)
-      failures.push(`- **H1 Tag**: ${report.h1.message}`)
-    if (!report.images.pass)
-      failures.push(`- **Images**: ${report.images.message}`)
-    if (!report.content?.pass)
-      failures.push(`- **Content Volume**: ${report.content?.message}`)
-    if (!report.technical?.pass) {
-      if (!report.technical?.hasViewport)
-        failures.push(`- **Missing Viewport Meta**: Add <meta name="viewport" content="width=device-width, initial-scale=1">`)
-      if (!report.technical?.hasFavicon)
-        failures.push(`- **Missing Favicon**: Add a favicon.ico or <link rel="icon">`)
-      if (!report.technical?.isIndexable)
-        failures.push(`- **Noindex Detected**: Remove noindex robots meta tag to allow indexing`)
+    if (report.aggregatedChecks) {
+      // New Multi-Page Schema
+      report.aggregatedChecks.filter(c => c.status !== 'good').forEach(c => {
+        let text = `- **${c.label}**: ${c.issueText}`
+        if (c.worstPage) text += ` (Affected target: ${c.worstPage})`
+        failures.push(text)
+      })
+    } else {
+      // Fallback for legacy database records
+      // @ts-expect-error - legacy shape
+      if (!report.title?.pass) failures.push(`- **Title Tag**: ${report.title?.message}`)
+      // @ts-expect-error - legacy shape
+      if (!report.description?.pass) failures.push(`- **Meta Description**: ${report.description?.message}`)
+      // @ts-expect-error - legacy shape
+      if (!report.h1?.pass) failures.push(`- **H1 Tag**: ${report.h1?.message}`)
+      // @ts-expect-error - legacy shape
+      if (!report.images?.pass) failures.push(`- **Images**: ${report.images?.message}`)
+      // @ts-expect-error - legacy shape
+      if (!report.content?.pass) failures.push(`- **Content Volume**: ${report.content?.message}`)
+      // @ts-expect-error - legacy shape
+      if (!report.technical?.pass) failures.push(`- **Technical Meta**: Missing essential meta tags.`)
     }
-    if (!report.socialTags?.pass)
-      failures.push(`- **Social Tags (OG/Twitter)**: ${report.socialTags?.message}`)
-    if (!report.semanticHtml?.pass)
-      failures.push(`- **Semantic HTML**: ${report.semanticHtml?.message}`)
-    if (!report.structuredData?.pass)
-      failures.push(`- **Structured Data**: ${report.structuredData?.message}`)
 
-    const prompt = `You are an expert SEO Engineer and developer. I ran a technical SEO audit on ${domainUrl} and received a health score of ${report.score}/100.
+    const score = report.summary?.score ?? (report as SEOReport & { score?: number }).score ?? 0
+
+    if (failures.length === 0) {
+      navigator.clipboard.writeText(`This domain (${domainUrl}) scored ${score}/100 and no critical SEO issues were found. Excellent work!`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+      return
+    }
+
+    const prompt = `You are an expert SEO Engineer and developer. I ran a technical SEO audit on ${domainUrl} and received a health score of ${score}/100.
 
 Here are the specific issues that need to be fixed:
 
-${failures.join('\n')}
+${failures.join('\\n')}
 
 For each issue above, provide:
 1. A clear explanation of why it matters for SEO
