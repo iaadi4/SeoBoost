@@ -39,25 +39,51 @@ export default function SignInPage() {
       setIsLoading(false)
     } else {
       router.push('/dashboard')
-      router.refresh()
     }
   }
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://boost-seo.vercel.app',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'SEO Audit Login',
+        item: 'https://boost-seo.vercel.app/seo-audit-login',
+      },
+    ],
+  }
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
+    <main id="main-content" className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-      <Link href="/" className="flex items-center gap-2 mb-8 group">
-        <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-          <Zap className="h-6 w-6 text-primary-foreground" />
-        </div>
-        <span className="font-bold text-2xl tracking-tight">SEO Boost</span>
-      </Link>
+      <header>
+        <Link href="/" className="flex items-center gap-2 mb-8 group">
+          <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <Zap className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <span className="font-bold text-2xl tracking-tight">SEO Boost</span>
+        </Link>
+      </header>
 
       <Card className="w-full max-w-md border shadow-xl bg-background/50 backdrop-blur-md">
         <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            <h1 className="text-2xl font-bold inline">Sign in to SEO Boost</h1>
+          </CardTitle>
           <CardDescription>
             Sign in to your account to continue scanning domains.
           </CardDescription>
@@ -120,6 +146,21 @@ export default function SignInPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+
+      <footer className="mt-12 max-w-lg text-center text-sm text-muted-foreground space-y-4">
+        <p>
+          Securely sign in to your SEO Boost account to access your technical SEO audit reports. 
+          Our comprehensive scanning engine analyzes your domains to identify missing H1 tags, thin content, 
+          render-blocking resources, canonical link mismatches, and structural schema opportunities. 
+          By identifying these core issues, you can dramatically improve your website's health score 
+          and increase your organic search engine rankings.
+        </p>
+        <p>
+          Gain direct visibility into your Core Web Vitals, accessibility warnings, and mobile performance benchmarks. 
+          Save your progress, export PDF reports for clients, and track improvements over time—all from an intuitive, single dashboard.
+        </p>
+        <p>© {new Date().getFullYear()} SEO Boost Analytics. All rights reserved.</p>
+      </footer>
+    </main>
   )
 }

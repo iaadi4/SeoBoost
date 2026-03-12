@@ -16,7 +16,7 @@ export default async function DashboardPage(props: {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/sign-in')
+    redirect('/seo-audit-login')
   }
 
   let dbUser = await prisma.user.upsert({

@@ -14,7 +14,7 @@ export default async function ReportPage(props: { params: Promise<{ id: string }
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/sign-in')
+    redirect('/seo-audit-login')
   }
 
   const reportRecord = await prisma.domainReport.findUnique({

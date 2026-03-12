@@ -112,8 +112,43 @@ function PricingContent() {
     }
   }
 
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'What is included in the Free scan?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The Free (Hobby) plan includes 3 lifetime scans, full SEO Health Score, title & meta tag checks, content analysis, and Open Graph previews.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What are the benefits of the Pro plan?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The Pro plan offers unlimited scans, 5 pages crawled per scan, 45+ detailed SEO checks, performance & Core Web Vitals audit, accessibility (WCAG) checks, security headers analysis, and PDF report exports.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How much does SEO Boost cost?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'SEO Boost offers a forever-free Hobby plan and a Pro plan for $9/month which unlocks unlimited scanning and advanced technical audits.',
+        },
+      },
+    ],
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-4 sm:px-8 h-14 flex items-center justify-between max-w-6xl">

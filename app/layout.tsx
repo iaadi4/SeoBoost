@@ -24,9 +24,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'SEO Boost Team' }],
   creator: 'SEO Boost',
-  metadataBase: new URL('https://seoboost.app'),
+  metadataBase: new URL('https://boost-seo.vercel.app'),
   alternates: {
-    canonical: '/',
+    canonical: 'https://boost-seo.vercel.app',
   },
   icons: {
     icon: '/icon.png',
@@ -112,13 +112,31 @@ export default function RootLayout({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: 'SEO Boost',
-      url: 'https://seoboost.app',
-    }
+      url: 'https://boost-seo.vercel.app',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://boost-seo.vercel.app',
+        },
+      ],
+    },
   ]
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:m-2"
+        >
+          Skip to content
+        </a>
         <Script
           id="json-ld"
           type="application/ld+json"

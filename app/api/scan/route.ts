@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.redirect(new URL('/sign-in', req.url))
+      return NextResponse.redirect(new URL('/seo-audit-login', req.url))
     }
 
     const formData = await req.formData()

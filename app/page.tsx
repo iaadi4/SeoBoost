@@ -73,7 +73,7 @@ export default async function Home() {
             ) : (
               <>
                 <Link
-                  href="/sign-in"
+                  href="/seo-audit-login"
                   className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Sign In
@@ -406,7 +406,7 @@ export default async function Home() {
               </p>
               <ul className="space-y-2.5">
                 {[
-                  { label: 'Sign In', href: '/sign-in' },
+                  { label: 'Sign In', href: '/seo-audit-login' },
                   { label: 'Sign Up', href: '/sign-up' },
                 ].map((l) => (
                   <li key={l.label}>

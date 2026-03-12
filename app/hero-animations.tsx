@@ -165,13 +165,9 @@ export function HeroAnimations() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.1 }}
-        className="text-6xl sm:text-8xl font-black tracking-tight mb-8 leading-[1.05] text-foreground"
+        className="text-5xl sm:text-7xl font-black tracking-tight mb-8 leading-[1.05] text-foreground"
       >
-        Dominate <span className="sr-only">Google</span>
-        <br className="hidden sm:block" />
-        <span className="text-primary [text-shadow:0_0_40px_rgba(62,207,142,0.25)]">
-          Search Results.
-        </span>
+        Instant <span className="text-primary [text-shadow:0_0_40px_rgba(62,207,142,0.25)]">Technical SEO Audit</span>
       </motion.h1>
 
       <motion.p
@@ -180,8 +176,9 @@ export function HeroAnimations() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed font-light"
       >
-        Scan any domain in seconds. Get a beautiful, actionable SEO report that
-        tells you exactly what to fix — and how.
+        Run a professional <strong>SEO Audit</strong> in seconds. Get a
+        beautiful, actionable <strong>technical SEO</strong> report that tells
+        you exactly what to fix — and how to rank higher on Google.
       </motion.p>
 
       {/* Call-to-action engagement section */}
@@ -191,7 +188,7 @@ export function HeroAnimations() {
         transition={{ duration: 0.5, delay: 0.3 }}
         className="flex flex-col sm:flex-row items-center justify-center gap-4"
       >
-        <Link href="/sign-in">
+        <Link href="/seo-audit-login">
           <Button
             size="lg"
             className="h-14 px-8 text-lg rounded-full shadow-xl shadow-primary/25 hover:scale-105 hover:shadow-primary/40 transition-all duration-300 bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
@@ -213,6 +210,8 @@ export function HeroAnimations() {
                   alt={`SEO Boost founder avatar ${i}`}
                   className="w-full h-full rounded-full"
                   unoptimized
+                  priority
+                  fetchPriority="high"
                 />
               </div>
             ))}

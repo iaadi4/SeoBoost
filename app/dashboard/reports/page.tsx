@@ -10,7 +10,7 @@ export default async function ReportsPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/sign-in')
+    redirect('/seo-audit-login')
   }
 
   const allReports = await prisma.domainReport.findMany({

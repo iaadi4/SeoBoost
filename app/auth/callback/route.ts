@@ -45,5 +45,5 @@ export async function GET(request: Request) {
   }
 
   // return the user to an error page with instructions
-  redirect(`${origin}/sign-in?error=true`)
+  redirect(`${origin}/seo-audit-login?error=true`)
 }
