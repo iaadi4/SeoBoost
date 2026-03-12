@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Calendar,
   Filter,
+  TrendingUp,
+  Globe,
 } from 'lucide-react'
 
 interface Report {
@@ -90,7 +92,18 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-export function ReportsClient({ reports }: { reports: Report[] }) {
+export function ReportsClient({ 
+  reports,
+  totalScans,
+  avgScore,
+  subscriptionPlan,
+}: { 
+  reports: Report[]
+  totalScans: number
+  avgScore: number
+  subscriptionPlan: string
+}) {
+  const isPro = subscriptionPlan === 'pro'
   const [searchQuery, setSearchQuery] = useState('')
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
 
@@ -126,6 +139,31 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
     { value: 'month', label: 'Last 30 Days' },
   ]
 
+  const stats = [
+    {
+      label: 'Total Scans',
+      value: totalScans,
+      icon: Globe,
+      suffix: '',
+      description: 'reports generated',
+    },
+    {
+      label: 'Avg. Score',
+      value: avgScore,
+      icon: TrendingUp,
+      suffix: '/100',
+      description: 'domain health avg',
+    },
+    {
+      label: 'Plan',
+      value: isPro ? 'Pro' : 'Free',
+      icon: Zap,
+      suffix: '',
+      description: isPro ? 'unlimited access' : 'standard features',
+      highlight: isPro,
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Top nav */}
@@ -151,21 +189,26 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-8 py-10 max-w-6xl relative">
+      <motion.div
+        className="container mx-auto px-4 sm:px-8 py-10 max-w-6xl relative"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
         {/* Background orbs for "living" feel */}
         <Orb
-          className="w-[500px] h-[500px] bg-primary/8 -top-10 -right-40"
+          className="w-[500px] h-[500px] bg-primary/10 -top-10 -right-40"
           delay={1}
           duration={12}
         />
         <Orb
-          className="w-[450px] h-[450px] bg-primary/6 bottom-20 -left-60"
+          className="w-[450px] h-[450px] bg-primary/8 bottom-20 -left-60"
           delay={4}
           duration={15}
         />
 
         {/* Header */}
-        <div className="mb-8">
+        <motion.div variants={item} className="mb-8">
           <Link
             href="/dashboard"
             className="text-sm text-muted-foreground hover:text-primary transition-colors mb-2 inline-flex items-center gap-1"
@@ -179,10 +222,45 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
             {reports.length} total domain{reports.length !== 1 ? 's' : ''}{' '}
             scanned
           </p>
-        </div>
+        </motion.div>
+
+        {/* Key Performance Indicators (KPIs) */}
+        <motion.div
+          variants={item}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+        >
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className={`rounded-xl border p-5 flex items-center gap-4 hover:border-primary/30 transition-colors duration-200 bg-card ${stat.highlight ? 'border-primary/40 shadow-md shadow-primary/5' : 'border-border/60'}`}
+            >
+              <div
+                className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${stat.highlight ? 'bg-primary/15' : 'bg-primary/10'}`}
+              >
+                <stat.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-0.5">
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold leading-none">
+                  {stat.value}
+                  {stat.suffix && (
+                    <span className="text-sm text-muted-foreground font-normal ml-0.5">
+                      {stat.suffix}
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stat.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </motion.div>
 
         {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <motion.div variants={item} className="flex flex-col sm:flex-row gap-3 mb-8">
           {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -211,15 +289,15 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Results count */}
         {(searchQuery || timeFilter !== 'all') && (
-          <p className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
+          <motion.p variants={item} className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
             <Filter className="h-3.5 w-3.5" />
             Showing {filtered.length} of {reports.length} reports
             {searchQuery && <span> matching &quot;{searchQuery}&quot;</span>}
-          </p>
+          </motion.p>
         )}
 
         {/* Reports Grid */}
@@ -253,11 +331,8 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
             )}
           </div>
         ) : (
-          <motion.div
+          <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            variants={container}
-            initial="hidden"
-            animate="show"
           >
             {filtered.map((report) => {
               let hostname = report.domainUrl
@@ -295,9 +370,9 @@ export function ReportsClient({ reports }: { reports: Report[] }) {
                 </motion.div>
               )
             })}
-          </motion.div>
+          </div>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }

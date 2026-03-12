@@ -106,9 +106,31 @@ export interface ScanOptions {
   userAgent?: string
   /**
    * Next.js fetch cache revalidation in seconds.
-   * Pass 0 to always fetch fresh. Default: 3600
+   * Pass 0 to always fetch fresh. Default: 0
    */
   revalidate?: number
+  /**
+   * Minimum ms to wait between page fetches (politeness delay).
+   * Prevents hammering the target server. Default: 500
+   */
+  politenessDelayMs?: number
+  /**
+   * How many times to retry a failed fetch before giving up.
+   * Uses exponential backoff: 500 ms, 1 000 ms, 2 000 ms… Default: 2
+   */
+  fetchRetries?: number
+}
+
+/** Thrown by scanDomain when the input URL is invalid or the scan cannot start. */
+export class ScanError extends Error {
+  constructor(
+    message: string,
+    /** Machine-readable reason code */
+    public readonly code: 'INVALID_URL' | 'FETCH_FAILED' | 'UNKNOWN',
+  ) {
+    super(message)
+    this.name = 'ScanError'
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,9 +156,9 @@ const DEFAULTS: Required<ScanOptions> = {
   fetchTimeoutMs: 10_000,
   stripTrackingParams: true,
   userAgent: 'SEOScanBot/2.0 (+https://seoscan.dev/bot)',
-  // Bug 1 fix: always fetch fresh HTML so fixes applied to the target site
-  // are immediately reflected in the next scan (no stale-cache blindness).
   revalidate: 0,
+  politenessDelayMs: 500,
+  fetchRetries: 2,
 }
 
 const TRACKING_PARAMS = [
@@ -190,6 +212,16 @@ function isProgrammatic(pathname: string, search: string): boolean {
 function normaliseUrl(raw: string, origin: string, opts: Required<ScanOptions>): string {
   try {
     const u = new URL(raw, origin)
+    // Only follow links that belong to the same origin.
+    const originUrl = new URL(origin)
+    // Strip www. from both sides so links like https://www.example.com/page
+    // are accepted when origin is https://example.com (and vice-versa).
+    if (u.hostname.replace(/^www\./, '') !== originUrl.hostname.replace(/^www\./, '')) return raw
+    // Canonicalise to the origin's hostname so that www.example.com/about and
+    // example.com/about produce the same string and share a single visited-set
+    // slot — preventing the same page from being fetched and analysed twice.
+    u.hostname = originUrl.hostname
+
     u.hash = ''
     if (opts.stripTrackingParams) {
       TRACKING_PARAMS.forEach(p => u.searchParams.delete(p))
@@ -222,33 +254,44 @@ async function fetchUrl(
   opts: Required<ScanOptions>,
   acceptXml = false
 ): Promise<FetchResult | null> {
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'User-Agent': opts.userAgent,
-        Accept: acceptXml
-          ? 'application/xml,text/xml,*/*;q=0.8'
-          : 'text/html,application/xhtml+xml,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache',
-      },
-      signal: AbortSignal.timeout(opts.fetchTimeoutMs),
-      // Next.js App Router cache control
-      next: { revalidate: opts.revalidate },
-    })
+  const maxAttempts = 1 + Math.max(0, opts.fetchRetries)
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      // Exponential backoff: 500 ms, 1 000 ms, 2 000 ms …
+      await new Promise(r => setTimeout(r, 500 * 2 ** (attempt - 1)))
+    }
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'User-Agent': opts.userAgent,
+          Accept: acceptXml
+            ? 'application/xml,text/xml,*/*;q=0.8'
+            : 'text/html,application/xhtml+xml,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cache-Control': 'no-cache',
+        },
+        signal: AbortSignal.timeout(opts.fetchTimeoutMs),
+        // Next.js App Router cache control
+        next: { revalidate: opts.revalidate },
+      })
 
-    const headers: Record<string, string> = {}
-    res.headers.forEach((v, k) => { headers[k.toLowerCase()] = v })
+      const headers: Record<string, string> = {}
+      res.headers.forEach((v, k) => { headers[k.toLowerCase()] = v })
 
-    if (!res.ok) return null
+      // Retry on server errors (5xx) but not on client errors (4xx)
+      if (res.status >= 500 && attempt < maxAttempts - 1) continue
+      if (!res.ok) return null
 
-    const html = await res.text()
-    return { html, headers, status: res.status, finalUrl: res.url }
-  } catch {
-    return null
+      const html = await res.text()
+      return { html, headers, status: res.status, finalUrl: res.url }
+    } catch {
+      // Network / timeout error — retry if attempts remain, otherwise give up
+      if (attempt === maxAttempts - 1) return null
+    }
   }
+  return null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -352,11 +395,16 @@ function analysePage(
 
   // ── META: Canonical ────────────────────────────────────────────────────────
   const canonical = $('link[rel="canonical"]').attr('href')?.trim() ?? ''
-  // Bug 2 fix: normalise www. prefix and trailing slash before comparing so
-  // a self-referencing canonical that includes/omits www doesn't fire a false
-  // "points to a different URL" warning.
+  // Normalise www. prefix and trailing slash before comparing.
+  // Strip scheme, www, and default ports to avoid false warnings.
   const normaliseCanonUrl = (u: string) =>
-    u.replace(/\/$/, '').replace(/^https?:\/\/www\./, 'https://')
+    u
+      .replace(/\/+$/, '')                          // strip all trailing slashes
+      .replace(/^http:\/\//, 'https://')            // normalise scheme
+      .replace(/^https?:\/\/www\./, 'https://')     // strip www
+      .replace(/:80(\/|$)/, '$1')                   // strip default port 80
+      .replace(/:443(\/|$)/, '$1')                  // strip default port 443
+
   const cleanPageUrl = normaliseCanonUrl(urlStr)
   const cleanCanon   = normaliseCanonUrl(canonical)
 
@@ -406,10 +454,14 @@ function analysePage(
   }
 
   // ── META: URL Structure ────────────────────────────────────────────────────
-  const hasUppercase = /[A-Z]/.test(path)
-  const hasUnderscores = /_/.test(path)
-  const hasSpecialChars = /[^a-z0-9\-\/\.]/.test(path)
+  // Check for truly problematic characters: whitespace, brackets, braces, and 
+  // raw percent signs. Valid Unicode letters are SEO-neutral.
+  const decodedPath = (() => { try { return decodeURIComponent(path) } catch { return path } })()
+  const hasSpecialChars = /[\s{}|\\^`<>%]/.test(decodedPath)
   const urlDepth = path.split('/').filter(Boolean).length
+
+  const hasUppercase = /[A-Z]/.test(path)
+  const hasUnderscores = path.includes('_')
 
   const urlIssues = [
     hasUppercase && 'uppercase letters',
@@ -438,9 +490,9 @@ function analysePage(
 
   // ── META: Keyword in URL ───────────────────────────────────────────────────
   if (path !== '/') {
-    // Bug 7 fix: was filtering words longer than 4 chars, missing important
-    // short keywords like "seo", "api", "app". Lowered to > 2.
-    const titleKws = title.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+    // Strip common HTML entities and punctuation from the title.
+    const cleanTitle = title.replace(/&amp;|&[a-z]+;|[^\w\s]/gi, ' ')
+    const titleKws = cleanTitle.toLowerCase().split(/\s+/).filter(w => w.length > 2)
     const urlHasKw = titleKws.some(w => path.toLowerCase().includes(w))
     if (!urlHasKw && title) {
       checks.push(check('url-keywords', 'Keyword in URL', 'meta', 'warning', path,
@@ -518,11 +570,14 @@ function analysePage(
 
   // ── CONTENT: Word Count ────────────────────────────────────────────────────
   const bodyClone = $('body').clone()
-  // Bug 3 fix: also strip JSON-LD script blocks — their raw JSON string content
-  // was leaking into bodyText and inflating the word count, masking thin-content issues.
-  bodyClone.find('script, style, noscript, svg, nav, footer, header, aside, [class*="sidebar"]').remove()
+  // Strip JSON-LD, templates, and picture elements.
+  bodyClone.find(
+    'script, style, noscript, svg, nav, footer, header, aside, template, picture,' +
+    ' [class*="sidebar"]'
+  ).remove()
   const bodyText = bodyClone.text().replace(/\s+/g, ' ').trim()
-  const wordCount = bodyText.split(' ').filter(w => w.length > 0).length
+  // Filter tokens that contain at least one letter or digit.
+  const wordCount = bodyText.split(/\s+/).filter(w => /[a-zA-Z\d]/.test(w)).length
 
   if (wordCount < 100) {
     checks.push(check('word-count', 'Content Length', 'content', 'critical', `${wordCount} words`,
@@ -545,8 +600,11 @@ function analysePage(
 
   // ── CONTENT: Keyword in Intro ──────────────────────────────────────────────
   if (title && wordCount >= 100) {
-    const first100 = bodyText.split(' ').slice(0, 100).join(' ').toLowerCase()
-    const titleKws = title.toLowerCase().split(/\s+/).filter(w => w.length > 4)
+    const first100 = bodyText.split(/\s+/).slice(0, 100).join(' ').toLowerCase()
+    // Strip HTML entities from the title.
+    const cleanTitle = title.replace(/&amp;|&[a-z]+;|[^\w\s]/gi, ' ')
+    // Catch short but meaningful keywords (seo, api, app).
+    const titleKws = cleanTitle.toLowerCase().split(/\s+/).filter(w => w.length > 2)
     const kwInIntro = titleKws.some(w => first100.includes(w))
     if (!kwInIntro) {
       checks.push(check('keyword-in-intro', 'Keyword in Intro', 'content', 'warning', 'Not in first 100 words',
@@ -645,9 +703,11 @@ function analysePage(
 
   // ── TECHNICAL: HTML lang ───────────────────────────────────────────────────
   const htmlLang = $('html').attr('lang') ?? ''
-  if (!htmlLang) {
-    checks.push(check('html-lang', 'HTML lang Attribute', 'accessibility', 'warning', 'Missing',
-      'No lang attribute on <html>',
+  // Check for missing or empty lang attribute.
+  if (!htmlLang || htmlLang.trim() === '') {
+    checks.push(check('html-lang', 'HTML lang Attribute', 'accessibility', 'warning',
+      htmlLang === '' ? 'Empty' : 'Missing',
+      htmlLang === '' ? 'lang attribute is empty' : 'No lang attribute on <html>',
       'Without a lang attribute, screen readers default to the OS language, potentially mispronouncing content in the wrong language. It also fails WCAG 3.1.1 (Level A).',
       'Add the lang attribute to the <html> element.',
       { snippet: '<html lang="en">', wcag: '3.1.1 Level A', reference: 'https://www.w3.org/WAI/WCAG21/Understanding/language-of-page', effort: 'low', impact: 'medium' }))
@@ -661,9 +721,6 @@ function analysePage(
   // ── TECHNICAL: Compression ─────────────────────────────────────────────────
   const contentEncoding = responseHeaders['content-encoding'] ?? ''
   const isCompressed = /gzip|br|zstd/.test(contentEncoding)
-  // Bug 5 fix: server-side Next.js fetch() resolves before the Vercel/Cloudflare
-  // edge applies compression, so content-encoding is absent even though real
-  // users receive compressed responses. Detect edge/CDN headers as a proxy.
   const isCdnEdge = !!(responseHeaders['x-vercel-id'] || responseHeaders['cf-ray']
     || responseHeaders['x-vercel-cache'] || responseHeaders['x-cache'])
   const htmlSizeKb = Math.round(html.length / 1024)
@@ -758,10 +815,6 @@ function analysePage(
   }
 
   // ── PERFORMANCE: Render-Blocking Resources ─────────────────────────────────
-  // Bug 9 fix: exclude Next.js framework inline scripts (hydration chunks,
-  // __NEXT_DATA__, chunk manifests) — these are injected by the framework and
-  // cannot be removed by the site owner. Also raise threshold to 8 to avoid
-  // false positives on standard Next.js apps.
   const inlineScriptCount = $(
     'script:not([src])' +
     ':not([type="application/ld+json"])' +
@@ -771,7 +824,6 @@ function analysePage(
     ':not([nonce])'
   ).filter((_, el) => {
     const content = $(el).html() ?? ''
-    // Skip Next.js self.__next_* assignments and chunk push calls
     return !content.includes('self.__next') && !content.includes('__NEXT_') && !content.includes('webpackChunk')
   }).length
   const inlineStyleCount = $('style').length
@@ -831,7 +883,7 @@ function analysePage(
       'Missing alt attributes fail WCAG 1.1.1 (Level A) and prevent images from being indexed in Google Image Search. Screen readers skip these images entirely.',
       'Add descriptive, keyword-relevant alt text to all meaningful images. Use alt="" (empty string) for decorative images.',
       { snippet: '<!-- Meaningful image -->\n<img src="product.jpg" alt="Red leather sofa — mid-century modern design" width="800" height="600">\n\n<!-- Decorative -->\n<img src="divider.png" alt="" width="1200" height="4" role="presentation">', wcag: '1.1.1 Level A', effort: 'medium', impact: 'medium' }))
-  } else if (imgCount > 3 && missingDims > imgCount * 0.5) {
+  } else if (imgCount > 3 && missingDims >= imgCount * 0.5) {
     checks.push(check('img-alt', 'Image Alt Text & Dimensions', 'images', 'warning',
       `${missingDims} / ${imgCount} missing dimensions`,
       'Many images missing explicit width/height — CLS risk',
@@ -840,8 +892,8 @@ function analysePage(
       { snippet: '<img src="hero.jpg" alt="Description" width="1200" height="630">', effort: 'low', impact: 'high' }))
   } else {
     checks.push(check('img-alt', 'Image Alt Text', 'images', 'good',
-      `${imgCount} images, alt text present`,
-      'Image alt text properly configured',
+      imgCount === 0 ? 'No images' : `${imgCount} images, all have alt`,
+      imgCount === 0 ? 'No images found on this page' : 'Image alt text properly configured',
       'Descriptive alt text improves accessibility and Google Image Search rankings.',
       'Use keyword-rich alt text for content images; empty alt for decorative ones.'))
   }
@@ -925,17 +977,12 @@ function analysePage(
   }
 
   // ── ACCESSIBILITY: Skip Navigation ────────────────────────────────────────
-  // Bug 4 fix: $('a[href^="#"]:first') is not a valid Cheerio selector —
-  // :first must be applied via .first(). Also added detection for the exact
-  // snippet we recommend (sr-only class + href="#main-content") so pages that
-  // implement our suggestion are correctly marked as passing.
   const firstHashLink = $('a[href^="#"]').first()
   const hasSkipNav =
     firstHashLink.text().toLowerCase().includes('skip') ||
     firstHashLink.attr('aria-label')?.toLowerCase().includes('skip') ||
     $('[class*="skip-"]').length > 0 ||
     $('a[href="#main"], a[href="#content"], a[href="#main-content"]').length > 0 ||
-    // Detect the recommended implementation: sr-only link pointing to #main-content
     $('a.sr-only[href="#main-content"], a[href="#main-content"].sr-only').length > 0
 
   if (!hasSkipNav) {
@@ -981,7 +1028,11 @@ function analysePage(
   // ── ACCESSIBILITY: Form Labels ─────────────────────────────────────────────
   const forms = $('form')
   if (forms.length > 0) {
-    const inputs = $('input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"])').length
+    // Include <select> and <textarea>.
+    const inputs = $(
+      'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]),' +
+      'select, textarea'
+    ).length
     const labelledByFor = $('label[for]').length
     const ariaLabelled = $('[aria-label], [aria-labelledby], [title]').filter('input, select, textarea').length
     const unlabelled = Math.max(0, inputs - labelledByFor - ariaLabelled)
@@ -1046,12 +1097,21 @@ function analysePage(
       }
     })
 
-    if (parseErrors > 0) {
+    if (parseErrors > 0 && schemaTypes.length === 0) {
       checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning',
         `${parseErrors} invalid JSON-LD block(s)`,
         `${parseErrors} schema block(s) contain invalid JSON`,
         'Malformed JSON-LD is silently ignored by Google. A single syntax error (trailing comma, unescaped quote) prevents all rich result eligibility for that block.',
         'Validate every schema block with the Schema Markup Validator. Common fix: remove trailing commas and escape inner quotes.',
+        { reference: 'https://validator.schema.org/', effort: 'low', impact: 'high' }))
+    } else if (parseErrors > 0) {
+      // Some blocks valid, some invalid — surface both facts
+      const typeList = [...new Set(schemaTypes)].join(', ')
+      checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning',
+        `${parseErrors} invalid block(s)`,
+        `${parseErrors} invalid JSON-LD block(s); valid types: ${typeList.substring(0, 40)}`,
+        'Malformed JSON-LD blocks are silently ignored by Google. Fix them to restore full rich-result eligibility.',
+        'Validate every schema block with the Schema Markup Validator.',
         { reference: 'https://validator.schema.org/', effort: 'low', impact: 'high' }))
     } else {
       const typeList = [...new Set(schemaTypes)].join(', ')
@@ -1273,7 +1333,7 @@ function analysePage(
 async function runDomainChecks(
   origin: string,
   opts: Required<ScanOptions>
-): Promise<CheckResult[]> {
+): Promise<{ checks: CheckResult[]; robotsDisallowed: string[] }> {
   const checks: CheckResult[] = []
 
   // ── SSL ────────────────────────────────────────────────────────────────────
@@ -1290,8 +1350,22 @@ async function runDomainChecks(
       { snippet: '# Apache .htaccess\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]\n\n# Nginx\nserver {\n  listen 80;\n  return 301 https://$host$request_uri;\n}', impact: 'high', effort: 'medium' }))
   }
 
+  // Fetch robots.txt, sitemap, and homepage in parallel.
+  const [robotsRes, sitemapRes, homeRes] = await Promise.all([
+    fetchUrl(`${origin}/robots.txt`, opts),
+    // Sitemap fallback chain runs within its parallel slot.
+    (async () =>
+      (await fetchUrl(`${origin}/sitemap.xml`, opts, true)) ??
+      (await fetchUrl(`${origin}/sitemap_index.xml`, opts, true)) ??
+      (await fetchUrl(`${origin}/sitemap-index.xml`, opts, true))
+    )(),
+    fetchUrl(`${origin}/`, opts),
+  ])
+
   // ── Robots.txt ─────────────────────────────────────────────────────────────
-  const robotsRes = await fetchUrl(`${origin}/robots.txt`, opts)
+  // Also parse Disallow paths so the crawl loop can respect them at runtime.
+  let robotsDisallowed: string[] = []
+
   if (!robotsRes) {
     checks.push(check('robots-txt', 'Robots.txt', 'domain', 'warning', 'Missing',
       'No robots.txt at /robots.txt',
@@ -1300,12 +1374,22 @@ async function runDomainChecks(
       { snippet: 'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/private/\nDisallow: /checkout/\nDisallow: /account/\nSitemap: https://example.com/sitemap.xml', effort: 'low', impact: 'medium' }))
   } else {
     const rb = robotsRes.html.toLowerCase()
-    // Bug 8 fix: was using .includes('disallow: /') which also matched paths
-    // like 'disallow: /admin/' — causing a false "blocks everything" critical.
-    // Now uses a regex that only matches a bare standalone 'Disallow: /'.
-    const blocksEverything = /^disallow:\s*\/\s*$/m.test(rb) && !rb.includes('allow: /')
+    const blocksEverything = /^disallow:\s*\/\s*$/m.test(rb) && !/^allow:\s*\//m.test(rb)
     const hasUserAgent = rb.includes('user-agent:')
     const hasSitemapRef = rb.includes('sitemap:')
+
+    // Extract Disallow paths for the `*` user-agent block so the crawler
+    // can skip them, just as Googlebot would.
+    let inWildcardBlock = false
+    for (const line of rb.split(/\r?\n/)) {
+      const trimmed = line.trim()
+      if (trimmed.startsWith('user-agent:')) {
+        inWildcardBlock = trimmed.replace('user-agent:', '').trim() === '*'
+      } else if (inWildcardBlock && trimmed.startsWith('disallow:')) {
+        const path = trimmed.replace('disallow:', '').trim()
+        if (path && path !== '/') robotsDisallowed.push(path)
+      }
+    }
 
     if (blocksEverything) {
       checks.push(check('robots-txt', 'Robots.txt', 'domain', 'critical', 'Blocks all crawling',
@@ -1335,10 +1419,6 @@ async function runDomainChecks(
   }
 
   // ── XML Sitemap ────────────────────────────────────────────────────────────
-  const sitemapRes = await fetchUrl(`${origin}/sitemap.xml`, opts, true)
-    ?? await fetchUrl(`${origin}/sitemap_index.xml`, opts, true)
-    ?? await fetchUrl(`${origin}/sitemap-index.xml`, opts, true)
-
   if (!sitemapRes) {
     checks.push(check('sitemap', 'XML Sitemap', 'domain', 'warning', 'Missing',
       'No sitemap.xml, sitemap_index.xml, or sitemap-index.xml found',
@@ -1369,7 +1449,6 @@ async function runDomainChecks(
   }
 
   // ── Security Headers (fetched from homepage) ──────────────────────────────
-  const homeRes = await fetchUrl(`${origin}/`, opts)
   if (homeRes) {
     const h = homeRes.headers
 
@@ -1440,7 +1519,6 @@ async function runDomainChecks(
     const missingHeaders: string[] = []
     for (const def of securityHeaders) {
       const val = h[def.header] ?? ''
-      // Special case: frame-ancestors in CSP counts for x-frame-options
       if (def.header === 'x-frame-options') {
         const csp = h['content-security-policy'] ?? ''
         if (!val && !csp.includes('frame-ancestors')) missingHeaders.push(def.label)
@@ -1462,7 +1540,7 @@ async function runDomainChecks(
         `${missingHeaders.length} security header(s) missing`,
         'Missing security headers leave users exposed to browser-based attacks.',
         `Add missing headers: ${missingHeaders.join(', ')}.`,
-        { snippet: `// next.config.js headers entry\n${missingHeaders.map(h => `{ key: "${h}", value: "…" }`).join('\n')}`, effort: 'low', impact: 'low' }))
+        { snippet: `// next.config.js headers entry\n${missingHeaders.map(hdr => `{ key: "${hdr}", value: "…" }`).join('\n')}`, effort: 'low', impact: 'low' }))
     } else {
       checks.push(check('security-headers', 'Security Headers', 'security', 'good',
         'All key headers present',
@@ -1472,7 +1550,7 @@ async function runDomainChecks(
     }
   }
 
-  return checks
+  return { checks, robotsDisallowed }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1502,14 +1580,29 @@ export async function scanDomain(
   const startMs = Date.now()
   const opts: Required<ScanOptions> = { ...DEFAULTS, ...options }
 
-  const rawUrl = domainInput.startsWith('http') ? domainInput : `https://${domainInput}`
-  const domainUrl = new URL(rawUrl)
+  // Validate and normalise the input URL up-front so callers get a typed error
+  // instead of an unhandled `new URL()` TypeError crashing their call-site.
+  let domainUrl: URL
+  try {
+    const rawUrl = domainInput.startsWith('http') ? domainInput : `https://${domainInput}`
+    domainUrl = new URL(rawUrl)
+  } catch {
+    throw new ScanError(
+      `Invalid domain or URL: "${domainInput}". Provide a hostname (example.com) or full URL (https://example.com).`,
+      'INVALID_URL',
+    )
+  }
   const origin = domainUrl.origin
+
+  // ── Domain checks run first to get the robots.txt Disallow list ────────────
+  const { checks: domainChecks, robotsDisallowed } = await runDomainChecks(origin, opts)
 
   // ── Crawl ──────────────────────────────────────────────────────────────────
   const queue: string[] = [normaliseUrl(origin + '/', origin, opts)]
+  const queued = new Set<string>(queue)   // mirrors queue contents for O(1) lookup
   const visited = new Set<string>()
   const rawPages: RawPageResult[] = []
+  let lastFetchAt = 0
 
   while (queue.length > 0 && rawPages.length < opts.maxPages) {
     const target = queue.shift()!
@@ -1518,16 +1611,32 @@ export async function scanDomain(
     if (visited.has(normTarget)) continue
     visited.add(normTarget)
 
-    // Skip programmatic paths
+    // Skip programmatic paths and robots.txt Disallow rules
     try {
       const u = new URL(normTarget)
       if (isProgrammatic(u.pathname, u.search)) continue
+      // Respect robots.txt Disallow directives for the * agent, as Googlebot does.
+      if (robotsDisallowed.some(prefix => u.pathname.startsWith(prefix))) continue
     } catch { continue }
 
+    // Politeness delay: ensure at least opts.politenessDelayMs between page fetches.
+    const sinceLastFetch = Date.now() - lastFetchAt
+    if (lastFetchAt > 0 && sinceLastFetch < opts.politenessDelayMs) {
+      await new Promise(r => setTimeout(r, opts.politenessDelayMs - sinceLastFetch))
+    }
+
     const fetched = await fetchUrl(normTarget, opts)
+    lastFetchAt = Date.now()
     if (!fetched) continue
 
-    // Track the final resolve URL to prevent redirect loops (e.g domain.com -> www.domain.com)
+    // Skip pages that redirected to a foreign domain.
+    try {
+      const sameHost = new URL(fetched.finalUrl).hostname.replace(/^www\./, '') ===
+                       new URL(origin).hostname.replace(/^www\./, '')
+      if (!sameHost) continue
+    } catch { continue }
+
+    // Track the final resolve URL to prevent redirect loops
     if (fetched.finalUrl) {
       const finalNorm = normaliseUrl(fetched.finalUrl, origin, opts)
       if (finalNorm !== normTarget) {
@@ -1546,16 +1655,21 @@ export async function scanDomain(
     // Enqueue discovered links
     for (const link of analysed.outboundLinks) {
       const normLink = normaliseUrl(link, origin, opts)
-      if (!visited.has(normLink) && !queue.includes(normLink)) {
+      // Guard against malformed / off-domain URLs.
+      try {
+        const linkHost = new URL(normLink).hostname.replace(/^www\./, '')
+        const originHost = new URL(origin).hostname.replace(/^www\./, '')
+        if (linkHost !== originHost) continue
+      } catch { continue }
+
+      if (!visited.has(normLink) && !queued.has(normLink)) {
         queue.push(normLink)
+        queued.add(normLink)
       }
     }
   }
 
   const pagesScanned = rawPages.length
-
-  // ── Domain checks (run in parallel with crawl results ready) ──────────────
-  const domainChecks = await runDomainChecks(origin, opts)
 
   // ── Aggregation ────────────────────────────────────────────────────────────
   interface AggEntry {
@@ -1655,7 +1769,10 @@ export async function scanDomain(
       }
     } else {
       currentValue = data.pages[0]?.value ?? 'Passed'
-      issueText = `All ${pagesScanned} page${pagesScanned === 1 ? '' : 's'} pass`
+      // Show a more helpful message when no pages are scanned.
+      issueText = pagesScanned === 0
+        ? 'No pages scanned'
+        : `All ${pagesScanned} page${pagesScanned === 1 ? '' : 's'} pass`
     }
 
     aggregatedChecks.push({
@@ -1680,13 +1797,14 @@ export async function scanDomain(
   }
 
   // Sort: critical → warning → good, then by impact (high first), then label
-  const impactOrder = { high: 0, medium: 1, low: 2, undefined: 3 }
-  const statusOrder = { critical: 0, warning: 1, good: 2 }
+  const impactOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
+  const statusOrder: Record<CheckStatus, number> = { critical: 0, warning: 1, good: 2 }
   aggregatedChecks.sort((a, b) => {
     const sByStatus = statusOrder[a.status] - statusOrder[b.status]
     if (sByStatus !== 0) return sByStatus
-    const ai = impactOrder[a.impact ?? 'undefined' as keyof typeof impactOrder]
-    const bi = impactOrder[b.impact ?? 'undefined' as keyof typeof impactOrder]
+    // Default to lowest priority for any missing or unrecognised impact value.
+    const ai = impactOrder[a.impact ?? ''] ?? 3
+    const bi = impactOrder[b.impact ?? ''] ?? 3
     return ai - bi || a.label.localeCompare(b.label)
   })
 
@@ -1714,14 +1832,7 @@ export async function scanDomain(
     .filter(c => c.status !== 'good')
     .slice(0, 5)
 
-  // Final domain score
-  // Bug 6 fix: the old formula started from avgPage (already penalised for
-  // page-level issues) and then subtracted domain-level penalties on top.
-  // With many domain checks (HSTS, robots, sitemap, security headers, SSL)
-  // the deductions could push the score to 0 even for decent sites.
-  // New approach: blend page score (80% weight) with a domain health score
-  // (20% weight) derived from domain checks, keeping the output in a sensible
-  // range and preventing domain issues from wiping out page-level gains.
+  // Final domain score blend.
   const avgPage = pageAnalysis.length > 0
     ? pageAnalysis.reduce((s, p) => s + p.score, 0) / pageAnalysis.length
     : 50

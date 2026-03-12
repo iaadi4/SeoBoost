@@ -13,17 +13,36 @@ export default async function ReportsPage() {
     redirect('/seo-audit-login')
   }
 
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { subscriptionPlan: true },
+  })
+
   const allReports = await prisma.domainReport.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
   })
 
-  const reportsForClient = allReports.map((r: (typeof allReports)[number]) => ({
+  const totalScans = allReports.length
+  const avgScore = totalScans
+    ? Math.round(
+        allReports.reduce((a, b) => a + b.score, 0) / totalScans
+      )
+    : 0
+
+  const reportsForClient = allReports.map((r) => ({
     id: r.id,
     domainUrl: r.domainUrl,
     score: r.score,
     createdAt: r.createdAt.toISOString(),
   }))
 
-  return <ReportsClient reports={reportsForClient} />
+  return (
+    <ReportsClient
+      reports={reportsForClient}
+      totalScans={totalScans}
+      avgScore={avgScore}
+      subscriptionPlan={dbUser?.subscriptionPlan || 'free'}
+    />
+  )
 }
