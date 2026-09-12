@@ -1,0 +1,307 @@
+{
+  "as_of": "2026-09-11",
+  "lanes_in": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
+  "shared_hotspots": [
+    {
+      "files": ["lib/scanner.ts"],
+      "lanes": ["02", "03", "04", "05", "06", "07", "08", "09", "10"],
+      "conflict": "All ten research lanes except 01 will rewrite analysePage, fetchUrl, crawl, robots/meta parse, SCORE_WEIGHTS, or check ids. Risk: two robots parsers, two dual-UA engines, two first-HTML/CSR checks, a GEO score, a second LCP grade, two sitemap parsers. New 04 ids must be ai-snippet-eligible, ai-bots-robots, ai-extractable-text — do not reuse faq-schema, robots-txt, or meta-robots.",
+      "merge_order": "10-04 export analysePage + L0 fixtures (add nosnippet, OAI-SearchBot Disallow, Google-Extended-only, CSR-empty, llms.txt-missing=off) → 06-03 one FetchResult → 08-03 one sitemap parse + Pro maxPages → 08-01/08-02 graph → 06-01 loc quality (covers 01-07/09-09) → 06-09 one REP parser (Allow/wildcards/groups) → 04-03 AI token table on that parse (covers dropped 04-03 fork) → 06-10 meta/X-Robots completeness → 04-02 nosnippet-as-AIO-input on that read → 03-01/03-04/03-06 JSON-LD walker + FAQ kill → 05-02/05-03 uniqueness + word-count demotion → 07-01/07-11 image split → 09-08 Googlebot vs SEOScanBot (04-05 only adds OAI-SearchBot + PerplexityBot) → 02-01/02-04 lib/cwv.ts; no second LCP id; no geo-score id"
+    },
+    {
+      "files": ["app/layout.tsx"],
+      "lanes": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
+      "conflict": "01-01 sets metadataBase to https://seoboost.app. 03-02 deletes AggregateRating. 03-05/08-05 delete the 1-item BreadcrumbList. Keep robots.googleBot max-snippet:-1 / max-image-preview:large (04-02/07). Do not add htmlLimitedBots: /.*/ (01-10/04-05). Do not wrap JSON-LD in next/script.",
+      "merge_order": "01-01 seoboost.app + canonical '/' + 308 → 03-02 drop fake stars → 03-05 homepage-only native JSON-LD → keep max-snippet:-1 on public pages → 01-05/01-02 child robots/canonical → 02-09 isolate cookies() → 10-02 L1 lock"
+    },
+    {
+      "files": ["app/sitemap.ts", "app/robots.ts", "next.config.ts"],
+      "lanes": ["01", "02", "03", "04", "06", "07", "08", "09", "10"],
+      "conflict": "01-01 locks origin + 308. 04-03 wants a per-bot rules array only if legal asks for training-out; default stays one * group (01-08). 06-09 owns REP. Do not add fake per-bot Allow theater. 02-03 must exclude HTML/sitemap/robots from immutable 1y.",
+      "merge_order": "01-01 origin + Sitemap: https://seoboost.app/sitemap.xml → 06-01/01-07 honest lastmod → 02-03 split Cache-Control → 08-03 HTML <loc> seed → 04-03 classify named groups if present; do not emit GPTBot theater on the product file → 10-06 CI GET"
+    },
+    {
+      "files": ["app/glossary/page.tsx", "app/glossary/[term]/page.tsx", "lib/glossary-data.ts"],
+      "lanes": ["01", "03", "04", "05", "06", "07", "08", "10"],
+      "conflict": "01-03/08-04 ${} unescape. 04-06: no FAQPage-for-AIO, no chunking, no fan-out farms. 03-01 owns FAQ type kill. 05 owns Who/How and word-count demotion.",
+      "merge_order": "01-03 unescape generateMetadata + 08-04 hrefs → 03-01/04-12 no FAQPage → 03-09 dates/image → 03-05 crumbs → 07-04 OG images → 10-02 L1"
+    },
+    {
+      "files": ["app/seo-audit-login/layout.tsx", "app/sign-up/layout.tsx", "app/dashboard/layout.tsx"],
+      "lanes": ["01", "03", "06", "10"],
+      "conflict": "01-05 noindex login/dashboard. 06-04 leftover is scanner Disallow+noindex. 10-02 asserts.",
+      "merge_order": "01-05 index:false on login + dashboard layout → 01-02 non-home canonical → 03-05 page-local schema → 10-02 request.get"
+    },
+    {
+      "files": ["app/api/scan/route.ts"],
+      "lanes": ["02", "04", "05", "08", "09", "10"],
+      "conflict": "08-03 maxPages. 04-10 optional homepage HEAD as OAI-SearchBot/PerplexityBot after 06-03. 02-04/10-09 CrUX/PSI. Do not scrape ChatGPT/Perplexity UIs (04-08).",
+      "merge_order": "08-03 crawl options → 06-03 status → 04-10 Hobby homepage-only UA probe (disclose spoof) → 02-04/10-09 timed CWV lane → 09-04/04-08 GSC gen-AI impressions later, owned-property only"
+    },
+    {
+      "files": ["app/page.tsx", "app/pricing/page.tsx", "app/dashboard/report/[id]/report-actions.tsx", "lib/claims.ts"],
+      "lanes": ["02", "03", "04", "05", "07", "08", "09", "10"],
+      "conflict": "10-05 matrix must fail GEO/AIO/CWV/link-graph/JSON-LD rows with measurement none. 04-01/04-11/04-12: no GEO score, no llms.txt-for-Google, no FAQPage-for-AIO in the LLM prompt. 09-12 wants App Router codegen on the same prompt.",
+      "merge_order": "10-05 lib/claims.ts + fail GEO/AIO guarantee rows (covers 04-01/04-11) → 03-01 strip FAQ-SERP copy at source so 04-12 prompt cannot see it → 09-12 attach snippets + Next paths + 04 deny-list → 02-01/08-01 flip CWV and link-graph measurements when those checks exist"
+    },
+    {
+      "files": ["app/hero-animations.tsx", "app/page.tsx"],
+      "lanes": ["01", "02", "04", "07"],
+      "conflict": "02-03 owns visible H1 (no opacity:0). 04-05 treats that same first-HTML gap as AI-crawler citability. 07-05 avatar priority. 09-08 dual-UA is the engine; 04-05 only adds OAI-SearchBot + PerplexityBot.",
+      "merge_order": "02-03 unhide H1 + drop avatar priority (covers 07-05) → 09-08 Googlebot vs SEOScanBot → 04-05 add AI search UAs to that pair, do not set htmlLimitedBots: /.*/"
+    },
+    {
+      "files": ["app/dashboard/report/[id]/page.tsx"],
+      "lanes": ["02", "03", "04", "05", "06", "08", "09", "10"],
+      "conflict": "04-02/04-08 want an AI eligibility heuristic panel + GSC gen-AI link, never a citation %. 10-12 methods block must say heuristic. 02-04 CWV gauges. 08-01 Depth/orphans.",
+      "merge_order": "10-12 methods block → 08-02/06-03 list columns → 03-11/10-08 RRT link → 04-02/04-08 AI eligibility (heuristic) → 02-04 CWV gauges"
+    },
+    {
+      "files": ["package.json", ".github/workflows/main.yml", "lib/cwv.ts"],
+      "lanes": ["02", "09", "10"],
+      "conflict": "10-01 CI runners. 10-04/10-10 string-ban GEO score, llms.txt-for-Google, FAQ rich results, FID-as-vital. 02-04/10-09 one cwv client.",
+      "merge_order": "10-01 test + e2e → 10-04/10-05/10-10 fixtures and bans → 10-02 HTML contract → 02-04/10-09 lib/cwv.ts"
+    }
+  ],
+  "duplicate_findings": [
+    {
+      "ids": ["04-01", "04-11", "10-05", "05-12"],
+      "keep": "10-05",
+      "drop": "04-01"
+    },
+    {
+      "ids": ["04-12", "03-01", "05-05", "09-05"],
+      "keep": "03-01",
+      "drop": "04-12"
+    },
+    {
+      "ids": ["04-05", "09-08", "06-05", "02-03"],
+      "keep": "09-08",
+      "drop": "04-05"
+    },
+    {
+      "ids": ["04-03", "06-09"],
+      "keep": "06-09",
+      "drop": "04-03"
+    },
+    {
+      "ids": ["04-04", "10-05", "05-12", "09"],
+      "keep": "10-05",
+      "drop": "04-04"
+    },
+    {
+      "ids": ["04-02", "06-10", "06-04"],
+      "keep": "04-02",
+      "drop": "06-10"
+    },
+    {
+      "ids": ["01-01", "03-03", "09-07"],
+      "keep": "01-01",
+      "drop": "03-03"
+    },
+    {
+      "ids": ["01-01", "06-02"],
+      "keep": "01-01",
+      "drop": "06-02"
+    },
+    {
+      "ids": ["01-01", "07-04", "01-09"],
+      "keep": "01-01",
+      "drop": "01-09"
+    },
+    {
+      "ids": ["01-03", "08-04", "03-09", "05-10"],
+      "keep": "01-03",
+      "drop": "08-04"
+    },
+    {
+      "ids": ["01-05", "06-04", "06-11"],
+      "keep": "01-05",
+      "drop": "06-04"
+    },
+    {
+      "ids": ["01-01", "01-02"],
+      "keep": "01-01",
+      "drop": "01-02"
+    },
+    {
+      "ids": ["06-01", "01-07", "09-09"],
+      "keep": "06-01",
+      "drop": "01-07"
+    },
+    {
+      "ids": ["02-01", "09-02", "02-02"],
+      "keep": "02-01",
+      "drop": "09-02"
+    },
+    {
+      "ids": ["08-03", "09-01"],
+      "keep": "08-03",
+      "drop": "09-01"
+    },
+    {
+      "ids": ["06-03", "09-03", "08-12"],
+      "keep": "06-03",
+      "drop": "09-03"
+    },
+    {
+      "ids": ["03-01", "05-05", "09-05"],
+      "keep": "03-01",
+      "drop": "09-05"
+    },
+    {
+      "ids": ["05-02", "05-05"],
+      "keep": "05-02",
+      "drop": "05-05"
+    },
+    {
+      "ids": ["03-05", "08-05", "02-10"],
+      "keep": "03-05",
+      "drop": "08-05"
+    },
+    {
+      "ids": ["03-05", "02-10"],
+      "keep": "03-05",
+      "drop": "02-10"
+    },
+    {
+      "ids": ["02-03", "07-05", "02-11"],
+      "keep": "02-03",
+      "drop": "07-05"
+    },
+    {
+      "ids": ["02-03", "02-11"],
+      "keep": "02-03",
+      "drop": "02-11"
+    },
+    {
+      "ids": ["03-04", "07-03", "09-05"],
+      "keep": "03-04",
+      "drop": "07-03"
+    },
+    {
+      "ids": ["06-05", "09-10", "09-01"],
+      "keep": "06-05",
+      "drop": "09-10"
+    },
+    {
+      "ids": ["05-04", "09-06", "05-03"],
+      "keep": "05-04",
+      "drop": "09-06"
+    },
+    {
+      "ids": ["07-11", "02-07"],
+      "keep": "07-11",
+      "drop": "02-07"
+    }
+  ],
+  "ranked_implement_queue": [
+    {
+      "id": "10-05",
+      "priority": "P0",
+      "title": "Claim-to-check matrix; ban GEO/AEO score and llms.txt-for-Google",
+      "files": ["lib/claims.ts", "app/page.tsx", "app/pricing/page.tsx", "tests/claims/feature-matrix.test.ts", "tests/scanner/false-positives.test.ts"],
+      "why_first": "Verification-first. Covers dropped 04-01/04-04/04-11: any Pro row that says GEO, AI Overview ready, or citation % with measurement none fails CI. Missing llms.txt is not a check."
+    },
+    {
+      "id": "10-01",
+      "priority": "P0",
+      "title": "Add Vitest + Playwright and wire them into CI",
+      "files": ["package.json", ".github/workflows/main.yml", ".github/workflows/dev.yml", "playwright.config.ts", "vitest.config.ts", "tests/seo/html-contract.spec.ts", "tests/scanner/fixtures.test.ts"],
+      "why_first": "Zero tests today. Locks 01-01/01-03/01-05 and the 04 string-bans once 10-04 fixtures land."
+    },
+    {
+      "id": "01-01",
+      "priority": "P0",
+      "title": "One origin: https://seoboost.app for metadataBase, canonical, sitemap, robots, OG; 308 from Vercel",
+      "files": ["app/layout.tsx", "app/sitemap.ts", "app/robots.ts", "next.config.ts", "app/api/billing/checkout/route.ts", "lib/scanner.ts"],
+      "why_first": "Covers dropped 03-03/06-02/09-07. 04-03 must not add per-bot theater on robots.ts until this host is locked. 06-02 leftover: stop stripping scheme/www/slash in the scanner compare."
+    },
+    {
+      "id": "03-02",
+      "priority": "P0",
+      "title": "Delete hard-coded 4.9/120 AggregateRating until reviews are visible",
+      "files": ["app/layout.tsx", "lib/scanner.ts", "app/page.tsx", "app/pricing/page.tsx"],
+      "why_first": "Manual-action path. Higher severity than any 04 GEO item. Same jsonLd 01-01 retargets and 03-05 rewrites."
+    },
+    {
+      "id": "03-01",
+      "priority": "P0",
+      "title": "Stop selling FAQPage as a rich result or AI Overview lever",
+      "files": ["lib/scanner.ts", "README.md", "app/page.tsx", "app/pricing/page.tsx", "app/glossary/[term]/page.tsx", "app/bento-grid.tsx", "app/dashboard/report/[id]/report-actions.tsx"],
+      "why_first": "Covers dropped 04-12/05-05/09-05. One faq-schema rewrite so the LLM export cannot tell models to add FAQPage or llms.txt. Visible FAQ copy stays."
+    },
+    {
+      "id": "10-04",
+      "priority": "P0",
+      "title": "Export analysePage and add golden fixtures including 04 AI false-positives",
+      "files": ["lib/scanner.ts", "tests/scanner/fixtures.test.ts", "tests/scanner/fixtures/good-page.html", "tests/scanner/fixtures/csr-empty.html", "tests/scanner/fixtures/robots-block-all.txt", "package.json"],
+      "why_first": "Locks parse≠eligibility, 1-item crumbs, fake stars, FAQ headings, CSR-empty, nosnippet money page, OAI-SearchBot Disallow, Google-Extended-only Disallow, missing llms.txt=off."
+    },
+    {
+      "id": "01-03",
+      "priority": "P0",
+      "title": "Unescape glossary generateMetadata and hrefs; stop shipping literal ${}",
+      "files": ["app/glossary/[term]/page.tsx", "app/glossary/page.tsx", "app/page.tsx", "lib/glossary-data.ts", "lib/scanner.ts"],
+      "why_first": "Covers dropped 08-04/03-09/05-10. 04-05/10-02 fail until first HTML title is Canonical Tag and hrefs resolve."
+    },
+    {
+      "id": "01-05",
+      "priority": "P0",
+      "title": "noindex login and dashboard; do not treat robots.txt Disallow as an indexer",
+      "files": ["app/seo-audit-login/layout.tsx", "app/sign-up/layout.tsx", "app/dashboard/layout.tsx", "app/robots.ts"],
+      "why_first": "Covers dropped 06-04/06-11 product login. 04-02 reads nosnippet on the same robots surface after this meta is honest."
+    },
+    {
+      "id": "03-05",
+      "priority": "P0",
+      "title": "Native RSC JSON-LD, homepage-only types, drop the 1-item BreadcrumbList",
+      "files": ["app/layout.tsx", "app/page.tsx", "app/pricing/page.tsx", "app/seo-audit-login/page.tsx", "app/glossary/[term]/page.tsx", "app/glossary/page.tsx", "lib/scanner.ts"],
+      "why_first": "Covers 08-05 and 02-10. After 01-01 and 03-02 so the blob is seoboost.app with no fake stars. 04 does not add AI schema."
+    },
+    {
+      "id": "04-02",
+      "priority": "P0",
+      "title": "Treat nosnippet / max-snippet:0 / data-nosnippet as AI Overview input controls",
+      "files": ["lib/scanner.ts", "app/dashboard/report/[id]/page.tsx"],
+      "why_first": "Unique 04 P0. Accidental sitewide nosnippet is an AI-visibility outage the current meta-robots check scores good. 06-10 leftover parse feeds this; do not add a second nosnippet reader. Keep product max-snippet:-1."
+    },
+    {
+      "id": "08-03",
+      "priority": "P0",
+      "title": "Seed crawl from sitemap <loc> and raise Pro maxPages past 5",
+      "files": ["lib/scanner.ts", "app/api/scan/route.ts", "app/page.tsx", "app/pricing/page.tsx"],
+      "why_first": "Covers dropped 09-01 crawl half. 04 fan-out retrieval still needs discoverable URLs. One parser for 08-01/06-01/07-02."
+    },
+    {
+      "id": "06-03",
+      "priority": "P0",
+      "title": "Record status, hops, and soft 404s; stop dropping every non-200",
+      "files": ["lib/scanner.ts", "app/not-found.tsx", "app/dashboard/page.tsx", "app/dashboard/report/[id]/page.tsx"],
+      "why_first": "One FetchResult. Unblocks 04-10 UA 403s, 01-01 308 verify, and 08-12 broken internals."
+    },
+    {
+      "id": "08-01",
+      "priority": "P0",
+      "title": "Orphan detection: sitemap HTML locs with in-degree 0",
+      "files": ["lib/scanner.ts", "app/api/scan/route.ts", "app/dashboard/report/[id]/page.tsx", "app/page.tsx", "app/pricing/page.tsx"],
+      "why_first": "10-05 keeps failing the link-graph claim until this id exists. After 01-03, glossary spokes must not be orphans."
+    },
+    {
+      "id": "02-01",
+      "priority": "P0",
+      "title": "Measure field LCP/INP/CLS (CrUX + PSI); stop selling HTML hints as CWV",
+      "files": ["lib/cwv.ts", "lib/scanner.ts", "lib/glossary-data.ts", "app/api/scan/route.ts", "app/dashboard/report/[id]/page.tsx", "app/page.tsx", "app/pricing/page.tsx", "app/seo-audit-login/page.tsx"],
+      "why_first": "Covers dropped 09-02/02-02. After 10-05 so the CWV row can flip to measurement:crux. Do not grade CWV from Cheerio or from a GEO score."
+    },
+    {
+      "id": "02-03",
+      "priority": "P0",
+      "title": "Fix SeoBoost homepage LCP: visible H1, no avatar fetchPriority, split HTML cache",
+      "files": ["app/page.tsx", "app/hero-animations.tsx", "app/bento-grid.tsx", "app/layout.tsx", "next.config.ts"],
+      "why_first": "Covers dropped 07-05/02-11 and 04-05 first-HTML citability on this URL. Exclude /sitemap.xml and /robots.txt from immutable. 09-08/04-05 dual-UA comes after this H1 is in view-source."
+    }
+  ],
+  "do_not_implement_until": "",
+  "implement_ready": true
+}

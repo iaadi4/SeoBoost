@@ -1,0 +1,379 @@
+{
+  "agent": "05-content-eeat",
+  "as_of": "2026-09-11",
+  "lane": "Content quality and E-E-A-T",
+  "sources": [
+    {
+      "title": "Creating helpful, reliable, people-first content",
+      "url": "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google Search's guidance on using generative AI content",
+      "url": "https://developers.google.com/search/docs/fundamentals/using-gen-ai-content",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Google Search's guidance about AI-generated content",
+      "url": "https://developers.google.com/search/blog/2023/02/google-search-and-ai-content",
+      "date": "2023-02-08"
+    },
+    {
+      "title": "Spam policies for Google web search (scaled content, doorway, scraping, keyword stuffing)",
+      "url": "https://developers.google.com/search/docs/essentials/spam-policies",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "March 2024 core update and scaled content / site reputation / expired domain spam policies",
+      "url": "https://developers.google.com/search/blog/2024/03/core-update-spam-policies",
+      "date": "2024-03-05"
+    },
+    {
+      "title": "Google Search's core updates and your website",
+      "url": "https://developers.google.com/search/docs/appearance/core-updates",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "A guide to Google Search ranking systems (helpful content system retired into core)",
+      "url": "https://developers.google.com/search/docs/appearance/ranking-systems-guide",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Search Quality Raters Guidelines update (raters do not rank pages)",
+      "url": "https://developers.google.com/search/blog/2023/11/search-quality-rater-guidelines-update",
+      "date": "2023-11-16"
+    },
+    {
+      "title": "Search Quality Rater Guidelines overview (E-E-A-T / MC / YMYL)",
+      "url": "https://services.google.com/fh/files/misc/hsw-sqrg.pdf",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Influencing title links in Google Search",
+      "url": "https://developers.google.com/search/docs/appearance/title-link",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Control your snippets in search results (meta descriptions)",
+      "url": "https://developers.google.com/search/docs/appearance/snippet",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "SEO Starter Guide (unique, up-to-date, people-first; no magic word count)",
+      "url": "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Google Search Essentials",
+      "url": "https://developers.google.com/search/docs/essentials",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Article (Article, NewsArticle, BlogPosting) structured data + author markup",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/article",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Profile page (ProfilePage) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/profile-page",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Organization structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/organization",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Write high quality reviews",
+      "url": "https://developers.google.com/search/docs/specialty/ecommerce/write-high-quality-reviews",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Google Search's reviews system",
+      "url": "https://developers.google.com/search/docs/appearance/reviews-system",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Optimizing your website for generative AI features on Google Search",
+      "url": "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google Search documentation updates (FAQ rich result removed; helpful content moved into core)",
+      "url": "https://developers.google.com/search/updates",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Next.js generateMetadata",
+      "url": "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js App Router JSON-LD",
+      "url": "https://nextjs.org/docs/app/guides/json-ld",
+      "date": "2026-09-11"
+    }
+  ],
+  "findings": [
+    {
+      "id": "05-01",
+      "priority": "P0",
+      "title": "Zero implementable E-E-A-T / Who-How-Why checks; crawler skips the author pages Google asks for",
+      "why_it_ranks": "Google’s 2026 helpful-content page still tells creators to evaluate Who (visible author + bio), How (method, first-hand evidence, AI disclosure), and Why (people-first, not ranking-first). Trust is the most important E-E-A-T aspect. E-E-A-T is not a ranking factor; raters do not change rankings. Implementable software signals are presence/quality of bylines, About/Contact/editorial pages, author ProfilePage + Person url/sameAs, citations, and review evidence — not an invented E-E-A-T score. Article author markup (updated 2026-09-08) and ProfilePage (author / About Me / employee pages) are the official entity hooks.",
+      "nextjs_how": "1. Per-article generateMetadata({ authors: [{ name, url: '/authors/jane' }] }). 2. Visible byline in the article RSC linking to app/authors/[slug]/page.tsx. 3. That author route emits ProfilePage + Person (name, url, sameAs, image) in a native application/ld+json script. 4. Homepage or /about: Organization with url, logo, sameAs, contactPoint. 5. Do not put authors only in root metadata.authors.",
+      "seoBoost_gap": "lib/scanner.ts has no byline/author/about/contact/disclosure/citation check. The only E-E-A-T string is a howToFix aside on external-link-security (line 1282). PROGRAMMATIC_PATTERNS includes /\\/author\\//i (line 195), so the exact URLs Google wants for author.url are skipped during crawl. maxPages default 5 and scanDomain() called with no options in app/api/scan/route.ts:61 never reach /about or /authors even if not skipped. Product copy (app/bento-grid.tsx:302-306, app/seo-audit-login/page.tsx:153) sells 'content analysis' as word count / headings / keyword density.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/bento-grid.tsx",
+        "app/seo-audit-login/page.tsx"
+      ],
+      "verify_how": "1. Fixture article with no byline and no /about → warning who-created, not a numeric E-E-A-T grade. 2. Fixture with byline linking to /authors/jane + ProfilePage JSON-LD → pass Who. 3. Self-scan must enqueue /author/ and /about if linked. 4. Confirm no check id named eeat-score.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/appearance/structured-data/article",
+        "https://developers.google.com/search/docs/appearance/structured-data/profile-page",
+        "https://developers.google.com/search/blog/2023/11/search-quality-rater-guidelines-update"
+      ]
+    },
+    {
+      "id": "05-02",
+      "priority": "P0",
+      "title": "Word count is scored as quality and still cites a retired Helpful Content System",
+      "why_it_ranks": "Google’s helpful-content page: do not write to a preferred word count; there is none. SEO Starter Guide and the 2026 generative-AI SEO guide repeat: no ideal page length. The reviews doc (2025-12-10) says focus on originality, not length. Ranking-systems guide: the Helpful Content System was folded into core ranking in March 2024 and is listed under Retired systems. Core updates are site-wide helpfulness, not a per-page word penalty. Thin is unoriginal / incomplete / search-engine-first, not <100 or <300 tokens.",
+      "nextjs_how": "Coach page-type completeness, not targets: service/landing can be short if they satisfy the job; docs/reviews need original evidence. Count main-content words after stripping nav/footer/aside (already started at scanner.ts:572-577) only as a thin-risk input, never as a pass. In App Router, measure rendered <main> / <article>, not the whole body — client shells can look thin in static HTML.",
+      "seoBoost_gap": "word-count check (lib/scanner.ts:582-598) marks <100 critical and <300 warning, then says 'Informational pages should target 800–2 000 words'. whyItMatters cites 'Google's Helpful Content system' and reference https://developers.google.com/search/docs/appearance/helpful-content-system (dead; real page is /fundamentals/creating-helpful-content). ≥300 auto-passes as 'solid' even if boilerplate. Marketing: app/bento-grid.tsx:304-305 'spot thin-content penalties before Google does' — there is no word-count penalty. LLM export (report-actions.tsx) will tell Next.js apps to pad copy.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/bento-grid.tsx",
+        "app/seo-audit-login/page.tsx",
+        "app/dashboard/report/[id]/report-actions.tsx"
+      ],
+      "verify_how": "1. 80-word unique contact page with address/phone must not be critical. 2. 900-word synonym-stuffed doorway must not be 'good'. 3. Broken helpful-content-system URL must be gone. 4. Copy must not say 'penalty' or '800–2000 words'.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+        "https://developers.google.com/search/docs/appearance/ranking-systems-guide",
+        "https://developers.google.com/search/docs/specialty/ecommerce/write-high-quality-reviews",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide"
+      ]
+    },
+    {
+      "id": "05-03",
+      "priority": "P0",
+      "title": "No site-level scaled-content, doorway, or duplicate-body detection",
+      "why_it_ranks": "Spam policies still in force: scaled content abuse (many low-value pages, AI or human), doorway abuse (near-identical city/query pages that funnel), scraping/stitching, keyword stuffing. Core updates judge the site as a whole. Deduplication systems hide near-duplicates. A 5-page BFS cannot see a programmatic city grid or 40 glossary stubs with the same skeleton. The 2026 AI-optimization guide: do not spawn a page per query/fan-out variation to manipulate Search or AI Overviews.",
+      "nextjs_how": "After a sitemap-seeded crawl (share inventory with 08-01/08-03): hash normalized main-content and title; cluster Jaccard/shingle near-dups; flag title templates that vary by one token (City + service); flag generateStaticParams routes whose bodies differ only by a name/city. Next.js pattern: app/[city]/page.tsx that interpolates one noun into a shared template is the classic doorway. Exclude those from sitemap or add unique local evidence.",
+      "seoBoost_gap": "No cross-page title/description/body uniqueness. No doorway heuristic. No scaled-content cluster. DEFAULTS.maxPages is 5 (scanner.ts:155). app/api/scan/route.ts:61 calls scanDomain(domainUrl) with no maxPages, so Pro = Hobby. Canonical check is per-URL only. Tag/author/date archives are skipped, which hides thin taxonomy doorways instead of scoring them.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts"
+      ],
+      "verify_how": "1. Fixture 8 URLs with the same 200-word body and titles 'Plumber in {City}' → scaled/doorway warning. 2. Two URLs with identical <title> → duplicate-title warning. 3. Unique 5-page brochure site → no scaled-content flag. 4. Self-scan of /glossary/* after interpolation fix: descriptions are unique; if not, warn.",
+      "sources": [
+        "https://developers.google.com/search/docs/essentials/spam-policies",
+        "https://developers.google.com/search/blog/2024/03/core-update-spam-policies",
+        "https://developers.google.com/search/docs/appearance/core-updates",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide"
+      ]
+    },
+    {
+      "id": "05-04",
+      "priority": "P0",
+      "title": "Title, H1, and meta description are char-count checkers, not intent or uniqueness coaches",
+      "why_it_ranks": "Title-link doc: every page needs a descriptive, unique <title>; Google may rewrite from H1, og:title, visible title, or anchors. Failures it actually names: missing, vague ('Home'), keyword stuffing, boilerplate, language mismatch, no clear main title — not 'not 50–65 characters'. Snippet doc: meta description is a CTR pitch Google sometimes uses; no length ranking factor; unique per page; keyword lists are less likely to be shown. Missing title/description is still a real bug. Char-band 'optimal' is not.",
+      "nextjs_how": "App Router: export generateMetadata per route (title, description, alternates.canonical). Use metadata.title.template ('%s | Brand') only if the page title is unique — the template is branding, not a substitute for a page-specific title. Avoid root-only metadata that stamps the same description on every URL. Compare document.title to the first prominent <h1> inside <main>.",
+      "seoBoost_gap": "title (340-366) and description (368-394) score only length bands (30/65, 70/160). Missing = critical (keep). No duplicate-title/description across crawled pages. No stuffing / boilerplate / vague-Home / title↔H1 mismatch (howToFix at 539 mentions H1 mirroring title but never checks it). keyword-in-intro (601-621) treats any title token >2 chars in the first 100 words as the 'primary keyword'. url-keywords (491-508) is a weak extra. SeoBoost glossary generateMetadata uses escaped \\${termData.title} so every term page can emit the literal placeholder as the SERP title (08-04/03-09 same root bug).",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/glossary/[term]/page.tsx",
+        "app/layout.tsx"
+      ],
+      "verify_how": "1. Unique 40-char accurate title + matching H1 → good or info, not warning. 2. Same title on 3 URLs → warning. 3. Title 'Home' on homepage → warning. 4. Title stuffed with synonyms → keyword-stuffing warning. 5. After glossary interpolation fix, view-source title contains the term, not '${termData.title}'.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/title-link",
+        "https://developers.google.com/search/docs/appearance/snippet",
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata"
+      ]
+    },
+    {
+      "id": "05-05",
+      "priority": "P0",
+      "title": "Content coaching still teaches LSI, dwell time, keyword-in-intro ranking, and FAQ SERP real estate",
+      "why_it_ranks": "These claims are not in Search Central and some contradict it. LSI keywords are not a Google system. Dwell time is not a documented ranking signal. Keyword proximity in the first 100 words is not a documented factor. Multiple H1s are not a ranking error (title-link cares about one clear visual main title). FAQ rich results were removed from Google Search on 2026-05-07; unused FAQPage markup is harmless and not a CTR lever. AI-optimization guide: do not rewrite for long-tail variants or 'chunk' for AI. LLM export will copy this copy into customer codebases.",
+      "nextjs_how": "Coach: one prominent visual title (often one <h1> in <main>), logical heading outline for readers, unique title/H1/description that match the page, visible FAQ copy if users need it — without FAQPage-for-SERP. For App Router, headings belong in server-rendered <article>, not only in client islands Google may still render but users bounce from.",
+      "seoBoost_gap": "heading-hierarchy howToFix (561) says 'secondary or LSI keyword' every 200–300 words. readability (629) says Google uses dwell time. keyword-in-intro (612) says Google weighs keyword proximity to the top. h1 (519-525) calls H1 Google's clearest topic signal and warns on multiple H1s. faq-schema (1165-1170) claims expandable SERP Q&A, impact high. 03-01 owns killing FAQ as a rich-result product; this lane owns stopping those strings from driving the content score and the LLM prompt.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/report-actions.tsx"
+      ],
+      "verify_how": "Grep lib/scanner.ts: zero matches for LSI, dwell time, 'Helpful Content system', 'primary keyword not found in opening', 'FAQ schema can generate expandable'. Multiple-H1 must be info/a11y, not 'conflicting topic signals'.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/appearance/title-link",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+        "https://developers.google.com/search/updates"
+      ]
+    },
+    {
+      "id": "05-06",
+      "priority": "P1",
+      "title": "No search-intent classification, so keyword mapping cannot be coached",
+      "why_it_ranks": "Core systems match pages to query intent (informational, commercial investigation, transactional, navigational). Title-link and snippet quality are 'does this describe why this result is relevant'. Passage ranking and neural matching care about sections that answer the job. A page that ranks for 'what is X' with only a pricing CTA, or a review with no evidence, fails intent — word count and keyword-in-intro cannot see that.",
+      "nextjs_how": "Heuristic from route + headings + schema + CTAs: /pricing|/checkout → transactional; /blog|/glossary|/docs → informational; /vs/|/best|/review → commercial; /login → navigational (usually noindex). Coach title/H1/first section to state the job; informational pages need a complete answer in <article>; commercial reviews need evidence (05-08). Do not generate one URL per People-Also-Ask variant (scaled-content policy).",
+      "seoBoost_gap": "No intent field on PageAnalysis. Content checks assume a single 'primary keyword' inferred from the title. Glossary terms are informational but wrap FAQPage; pricing is transactional but the scanner would still nag keyword-in-intro and FAQ schema. No mapping of H2s to likely sub-intents.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Fixture /glossary/canonical-tag classified informational; missing definition in first screen → intent-gap warning. Fixture /pricing classified transactional; 80 words + price + CTA must not fail as thin informational. No check tells the user to add LSI variants.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/appearance/ranking-systems-guide",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide"
+      ]
+    },
+    {
+      "id": "05-07",
+      "priority": "P1",
+      "title": "No YMYL classifier, so the trust bar never rises",
+      "why_it_ranks": "Helpful-content and QRG: YMYL (health, finance, safety, civic) gets more weight on strong E-E-A-T. Raters require identifiable, reputable creators and accurate MC. A vitamin blog with no credentials is a different risk than a SaaS changelog. Software cannot certify medical truth; it can require visible Who + sourcing + date + contact when the page looks YMYL.",
+      "nextjs_how": "Keyword/schema heuristic (health, insurance, legal, invest, election, supplement) → ymyl=true. Then require: visible author or organization, About/Contact, last-updated date, outbound citations. Next.js: show dateModified from CMS in the article header and in generateMetadata.openGraph.publishedTime / modifiedTime. Do not claim the page is 'YMYL-safe'.",
+      "seoBoost_gap": "No YMYL flag. A medical article with 400 words and a 55-char title can score well. No check for 'last updated', medical/financial disclaimer, or expert reviewer. Schema author is not validated here (03-04/03-09 own JSON-LD fields); visible trust chrome is this lane.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Fixture page titled 'Best blood pressure medication' with no author, no date, no citations → YMYL-trust warning (not a ranking score). SaaS feature page with no medical terms → no YMYL warning.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://services.google.com/fh/files/misc/hsw-sqrg.pdf",
+        "https://developers.google.com/search/docs/appearance/core-updates"
+      ]
+    },
+    {
+      "id": "05-08",
+      "priority": "P1",
+      "title": "No honest scaled/AI-abuse heuristics — and the product must not ship an AI detector",
+      "why_it_ranks": "Gen-AI content is allowed if it is accurate, original, and people-first. Scaled AI pages with no added value violate scaled-content abuse. Google asks for How disclosures when automation substantially created the page. AI-optimization guide: commodity summaries and query-variant farms fail; first-hand evidence wins. QRG 4.6.5 / 4.6.6 (effort, originality, added value) are rater concepts, not a classifier you can sell as 'AI spam %'. Third-party AI detectors are snake oil and will false-flag edited human copy.",
+      "nextjs_how": "Detect proxies, not 'written by GPT': near-duplicate templates (05-03), keyword stuffing (spam policy examples), title/H1/body mismatch, missing Who/How on review URLs, date-only refreshes (helpful-content anti-pattern), no original images on review-like pages. If the page says 'generated' / has an AI disclosure, treat as info, not a fail. Reviews: require evidence language or original <figure> per write-high-quality-reviews.",
+      "seoBoost_gap": "No stuffing detector (title or body). No AI-disclosure check. No review-evidence check. No 'date changed, body unchanged' heuristic. keyword-in-intro / word-count push users toward the exact search-engine-first behaviors Google lists as warnings. bento-grid 'keyword density' is not a Google metric.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/bento-grid.tsx"
+      ],
+      "verify_how": "1. Body repeating the same 4-word phrase 15 times → stuffing warning. 2. Review URL with no photo/methodology → evidence warning. 3. Page with a clear AI-assistance disclosure → not penalized. 4. No check returns 'AI-generated: yes'.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/using-gen-ai-content",
+        "https://developers.google.com/search/docs/essentials/spam-policies",
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/specialty/ecommerce/write-high-quality-reviews",
+        "https://developers.google.com/search/blog/2023/02/google-search-and-ai-content"
+      ]
+    },
+    {
+      "id": "05-09",
+      "priority": "P1",
+      "title": "Visible authorship and org identity are not audited; JSON-LD presence is treated as enough",
+      "why_it_ranks": "Author markup best practices (Article, 2026-09-08): every visible author in markup; Person vs Organization correctly; author.url or sameAs to a real profile. ProfilePage is for author / About Me / employee pages, not the store homepage. Organization belongs on home or About, with sameAs and contact. Structured data must match visible content (general SD guidelines). A byline with no destination, or Organization-only bylines on expert articles, fails Who.",
+      "nextjs_how": "Visible: rel=author or [itemprop=author] or a[href*='/author'], plus /about|/about-us|/team|/contact. Review pages: author name + credentials. Do not skip /author/ in PROGRAMMATIC_PATTERNS. 03 owns required JSON-LD fields and fake AggregateRating; this lane flags 'schema author but no visible byline' and 'visible byline but no profile URL'.",
+      "seoBoost_gap": "schema check (1073-1123) lists @type and stops. No Person/author.url/sameAs/datePublished lint here (03-04). No visible-byline vs JSON-LD author mismatch. Product itself: app/layout.tsx metadata.authors = 'SEO Boost Team' only; glossary Article author is Organization with escaped headline (03-09). No /about page in the app.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1. Article JSON-LD author Jane, no visible byline → mismatch warning. 2. Visible 'By Jane' linking to /authors/jane with ProfilePage → pass. 3. Homepage Organization without sameAs/contact is info, not critical, unless YMYL (05-07).",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/article",
+        "https://developers.google.com/search/docs/appearance/structured-data/profile-page",
+        "https://developers.google.com/search/docs/appearance/structured-data/organization",
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+      ]
+    },
+    {
+      "id": "05-10",
+      "priority": "P1",
+      "title": "No Next.js metadata coaching; SeoBoost’s own glossary titles can be the literal ${} placeholder",
+      "why_it_ranks": "On App Router sites the on-page SEO surface is generateMetadata / metadata, not a hand-edited <title> in layout. Root metadata.title.template plus a missing page title produces boilerplate SERP strings — the exact title-link failure Google lists. Client-only pages can omit metadata entirely. This repo’s glossary generateMetadata and JSON-LD use escaped \\${termData.title} / \\${termData.slug} (app/glossary/[term]/page.tsx:27-34, 56-78), so Google can see placeholder titles, canonicals, and headlines.",
+      "nextjs_how": "Every indexable route: generateMetadata with unique title + description + canonical. Dynamic routes must interpolate real params (not escaped). Static marketing pages can use export const metadata. Do not rely on root description for /glossary/[term]. Keep main content in a Server Component <article> so word/heading analysis matches Googlebot HTML.",
+      "seoBoost_gap": "Scanner never mentions generateMetadata, metadata.title.template, or client-only missing <title>. howToFix snippets are raw HTML <title> only. 08-04 owns broken glossary hrefs; this lane owns the SERP-string / intent break. Self-scan would currently mark glossary titles by character length of the placeholder, not as a template bug.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "1. View-source /glossary/canonical-tag: <title> contains 'Canonical Tag', not '${termData.title}'. 2. Scanner howToFix for missing title on a Next fixture includes generateMetadata snippet. 3. Detect title/canonical/headline containing '${' as critical template-bug.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://developers.google.com/search/docs/appearance/title-link",
+        "https://developers.google.com/search/docs/appearance/snippet"
+      ]
+    },
+    {
+      "id": "05-11",
+      "priority": "P1",
+      "title": "Health score treats a short meta description like missing helpfulness",
+      "why_it_ranks": "Core updates and helpful-content guidance: improve content in meaningful ways; avoid quick-fix SEO theater. Current SCORE_WEIGHTS (scanner.ts:1560-1568) are critical -15 / warning -5 / good 0, averaged 80% pages + 20% domain. A 40-char unique title and a missing FAQPage each cost the same as a doorway cluster would if it existed. That trains users to pad titles instead of adding Who/How or killing duplicates.",
+      "nextjs_how": "Split content checks into quality (uniqueness, Who/How, stuffing, doorway, YMYL trust) vs appearance (title/description length as CTR hints). Length-only issues: impact low, never critical if the string exists and is unique. Missing title, noindex on money pages, and scaled-duplicate clusters: critical. Do not add an 'E-E-A-T score' gauge.",
+      "seoBoost_gap": "calculatePageScore has no category weights. 02-12 already notes title vs CWV weight collision. This lane: char-band and LSI-style warnings must drop to info/low before new E-E-A-T checks ship, or the score will punish the fixes.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Fixture: unique accurate 42-char titles, real bylines, no dupes, no stuffing → score not dragged by 'title too short'. Fixture: 12 near-dup city pages → domain score drops even if each title is 55 chars.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/core-updates",
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+      ]
+    },
+    {
+      "id": "05-12",
+      "priority": "P1",
+      "title": "No on-page entity / topical-completeness audit (and 5 pages cannot prove authority)",
+      "why_it_ranks": "Helpful-content asks: substantial, complete coverage; original analysis; site has a primary purpose. AI-optimization guide: unique viewpoint and non-commodity depth beat query-variant farms. Entity SEO that is real: named authors/orgs with sameAs, on-page entities that match the topic, internal links to related URLs (08-09). Snake oil: Knowledge Graph density scores, llms.txt, forced entity schema on every noun. Passage ranking cares that sections exist; it does not need a third-party entity API.",
+      "nextjs_how": "From H1 + H2s + Article/DefinedTerm, list expected subtopics for the page type (definition, how, risks, alternatives). Flag informational pages with only one H2 and no outbound citation. Cluster coverage of /glossary/* or /blog/* is 08-09 (links). This lane: on a single page, 'does MC cover the job' and 'is the site a topical pile of unrelated stubs'. Next.js: one content collection (MDX/CMS) with related[] — do not generate empty entity pages.",
+      "seoBoost_gap": "No entity list, no related-topic coverage, no outbound citation check (external links are only noopener). heading-hierarchy passes if any H2 exists. 5-page crawl cannot measure site topical focus. Product glossary is the only cluster and is interpolation-broken (08-04).",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Informational fixture with H1 only and no citations → completeness warning. Do not emit a numeric 'entity authority' or 'KG density' score. Hub-spoke link math stays in 08-09.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+        "https://developers.google.com/search/docs/appearance/ranking-systems-guide"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "05-01: Add Who/How/Why presence checks; stop skipping /author/ in PROGRAMMATIC_PATTERNS.",
+    "05-02: Demote word-count from critical quality; delete the dead helpful-content-system URL and 800–2000 word targets; kill 'thin-content penalty' marketing.",
+    "05-03: Cross-page title/description/body uniqueness + doorway/scaled-content clusters (needs sitemap-seeded crawl from 08-03).",
+    "05-04: Score title/H1/description for uniqueness, stuffing, vague/boilerplate, and title↔H1 alignment — not 50–65 / 120–158 as ranking.",
+    "05-05: Strip LSI, dwell time, keyword-in-intro ranking, and FAQ-SERP copy from content checks and the LLM prompt."
+  ],
+  "conflicts_to_avoid": [
+    "Do not ship an E-E-A-T numeric ranking score. E-E-A-T is a rater framework; Trust is most important; raters do not rank pages.",
+    "Do not ship an AI-generated detector or GPT-style probability. Detect scaled/unoriginal proxies only. AI content is allowed if helpful.",
+    "Do not recommend word-count targets, LSI keywords, keyword density, dwell time, or llms.txt / GEO / AEO hacks (Google: still SEO; llms.txt ignored).",
+    "Do not treat FAQPage as SERP real estate. 03-01 owns the rich-result kill. Visible FAQ copy is fine.",
+    "Do not mark multiple H1s as a ranking critical. Coach one clear visual main title.",
+    "Do not keep skipping /author/ or /about as 'low SEO value'. Those are E-E-A-T landing pages.",
+    "Do not invent Knowledge Graph density or entity-authority scores.",
+    "08-01/08-03 own crawl inventory, maxPages, and orphans. 05-03 uniqueness needs that inventory — share one crawl, do not add a second BFS.",
+    "08-09 owns hub-spoke link coverage. 05-12 owns on-page completeness only.",
+    "03-04/03-09 own Article/ProfilePage/Organization field validation and fake ratings. 05-09 owns visible byline ↔ markup mismatch only.",
+    "03-01 and 05-05 both touch faq-schema copy. Change the check once: info or delete, not two competing FAQ findings in the UI.",
+    "08-04 vs 05-10: one interpolation fix in app/glossary/[term]/page.tsx. 08 owns hrefs; 05 owns title/description/headline strings."
+  ],
+  "cross_agent_notes": [
+    "Siblings read: 02-core-web-vitals.json, 03-structured-data.json, 07-media-seo.json, 08-internal-linking.json, 10-verification-harness.json. 01/04/06/09 were not in the folder. Did not overwrite any sibling file.",
+    "03-01 FAQ rich-result death (2026-05-07): agree. 05-05 only removes FAQ-as-content-score and LLM coaching. Leave type-gallery and Search Console teardown to 03.",
+    "03-04/03-09 Article author, dates, escaped ${} headlines: 03 owns JSON-LD validity. 05-09/05-10 own visible Who and SERP title/description. One glossary interpolation fix serves 03-09, 08-04, and 05-10.",
+    "03-02 fake 4.9/120 AggregateRating is a trust/spam issue on this site; 05 does not duplicate the finding. Content lane should refuse to generate star ratings.",
+    "08-03 hard 5-page crawl: 05-03 scaled/doorway/duplicate detection is blocked until sitemap-seeded crawl and higher maxPages. 05 should not fork a second crawler.",
+    "08-09 topic-cluster links vs 05-12 entity/completeness: 08 measures spoke↔hub hrefs; 05 measures whether a single page’s MC is complete and non-commodity.",
+    "08-04 already assigned glossary escaped templates to the content lane for SERP strings. 05-10 is that assignment.",
+    "02-12 score weights: 05-11 agrees — appearance char-bands must not equal real quality or CWV. Coordinate one SCORE_WEIGHTS / impact rewrite.",
+    "07-04 primaryImageOfPage / original review photos: review-evidence in 05-08 should accept original <figure> images; 07 owns image SEO eligibility.",
+    "AEO/GEO: Google’s 2026 AI-optimization guide says that is still SEO. 05 must not recommend llms.txt, chunking, or query-fanout page farms.",
+    "Metadata/canonical lane (not yet filed): title uniqueness and generateMetadata coaching live here; host choice (seoboost.app vs boost-seo.vercel.app) is not this lane.",
+    "10-verification-harness: L1 must assert unique <title>, one visible <h1> in first HTML, and glossary titles not equal to '${termData.title}'. Scanner fixtures should include thin-unique, stuffed-long, duplicate-title pair, and byline-present — not only char-band cases. 10 owns the harness; 05 owns expected check ids/statuses."
+  ]
+}

@@ -25,7 +25,17 @@ export async function GET(
       return new NextResponse('Not Found', { status: 404 })
     }
 
-    return NextResponse.json(reportRecord)
+    let report: unknown = null
+    try {
+      report = JSON.parse(reportRecord.reportData)
+    } catch {
+      report = null
+    }
+
+    return NextResponse.json({
+      ...reportRecord,
+      report,
+    })
   } catch (error) {
     console.error('API Report Error:', error)
     return new NextResponse('Internal Server Error', { status: 500 })

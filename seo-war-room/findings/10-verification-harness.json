@@ -1,0 +1,443 @@
+{
+  "agent": "10-verification-harness",
+  "as_of": "2026-09-11",
+  "lane": "Verification and anti-snake-oil",
+  "sources": [
+    {
+      "title": "Next.js generateMetadata (title, canonical, robots)",
+      "url": "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js JSON-LD guide (native script, not next/script)",
+      "url": "https://nextjs.org/docs/app/guides/json-ld",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js sitemap.ts file convention",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js robots.ts file convention",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Playwright API testing (request.get = view-source)",
+      "url": "https://playwright.dev/docs/api-testing",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Lighthouse CI getting started",
+      "url": "https://googlechrome.github.io/lighthouse-ci/docs/getting-started.html",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Lighthouse CI configuration (assert SEO audits)",
+      "url": "https://googlechrome.github.io/lighthouse-ci/docs/configuration.html",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Unlighthouse CI site-wide budgets",
+      "url": "https://unlighthouse.dev/integrations/ci",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Lighthouse canonical SEO audit",
+      "url": "https://developer.chrome.com/docs/lighthouse/seo/canonical",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Schema markup testing tools (Rich Results Test vs Schema Markup Validator)",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Rich Results Test (no public API; UI only)",
+      "url": "https://search.google.com/test/rich-results",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Schema Markup Validator",
+      "url": "https://validator.schema.org/",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Search Console URL Inspection API (index.inspect)",
+      "url": "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "UrlInspectionResult including richResultsResult",
+      "url": "https://developers.google.com/webmaster-tools/v1/urlInspection.index/UrlInspectionResult",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Search Console API usage limits (URL Inspection 2000 QPD/site)",
+      "url": "https://developers.google.com/webmaster-tools/limits",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "PageSpeed Insights API v5 get started (CrUX in PSI being discontinued)",
+      "url": "https://developers.google.com/speed/docs/insights/v5/get-started",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "CrUX API (field CWV; 150 QPM; no paid quota increase)",
+      "url": "https://developer.chrome.com/docs/crux/api",
+      "date": "2025-02-11"
+    },
+    {
+      "title": "Why lab and field data can be different",
+      "url": "https://web.dev/articles/lab-and-field-data-differences",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Build and submit a sitemap",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Robots meta tag and X-Robots-Tag",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Review snippet / AggregateRating guidelines (no fake ratings)",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/review-snippet",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Google Search documentation updates (FAQ rich result removed)",
+      "url": "https://developers.google.com/search/updates",
+      "date": "2026-06-15"
+    }
+  ],
+  "repo_audit": {
+    "test_files": 0,
+    "test_scripts_in_package_json": [],
+    "test_runners_in_devDependencies": [],
+    "playwright": "Not a direct dependency. @playwright/test appears only as a transitive entry in pnpm-lock.yaml.",
+    "lighthouse_ci": "Absent. No lighthouserc.js, no @lhci/cli.",
+    "unlighthouse": "Absent. No unlighthouse.config.ts.",
+    "ci_jobs": {
+      "github/workflows/main.yml": "pnpm install → prettier --check → pnpm run check (eslint + tsc --noEmit) → pnpm run build. No test, no crawl, no LHCI.",
+      "github/workflows/dev.yml": "pnpm install → pnpm run build only."
+    },
+    "scanner_tests": "lib/scanner.ts (~1868 lines) exports scanDomain and ScanError only. analysePage, fetchUrl, runDomainChecks, calculatePageScore are unexported and untested.",
+    "scan_entry": "app/api/scan/route.ts calls scanDomain(domainUrl) with default maxPages=5. No PSI, CrUX, Lighthouse, or schema validator call.",
+    "marketing_host_split": {
+      "metadataBase_and_root_canonical": "https://boost-seo.vercel.app (app/layout.tsx)",
+      "openGraph.url_organization_sitemap_robots": "https://seoboost.app",
+      "website_schema_and_breadcrumb_items": "https://boost-seo.vercel.app"
+    }
+  },
+  "harness_layers": {
+    "L0_unit": "Vitest fixtures against exported analysePage/runDomainChecks. HTML strings only. Fast, deterministic, no network.",
+    "L1_html_contract": "Playwright request.get on next start after build. Assert title, canonical, robots, json-ld, h1 exist in the first HTML (Googlebot first wave / view-source).",
+    "L2_rendered": "Playwright page.goto. Compare request.get body vs page.content() for injection-timing drift (next/script, client schema).",
+    "L3_lhci": "PR gate: categories:seo error minScore 0.95; document-title, meta-description, canonical, robots-txt, is-crawlable as error. categories:performance warn only (flaky).",
+    "L4_unlighthouse": "Nightly on production origin. Budget seo>=90. Not a PR gate (slow, site-wide).",
+    "L5_google": "Manual Rich Results Test + Schema Markup Validator on dogfood URLs. Optional GSC URL Inspection API for owned property only (indexed URL, 2000 QPD/site). CrUX API for field CWV; PSI v5 for lab debug. Never invent a Rich Results Test API client."
+  },
+  "findings": [
+    {
+      "id": "10-01",
+      "priority": "P0",
+      "title": "Repo has zero tests: CI cannot prove a single SEO claim",
+      "why_it_ranks": "An SEO product that ships scores, grades, and Pro feature lists without a failing test is selling unverified output. Googlebot and users see first-HTML tags; this repo never asserts they exist. package.json scripts are only dev/build/start/lint/format/check/postinstall. .github/workflows/main.yml and dev.yml never run a test command. A regression that drops <title>, canonical, or JSON-LD still goes green.",
+      "nextjs_how": "Add two runners: Vitest for lib/ (no browser) and Playwright for App Router routes after `pnpm build && pnpm start`. Wire both into main.yml after build. Playwright webServer should start `next start`, not `next dev`, so metadata matches production streaming/static output.",
+      "seoBoost_gap": "No tests/**, no e2e/**, no playwright.config.ts, no vitest.config.ts. Scanner, sitemap, robots, and metadata are unguarded. Marketing copy in app/page.tsx and app/pricing/page.tsx can claim CWV, JSON-LD, and link-graph features with nothing in CI to refute them.",
+      "files_to_change": [
+        "package.json",
+        ".github/workflows/main.yml",
+        ".github/workflows/dev.yml",
+        "playwright.config.ts",
+        "vitest.config.ts",
+        "tests/seo/html-contract.spec.ts",
+        "tests/scanner/fixtures.test.ts"
+      ],
+      "verify_how": "1) `rg -n '\"test\"' package.json` shows a test script. 2) Empty tests/ fails the job. 3) Delete title from app/layout.tsx locally → Playwright L1 fails. 4) main.yml contains `pnpm test` and `pnpm test:e2e` after build.",
+      "sources": [
+        "https://playwright.dev/docs/api-testing",
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata"
+      ]
+    },
+    {
+      "id": "10-02",
+      "priority": "P0",
+      "title": "Missing Playwright view-source vs rendered dual-lane for title, canonical, robots, JSON-LD, H1",
+      "why_it_ranks": "Next.js Metadata API writes tags into the server HTML. Streaming metadata for dynamic pages can delay <head> for humans while known bots still get it. Client islands (hero-animations opacity:0 H1) and next/script JSON-LD can make rendered DOM differ from view-source. A checker that only opens a browser, or only curls HTML, will lie. Google's first crawl uses the HTTP response; JS is a second chance, not a substitute for first-HTML contracts.",
+      "nextjs_how": "For each public route (/, /pricing, /glossary, one /glossary/<slug>): (1) request.get(url) — parse with regex/cheerio: <title>, link[rel=canonical], meta[name=robots], script[type=application/ld+json], h1. (2) page.goto(url) — same selectors on the live DOM. Fail if a tag exists only after JS. Prefer native <script type=\"application/ld+json\"> in RSC per Next.js JSON-LD guide so L1 and L2 match.",
+      "seoBoost_gap": "No Playwright project. Root JSON-LD uses next/script in app/layout.tsx (officially the wrong API). Homepage H1 is a client motion element (02-03). Glossary generateMetadata interpolates literal `${termData.title}` in app/glossary/[term]/page.tsx:27. A dual-lane test would fail all three today. That is the point.",
+      "files_to_change": [
+        "playwright.config.ts",
+        "tests/seo/html-contract.spec.ts",
+        "app/layout.tsx",
+        "app/glossary/[term]/page.tsx",
+        "app/hero-animations.tsx"
+      ],
+      "verify_how": "1) request.get('/') body contains <title>SEO Boost | Instant SEO Audits. 2) Same body contains rel=\"canonical\" and one h1 with visible text (not empty). 3) JSON-LD is in the raw HTML, not only after page.goto. 4) /glossary/canonical-tag title must contain 'Canonical', not the characters ${termData.title}. 5) Disable JS in Chromium → H1 still visible.",
+      "sources": [
+        "https://playwright.dev/docs/api-testing",
+        "https://nextjs.org/docs/app/guides/json-ld",
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata"
+      ]
+    },
+    {
+      "id": "10-03",
+      "priority": "P0",
+      "title": "Marketing site is not dogfooded: dual hosts, escaped titles, fake 4.9/120 stars",
+      "why_it_ranks": "A product that audits other sites must pass its own contract. Split hosts (boost-seo.vercel.app vs seoboost.app) split canonical, OG, sitemap, and schema signals. Fake AggregateRating violates Google review-snippet guidelines (visible, real ratings; no invented counts) and is a manual-action risk. Escaped template literals on glossary titles/hrefs ship broken SERP titles and 404 spoke links (08-04, 03-09).",
+      "nextjs_how": "Pick one production origin (seoboost.app). Set metadataBase, alternates.canonical, openGraph.url, Organization.url, WebSite.url, sitemap locs, and robots Sitemap: to that origin. Remove aggregateRating until stars are on-page and sourced. Fix generateMetadata and Link hrefs to real template literals. Then lock the contract with L1 tests.",
+      "seoBoost_gap": "app/layout.tsx:27-29 canonical + metadataBase = Vercel; :39 OG url and :105 Organization = seoboost.app; :115 WebSite and :125 breadcrumb = Vercel. app/sitemap.ts and app/robots.ts use seoboost.app. JSON-LD SoftwareApplication ships ratingValue 4.9 / ratingCount 120 with no visible reviews. app/glossary/page.tsx:70 href is `/glossary/${term.slug}` (escaped). No test asserts host consistency.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/sitemap.ts",
+        "app/robots.ts",
+        "app/glossary/page.tsx",
+        "app/glossary/[term]/page.tsx",
+        "tests/seo/html-contract.spec.ts"
+      ],
+      "verify_how": "1) All canonical, OG url, schema url, sitemap <loc>, and robots Sitemap: share one origin. 2) Raw HTML has zero '4.9' aggregateRating. 3) request.get('/glossary') contains href=\"/glossary/canonical-tag\". 4) request.get('/glossary/canonical-tag') title is not 'What is ${termData.title}?'. 5) Self-scan of the marketing origin must not fail the product's own critical checks.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/review-snippet",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+        "https://developers.google.com/search/docs/crawling-indexing/canonicalization"
+      ]
+    },
+    {
+      "id": "10-04",
+      "priority": "P0",
+      "title": "Scanner engine has no fixture suite — scores can drift without a red build",
+      "why_it_ranks": "scanDomain is the product. SCORE_WEIGHTS (critical −15, warning −5) and ~40 checks decide the A–F grade users pay for. Without golden HTML fixtures, a one-line regex change can flip grades on thousands of customer reports. README claims 'Production-grade' and '40+ checks' with no unit coverage.",
+      "nextjs_how": "Export analysePage and runDomainChecks (or move them to lib/scanner/*.ts). Add tests/scanner/fixtures/ with static HTML: missing title, good self-canonical, cross-canonical, noindex, no h1, multi-h1, valid JSON-LD array, 1-item BreadcrumbList, fake AggregateRating, FAQ headings without FAQPage, robots Disallow: /, empty sitemap, CSR shell with empty <div id=root>. Assert check id + status, not prose.",
+      "seoBoost_gap": "Zero imports of scanDomain outside app/api/scan/route.ts and report types. No fixture directory. Breadcrumb/FAQ/Video detectors miss top-level JSON-LD arrays (03-06) — the root layout itself is an array. FID/TTFB-as-vital copy (02-02) has no lint test. fetchUrl treats any !res.ok as missing robots/sitemap.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "tests/scanner/fixtures.test.ts",
+        "tests/scanner/fixtures/good-page.html",
+        "tests/scanner/fixtures/csr-empty.html",
+        "tests/scanner/fixtures/robots-block-all.txt",
+        "package.json"
+      ],
+      "verify_how": "1) `pnpm test -- fixtures` runs in <30s offline. 2) Changing SCORE_WEIGHTS.critical from −15 to −1 fails a golden score snapshot. 3) Array JSON-LD with BreadcrumbList is detected. 4) CSR-empty fixture warns 'static HTML only' and does not invent a 0-word ranking penalty as a ranking fact.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data",
+        "https://validator.schema.org/"
+      ]
+    },
+    {
+      "id": "10-05",
+      "priority": "P0",
+      "title": "No claim-to-check matrix — Pro copy can outrun the engine",
+      "why_it_ranks": "app/page.tsx and app/pricing/page.tsx sell 'Performance & Core Web Vitals', 'Structured data / JSON-LD', and 'Internal link graph analysis' as Pro. Agent 02: CWV is three HTML hints, no CrUX/PSI. Agent 03: schema is JSON.parse + FAQ nags. Agent 08: no orphan graph. Shipping that copy without a CI assertion that each marketed row maps to a real check id is how SEO tools become snake oil.",
+      "nextjs_how": "Add tests/claims/feature-matrix.test.ts that imports the homepage features array (or a shared lib/claims.ts) and asserts: every Pro row has {checkIds[], measurement:'html'|'crux'|'psi'|'none', userLabel}. If measurement is 'none', the test fails. CWV row must require crux or psi. 'link graph' must require orphan/in-degree checks. JSON-LD must require required-property validation, not parse-only.",
+      "seoBoost_gap": "Feature tables are duplicated inline in app/page.tsx:9-24 and app/pricing/page.tsx. Scanner categories exist but are not bound to marketing strings. Free vs Pro gating in the UI is not reflected in scanDomain (structured-data always runs). Copy can change without touching lib/scanner.ts.",
+      "files_to_change": [
+        "lib/claims.ts",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "tests/claims/feature-matrix.test.ts"
+      ],
+      "verify_how": "1) Adding a features[] row 'AI ranking guarantee' without checkIds fails CI. 2) CWV row fails until a crux/psi measurement lane exists (align with 02-01). 3) Homepage and pricing tables import the same matrix — no drift.",
+      "sources": [
+        "https://developer.chrome.com/docs/crux/api",
+        "https://web.dev/articles/lab-and-field-data-differences",
+        "https://developers.google.com/search/docs/appearance/structured-data"
+      ]
+    },
+    {
+      "id": "10-06",
+      "priority": "P1",
+      "title": "No fetch tests for /robots.txt and /sitemap.xml (and they already disagree on host)",
+      "why_it_ranks": "Google finds sitemaps via robots.txt Sitemap: lines and GSC submit. A sitemap is a hint, not a ranking score; Google ignores changefreq/priority and only trusts lastmod when it matches reality. If robots or sitemap 500, or locs use a different host than canonicals, discovery and consolidation split. This repo generates both via App Router file conventions but never GETs them in CI.",
+      "nextjs_how": "Playwright request.get('/robots.txt') and ('/sitemap.xml'). Assert 200, text/plain or XML content-type, User-agent, Allow/Disallow /dashboard /api /auth, Sitemap: https://<canonical-origin>/sitemap.xml. Parse sitemap: every <loc> is absolute https, same host as metadataBase, includes /, /pricing, /glossary, and each glossary slug; no /dashboard. Do not assert changefreq/priority. After 08-01, also assert sitemap locs ⊆ crawlable <a href> inventory.",
+      "seoBoost_gap": "app/robots.ts sitemap points at seoboost.app; root canonical is boost-seo.vercel.app. runDomainChecks fetches robots/sitemap for customers but SeoBoost never fetches its own. fetchUrl returns null on 4xx, so a 403 robots.txt looks 'Missing' (warning) rather than 'blocked'. Soft-404 HTML at /robots.txt would parse as invalid robots (no user-agent) — untested.",
+      "files_to_change": [
+        "tests/seo/robots-sitemap.spec.ts",
+        "app/robots.ts",
+        "app/sitemap.ts",
+        "app/layout.tsx",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1) CI GET /robots.txt and /sitemap.xml on the preview server. 2) Sitemap <loc> host equals canonical host. 3) Fixture 403 robots → scanner status 'unreachable', not 'Missing'. 4) Fixture HTML-disguised robots.txt → 'invalid'. 5) Empty <urlset> → warning Empty.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+      ]
+    },
+    {
+      "id": "10-07",
+      "priority": "P1",
+      "title": "Lighthouse CI and Unlighthouse are absent — SEO category never gates a PR",
+      "why_it_ranks": "Lighthouse SEO audits are pass/fail diagnostics (title, description, canonical validity, robots.txt, crawlable links, HTTP status, viewport, hreflang). They are not ranking factors. They are the cheapest automated regression net after HTML-contract tests. Unlighthouse walks sitemap + links for site-wide drift. Official LHCI: collect after build, assert categories:seo and individual audit IDs, do not start with lighthouse:recommended on a greenfield SEO product (too many flaky perf fails).",
+      "nextjs_how": "Add lighthouserc.cjs: startServerCommand `pnpm start`, urls localhost:3000 /, /pricing, /glossary. assert: categories:seo ['error',{minScore:0.95}], document-title/meta-description/canonical/robots-txt/is-crawlable/crawlable-anchors error; categories:performance ['warn',{minScore:0.5}]. Nightly: `npx unlighthouse-ci --site $PROD --budget 90` with ci.budget.seo=90. Do not fail PRs on Unlighthouse performance.",
+      "seoBoost_gap": "No @lhci/cli, no unlighthouse, no Chrome in CI. Lighthouse SEO would currently fail or warn on: canonical pointing at a different host than the collected URL (LH canonical audit fails cross-domain), possible robots/sitemap host mismatch, and marketing LCP issues (02-03) if performance is asserted too hard.",
+      "files_to_change": [
+        "lighthouserc.cjs",
+        "unlighthouse.config.ts",
+        ".github/workflows/main.yml",
+        ".github/workflows/lighthouse.yml",
+        "package.json"
+      ],
+      "verify_how": "1) `lhci autorun` on a PR that removes <title> exits 1. 2) Performance warn does not fail the required check. 3) Nightly Unlighthouse JSON lists every sitemap URL with an SEO score. 4) Job comment links the LHCI report.",
+      "sources": [
+        "https://googlechrome.github.io/lighthouse-ci/docs/getting-started.html",
+        "https://googlechrome.github.io/lighthouse-ci/docs/configuration.html",
+        "https://developer.chrome.com/docs/lighthouse/seo/canonical",
+        "https://unlighthouse.dev/integrations/ci"
+      ]
+    },
+    {
+      "id": "10-08",
+      "priority": "P1",
+      "title": "There is no Rich Results Test API — do not fake one; use SMV + GSC inspect + local rules",
+      "why_it_ranks": "Google's structured-data hub: start with Rich Results Test for Google features; use validator.schema.org for generic schema.org. The Rich Results Test is a UI (URL or code paste). The old SDTT API is gone. Programmatic rich-result status exists only as Search Console URL Inspection API richResultsResult, and only for URLs already in the index of a verified property — not live/staging/code, not arbitrary customer sites. Quota: 2000 QPD and 600 QPM per site. Claiming 'we ran Google's Rich Results Test' on every scan would be false.",
+      "nextjs_how": "Local: parse JSON-LD/Microdata, validate required properties per 2026 Search Gallery (agent 03). Link reports to `https://search.google.com/test/rich-results?url=` and validator.schema.org. For SeoBoost's own verified property only: optional cron POST https://searchconsole.googleapis.com/v1/urlInspection/index:inspect with OAuth webmasters.readonly. Never call inspect for customer URLs you do not own.",
+      "seoBoost_gap": "Scanner links validator.schema.org only on parse errors (lib/scanner.ts:1106). Reports never emit a Rich Results Test URL (03-11). No GSC OAuth. Product cannot truthfully say it validated Google eligibility. FAQ still sold as a rich result (03-01) — RRT no longer treats FAQ as a type after mid-2026 teardown.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "lib/gsc-inspect.ts",
+        "tests/scanner/schema-rules.test.ts"
+      ],
+      "verify_how": "1) Report HTML contains a Rich Results Test deep link for the scanned URL. 2) No code path named richResultsTestApi or undocumented Google endpoint. 3) GSC inspect, if added, refuses non-owned hosts. 4) FAQPage fixture is not labeled 'eligible for FAQ rich results'.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data",
+        "https://search.google.com/test/rich-results",
+        "https://validator.schema.org/",
+        "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect",
+        "https://developers.google.com/webmaster-tools/limits"
+      ]
+    },
+    {
+      "id": "10-09",
+      "priority": "P1",
+      "title": "PSI/CrUX must be a quota-aware verification lane, not a score painted on every HTML hint",
+      "why_it_ranks": "Google is discontinuing CrUX inside the PSI API and points automation at the CrUX API / CrUX History API. CrUX: 150 QPM/project, no paid increase, returns nothing below privacy thresholds. PSI v5 still runs Lighthouse lab (SEO + performance) and historically bundled field data; default Cloud quota is commonly 25k/day and 400/100s but is not a ranking API. Lab ≠ field (web.dev). Using PSI as the user-facing 'SEO score' or running it on every page of every customer scan will 429 and still not be what Search ranks.",
+      "nextjs_how": "Dogfood: weekly CrUX queryRecord for origin https://seoboost.app (PHONE+DESKTOP) plus one PSI runPagespeed on / for lab debug. Product (align 02-04): optional Pro CWV lane — cache 24h per URL, origin fallback, explicit 'insufficient field data' (never 0/100). Do not block the HTML scan on PSI. Do not average Lighthouse SEO into the SeoBoost A–F grade.",
+      "seoBoost_gap": "No API keys, no lib/cwv.ts, no cache. Marketing still names the HTML hint category 'Core Web Vitals'. Scanner mentions FID (retired). CI has no weekly PSI/CrUX job for the marketing origin.",
+      "files_to_change": [
+        "lib/cwv.ts",
+        "app/api/scan/route.ts",
+        ".github/workflows/crux-dogfood.yml",
+        "tests/cwv/insufficient-data.test.ts"
+      ],
+      "verify_how": "1) Fixture CrUX 404/empty → UI string 'insufficient field data', grade unchanged. 2) Dogfood workflow artifacts store collectionPeriod. 3) Scan path works with PSI_KEY unset (HTML-only). 4) A 429 from PSI is surfaced as 'lab unavailable', not a failed SEO audit.",
+      "sources": [
+        "https://developers.google.com/speed/docs/insights/v5/get-started",
+        "https://developer.chrome.com/docs/crux/api",
+        "https://web.dev/articles/lab-and-field-data-differences"
+      ]
+    },
+    {
+      "id": "10-10",
+      "priority": "P1",
+      "title": "SEO-checker false positives must be fixtures, not folklore",
+      "why_it_ranks": "Third-party and in-house checkers routinely fail pages that Google will rank, and pass pages Google will ignore. If SeoBoost's warnings are wrong, users ship harmful changes (add fake FAQ schema, stuff titles to 60 chars, delete extra H1s, panic over a missing optional robots.txt). Encoding each known false positive as a fixture with expected status='info'|off is the anti-snake-oil control.",
+      "nextjs_how": "Ship tests/scanner/false-positives.test.ts documenting expected behavior. User-facing copy must say 'heuristic' or 'eligibility', never 'Google penalty', unless a cited Search Central rule says so.",
+      "seoBoost_gap": "Current false-positive risks in lib/scanner.ts: (1) JSON.parse success = 'eligible for rich results'. (2) H2 starting with what/how/why → FAQ schema opportunity (dead SERP feature). (3) Multiple H1 = warning (not a ranking defect). (4) Title <30 or >65 = warning (display heuristic). (5) Description 120–158 as if required. (6) Missing robots.txt = warning (file is optional). (7) Missing sitemap = warning (hint, not required). (8) Cheerio-only: CSR/SPA first HTML looks empty. (9) next/script JSON-LD missed or double-counted. (10) 1-item BreadcrumbList = good if type present. (11) Word count <300. (12) Lighthouse SEO 100 treated as ranking. (13) Cross-domain canonical flagged without AMP/legal exceptions. (14) Soft-404 HTML at /robots.txt. (15) FID/TTFB labeled as ranking vitals.",
+      "files_to_change": [
+        "tests/scanner/false-positives.test.ts",
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Each listed case has a fixture and an expected status. Adding 'Google will penalize multiple H1s' to howToFix fails a string-ban test. FAQ heading fixture must not mention expandable SERP Q&A.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+        "https://developers.google.com/search/updates",
+        "https://developer.chrome.com/docs/lighthouse/seo/canonical",
+        "https://web.dev/articles/lab-and-field-data-differences"
+      ]
+    },
+    {
+      "id": "10-11",
+      "priority": "P2",
+      "title": "Dogfood: SeoBoost must scan itself and snapshot the report",
+      "why_it_ranks": "The strongest anti-snake-oil demo is a public, repeatable self-audit. If the marketing site would get a C from the product, either fix the site or fix the checker. Agent 08 already expects glossary orphans; agent 03 expects fake stars and 1-item breadcrumbs to fail. A committed golden report (minus timestamps) makes those gaps visible in PRs.",
+      "nextjs_how": "CI job after preview deploy: POST internal scan of the preview origin (or `scanDomain('http://127.0.0.1:3000')` against next start). Write report JSON artifact. Compare check ids/statuses to tests/dogfood/expected.json. Allowlist only durationMs/scannedAt. Fail on new criticals. Weekly Unlighthouse + CrUX attach to the same artifact bundle.",
+      "seoBoost_gap": "No dogfood job. Self-scan is manual. Preview URLs are not in sitemap. User-agent is SEOScanBot/2.0 (+https://seoscan.dev/bot) — leftover brand, not seoboost.app.",
+      "files_to_change": [
+        "tests/dogfood/expected.json",
+        "tests/dogfood/self-scan.test.ts",
+        ".github/workflows/main.yml",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1) `pnpm test:dogfood` against localhost produces a report. 2) New critical check without updating expected.json fails CI. 3) User-Agent contains seoboost.app. 4) Artifact uploaded on main.",
+      "sources": [
+        "https://unlighthouse.dev/integrations/ci",
+        "https://googlechrome.github.io/lighthouse-ci/docs/getting-started.html"
+      ]
+    },
+    {
+      "id": "10-12",
+      "priority": "P2",
+      "title": "User-site audits need a disclosed verification policy (what we measured vs Google)",
+      "why_it_ranks": "Customers will treat the A–F grade as 'what Google thinks'. It is a Cheerio heuristic over ≤5 HTML pages. Field CWV needs traffic. Rich results need indexed, owned URLs. Lab Lighthouse varies by machine. Without a verification footer, every report is implied to be Google-grade. That is the core snake-oil vector.",
+      "nextjs_how": "Every report (UI + PDF) must print a methods block: pages crawled, JS rendered? (no), CWV source (none|CrUX p75|PSI lab), schema method (parse|required-props|GSC inspect), date, and links to Rich Results Test + PSI for that URL. Free tier stays HTML-only and says so. Pro CWV is opt-in, cached, and shows insufficient-data instead of a fake pass.",
+      "seoBoost_gap": "Report UI (app/dashboard/report/[id]/page.tsx) has no methods block. README calls the engine production-grade. Login page promises 'Core Web Vitals' and 'mobile performance benchmarks'. Default maxPages=5 is not disclosed as a coverage limit in the grade.",
+      "files_to_change": [
+        "app/dashboard/report/[id]/page.tsx",
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "app/seo-audit-login/page.tsx",
+        "README.md"
+      ],
+      "verify_how": "1) Playwright on a saved report finds the methods block and the words 'static HTML' and 'not a Google ranking score'. 2) PDF export includes the same block. 3) Login/pricing do not say 'Core Web Vitals' unless the matrix measurement is crux/psi.",
+      "sources": [
+        "https://web.dev/articles/lab-and-field-data-differences",
+        "https://developers.google.com/search/docs/appearance/structured-data",
+        "https://developers.google.com/speed/docs/insights/v5/get-started"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "10-01/10-02: Add Playwright L1 request.get HTML-contract tests for /, /pricing, /glossary, one glossary slug (title, canonical, robots, json-ld, h1) and wire them into .github/workflows/main.yml.",
+    "10-04: Export analysePage and add Vitest fixtures for the highest-lie checks (schema parse≠eligibility, FAQ, robots, CSR-empty).",
+    "10-03: Lock one origin and fail CI on dual-host canonical/sitemap/schema plus glossary `${}` titles/hrefs and fake 4.9/120 stars.",
+    "10-05: One shared claims matrix so 'Core Web Vitals' / 'link graph' / 'JSON-LD' cannot ship as Pro without a real check+measurement type.",
+    "10-06: Fetch-test /robots.txt and /sitemap.xml on the production-like server."
+  ],
+  "test_plan": [
+    "L0 Vitest: fixtures for title/canonical/h1/schema/robots/sitemap/CSR/FAQ/AggregateRating; golden score snapshot; string-ban FID and 'FAQ rich results'.",
+    "L1 Playwright request.get: public routes first-HTML contract; robots.txt + sitemap.xml host/loc assertions.",
+    "L2 Playwright page.goto: same selectors; fail if JSON-LD or H1 appear only after JS.",
+    "L3 LHCI on PR: SEO category + title/description/canonical/robots/is-crawlable errors; performance warn-only.",
+    "L4 Nightly Unlighthouse on production + weekly CrUX/PSI dogfood artifacts.",
+    "L5 Manual: Rich Results Test + Schema Markup Validator on / and one glossary URL after each schema change; optional GSC inspect for the owned property.",
+    "Claims: feature-matrix.test.ts binds homepage/pricing rows to check ids and measurement lanes.",
+    "Dogfood: self-scan snapshot; new criticals fail CI.",
+    "Report UI: methods block visible in Playwright.",
+    "Negative: no Rich Results Test API client; no PSI call required for HTML scan; no LH performance error gate."
+  ],
+  "conflicts_to_avoid": [
+    "Do not invent or scrape a Rich Results Test API. UI + validator.schema.org + GSC URL Inspection (owned/indexed only).",
+    "Do not treat Lighthouse SEO or PSI lab scores as Google ranking. Field CrUX p75 ranks; lab debugs.",
+    "Do not run PSI/CrUX on every page of every customer scan (quotas + insufficient data). Cache and disclose.",
+    "Do not fail PR CI on Lighthouse performance or Unlighthouse site-wide perf budgets.",
+    "Do not recommend FAQPage as a Google rich result (retired 2026-05-07). Align with 03-01.",
+    "Do not keep or generate AggregateRating without visible real reviews. Align with 03-02.",
+    "Do not put JSON-LD in next/script. Align with 03-05 and Next.js JSON-LD guide.",
+    "Do not grade CWV from Cheerio hints. Align with 02-01/02-04.",
+    "Do not call missing robots.txt or missing sitemap a ranking penalty (optional / hint).",
+    "Do not overwrite sibling findings files. This file owns the harness, not CWV thresholds or schema eligibility tables."
+  ],
+  "cross_agent_notes": {
+    "siblings_read": [
+      "02-core-web-vitals.json",
+      "03-structured-data.json",
+      "07-media-seo.json",
+      "08-internal-linking.json"
+    ],
+    "note": "Read 2026-09-11. Did not overwrite those files. Other agents: append here; do not rewrite 10 findings.",
+    "with_02_core_web_vitals": "02 owns CrUX/PSI product measurement and FID copy. 10 owns CI gates that prevent selling CWV until measurement exists (10-05, 10-09) and dogfood PSI/CrUX jobs. Reuse lib/cwv.ts; do not add a second CWV client. 02-03 view-source H1/cache-control checks become 10-02 Playwright assertions.",
+    "with_03_structured_data": "03 owns eligibility tables and FAQ/ratings/next/script fixes. 10 owns how those rules are tested: fixtures (10-04, 10-10), RRT deep links (10-08), and first-HTML JSON-LD (10-02). 03-11 (no RRT link) is implemented by 10-08. Do not add a fake RRT API in 03 generators.",
+    "with_07_media_seo": "07 verify_how items (sitemap image:loc, og:image 200, VideoObject required props) belong in L1 Playwright + scanner fixtures. Rich Results Test for VideoObject stays manual/GSC. 07-05 LCP-element check is LHCI/PSI (10-07/10-09), not a Cheerio grade.",
+    "with_08_internal_linking": "08-01 orphan vs sitemap and 08-04 glossary href `${}` are L1/L0 tests in 10-03/10-06. After orphan detection ships, dogfood expected.json must include glossary orphan statuses until hrefs are fixed. 08-11: do not fail next/link prefetch in LHCI crawlable-anchors.",
+    "for_onpage_metadata_agent": "Dual host + glossary generateMetadata literals are the first HTML-contract failures. Fix origin once; 10 will lock it.",
+    "for_technical_seo_agent": "next.config.ts Cache-Control immutable on '/(.*)' will fail any freshness/CWV header test. Split HTML vs hashed assets before asserting caching as 'good'.",
+    "for_product_copy_agent": "Do not add marketing rows until tests/claims/feature-matrix.test.ts exists. CWV/link-graph/JSON-LD copy is currently false (02, 08, 03)."
+  }
+}

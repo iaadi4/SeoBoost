@@ -1,0 +1,435 @@
+{
+  "agent": "02-core-web-vitals",
+  "as_of": "2026-09-11",
+  "lane": "Core Web Vitals and performance SEO",
+  "sources": [
+    {
+      "title": "Understanding Core Web Vitals and Google search results",
+      "url": "https://developers.google.com/search/docs/appearance/core-web-vitals",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Understanding page experience in Google Search results",
+      "url": "https://developers.google.com/search/docs/appearance/page-experience",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Web Vitals",
+      "url": "https://web.dev/articles/vitals",
+      "date": "2024-10-31"
+    },
+    {
+      "title": "How the Core Web Vitals metrics thresholds were defined",
+      "url": "https://web.dev/articles/defining-core-web-vitals-thresholds",
+      "date": "2024-10-31"
+    },
+    {
+      "title": "Time to First Byte (TTFB)",
+      "url": "https://web.dev/articles/ttfb",
+      "date": "2025-11-28"
+    },
+    {
+      "title": "First Contentful Paint (FCP)",
+      "url": "https://web.dev/articles/fcp",
+      "date": "2023-12-06"
+    },
+    {
+      "title": "Optimize Largest Contentful Paint",
+      "url": "https://web.dev/articles/optimize-lcp",
+      "date": "2025-03-31"
+    },
+    {
+      "title": "Optimize Interaction to Next Paint",
+      "url": "https://web.dev/articles/optimize-inp",
+      "date": "2025-09-02"
+    },
+    {
+      "title": "Optimize Cumulative Layout Shift",
+      "url": "https://web.dev/articles/optimize-cls",
+      "date": "2025-02-07"
+    },
+    {
+      "title": "Why is CrUX data different from my RUM data?",
+      "url": "https://web.dev/articles/crux-and-rum-differences",
+      "date": "2025-01-01"
+    },
+    {
+      "title": "Best practices for cookie notices",
+      "url": "https://web.dev/articles/cookie-notice-best-practices",
+      "date": "2024-06-13"
+    },
+    {
+      "title": "Avoid intrusive interstitials and dialogs",
+      "url": "https://developers.google.com/search/docs/appearance/avoid-intrusive-interstitials",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "CrUX API",
+      "url": "https://developer.chrome.com/docs/crux/api",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "How to use the CrUX API",
+      "url": "https://developer.chrome.com/docs/crux/guides/crux-api",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "CrUX tools comparison (API vs PSI vs Search Console)",
+      "url": "https://developer.chrome.com/docs/crux/methodology/tools",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Prerender pages in Chrome with Speculation Rules",
+      "url": "https://developer.chrome.com/docs/web-platform/prerender-pages",
+      "date": "2026-01-01"
+    },
+    {
+      "title": "Guide to implementing speculation rules",
+      "url": "https://developer.chrome.com/docs/web-platform/implementing-speculation-rules",
+      "date": "2025-10-23"
+    },
+    {
+      "title": "How Google Search uses speculation rules",
+      "url": "https://developer.chrome.com/blog/search-speculation-rules",
+      "date": "2025-01-01"
+    },
+    {
+      "title": "Next.js next/font",
+      "url": "https://nextjs.org/docs/app/api-reference/components/font",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js fonts getting started",
+      "url": "https://nextjs.org/docs/app/getting-started/fonts",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js next/image",
+      "url": "https://nextjs.org/docs/app/api-reference/components/image",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js Script strategies",
+      "url": "https://nextjs.org/docs/app/guides/scripts",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js streaming and CLS",
+      "url": "https://nextjs.org/docs/app/guides/streaming",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js cacheComponents (PPR in v16)",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js 16 upgrade guide (PPR migration)",
+      "url": "https://nextjs.org/docs/app/guides/upgrading/version-16",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js reactCompiler",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/reactCompiler",
+      "date": "2026-09-11"
+    }
+  ],
+  "thresholds_2026": {
+    "note": "Google did not change Good thresholds as of 2026-09-11. INP remains the responsiveness vital (FID retired March 2024). Pass = all three Good at p75, mobile and desktop separately. TTFB and FCP are diagnostics, not ranking vitals.",
+    "ranking_vitals": {
+      "LCP": { "good": "<=2.5s", "needs_improvement": "2.5s-4.0s", "poor": ">4.0s", "percentile": 75 },
+      "INP": { "good": "<=200ms", "needs_improvement": "200ms-500ms", "poor": ">500ms", "percentile": 75 },
+      "CLS": { "good": "<=0.1", "needs_improvement": "0.1-0.25", "poor": ">0.25", "percentile": 75 }
+    },
+    "diagnostics": {
+      "TTFB": { "good": "<=0.8s", "poor": ">1.8s", "role": "LCP floor; not a Core Web Vital" },
+      "FCP": { "good": "<=1.8s", "poor": ">3.0s", "role": "render-blocking / CSR diagnostic for LCP" }
+    },
+    "lab_proxies": {
+      "TBT": "Lighthouse proxy for INP; Lighthouse cannot measure INP without user input"
+    }
+  },
+  "findings": [
+    {
+      "id": "02-01",
+      "priority": "P0",
+      "title": "Product sells a Core Web Vitals audit but never measures LCP, INP, or CLS",
+      "why_it_ranks": "Google Search uses field Core Web Vitals as a page-experience ranking signal. A URL passes only if LCP <=2.5s, INP <=200ms, and CLS <=0.1 at the 75th percentile of real Chrome users (typically a 28-day CrUX window), mobile and desktop separately. HTML-only heuristics cannot produce those numbers and cannot pass or fail a page the way Search Console does.",
+      "nextjs_how": "Keep the existing Cheerio crawl as a hint layer. Add a second measurement lane: CrUX API for origin/URL field p75, PageSpeed Insights API for the same field block plus Lighthouse lab (TBT as INP proxy). Persist both on the report. Label field as 'what Google ranks on' and lab as 'how to debug'. Never let lazy-loading or render-blocking checks set a CWV grade.",
+      "seoBoost_gap": "Marketing claims 'Performance & Core Web Vitals' as a Pro feature on the homepage comparison table, pricing FAQ, and login footer. The scanner only has three HTML hints (lazy-loading, render-blocking, resource-hints). app/api/scan/route.ts calls scanDomain() with no PSI/CrUX call. Report UI renders checksByCategory.performance as if those hints were vitals. That is a product-truth gap, not a missing CSS tweak.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "app/seo-audit-login/page.tsx"
+      ],
+      "verify_how": "1) Run a scan on web.dev. 2) Confirm the report shows CrUX p75 LCP/INP/CLS (or 'insufficient field data') plus a Lighthouse lab block. 3) Confirm the three HTML performance checks are labeled 'hints', not 'Core Web Vitals'. 4) Confirm homepage/pricing copy matches what the report actually measures.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/core-web-vitals",
+        "https://developers.google.com/search/docs/appearance/page-experience",
+        "https://web.dev/articles/vitals",
+        "https://developer.chrome.com/docs/crux/api"
+      ]
+    },
+    {
+      "id": "02-02",
+      "priority": "P0",
+      "title": "Scanner copy still teaches FID and calls TTFB a Core Web Vital",
+      "why_it_ranks": "INP replaced FID as the stable responsiveness vital in March 2024. TTFB and FCP are supporting diagnostics, not ranking vitals. Customers who follow this copy will optimize the wrong metric and distrust the product when Search Console shows INP instead of FID.",
+      "nextjs_how": "Rewrite every scanner message to the 2026 set: LCP/INP/CLS for pass-fail; TTFB (<=0.8s good, >1.8s poor) and FCP (<=1.8s good, >3.0s poor) as the LCP diagnostic chain. Drop FID, TTI, and 'TTFB is a Core Web Vital'. Point howToFix at next/font, next/image, next/script, and streaming — not generic FID advice.",
+      "seoBoost_gap": "lib/scanner.ts:732 calls TTFB 'a Core Web Vital that impacts LCP'. lib/scanner.ts:773 says large HTML hurts 'LCP and FID — both Core Web Vitals'. lib/scanner.ts:799 cites 'LCP and TTI Core Web Vitals'. lib/scanner.ts:837 calls FCP and LCP 'Core Web Vitals ranking signals' (FCP is not). Glossary at lib/glossary-data.ts is correct on LCP/INP/CLS but never says field p75 / 28-day / lab-is-not-ranking.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "lib/glossary-data.ts"
+      ],
+      "verify_how": "rg -n 'FID|First Input Delay|TTI Core Web Vital|TTFB — a Core Web Vital' lib/scanner.ts lib/glossary-data.ts should return zero. Glossary CWV page must state p75, 28-day CrUX, and that TTFB/FCP are diagnostics.",
+      "sources": [
+        "https://web.dev/articles/vitals",
+        "https://web.dev/articles/ttfb",
+        "https://web.dev/articles/fcp",
+        "https://web.dev/articles/defining-core-web-vitals-thresholds"
+      ]
+    },
+    {
+      "id": "02-03",
+      "priority": "P0",
+      "title": "SeoBoost's own marketing pages fail the CWV practices it should coach",
+      "why_it_ranks": "Google evaluates page experience per URL. The homepage is the cold-start landing most new users and Googlebot hit. A client-hidden H1, cookie-forced dynamic HTML, year-long immutable HTML cache, and four high-priority decorative images all push LCP/INP/TTFB the wrong way on the URL that must rank.",
+      "nextjs_how": "1) Render the H1/lead as a Server Component; keep motion on non-LCP chrome only, or animate after paint (no initial opacity:0 on the LCP text). 2) Move the auth-aware header into a Suspense island so cookies() does not dynamize the whole page; enable cacheComponents + 'use cache' for the static shell. 3) Split Cache-Control: HTML gets short s-maxage + stale-while-revalidate; hashed /_next/static assets keep immutable. 4) Remove priority/fetchPriority from the 32px Dicebear avatars; one LCP resource max. 5) Keep next/font Inter (already correct).",
+      "seoBoost_gap": "app/page.tsx awaits createClient()/cookies() before paint, so the homepage cannot be a static shell. app/hero-animations.tsx is 'use client' and sets motion.h1 initial={{ opacity: 0 }} — LCP text is invisible until JS. Four next/image avatars use both priority and fetchPriority='high' (lines 206-215). next.config.ts applies Cache-Control public, max-age=31536000, immutable to source '/(.*)' including HTML. framer-motion also powers app/bento-grid.tsx on the landing path. No cacheComponents, no reactCompiler, no Speculation Rules.",
+      "files_to_change": [
+        "app/page.tsx",
+        "app/hero-animations.tsx",
+        "app/bento-grid.tsx",
+        "app/layout.tsx",
+        "next.config.ts"
+      ],
+      "verify_how": "1) View-source / and confirm the H1 text is in the first HTML (opacity not 0). 2) Response headers on / must not be max-age=31536000 immutable. 3) Lighthouse mobile: LCP element is the H1 (or a real hero), not a 32px avatar. 4) Disable JS: headline still visible. 5) PSI field+lab on the production homepage after a 28-day window.",
+      "sources": [
+        "https://web.dev/articles/optimize-lcp",
+        "https://nextjs.org/docs/app/guides/streaming",
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents",
+        "https://nextjs.org/docs/app/api-reference/components/image"
+      ]
+    },
+    {
+      "id": "02-04",
+      "priority": "P0",
+      "title": "CWV product lane must be field-first (CrUX) with lab (Lighthouse) as debug only",
+      "why_it_ranks": "Search Console's CWV report is CrUX field data. Lighthouse cannot measure INP (no user). Lab CLS is load-only; field CLS is the full page life, so cookie banners, ads, and lazy inserts show up in CrUX but not a default Lighthouse run. Coaching a green Lighthouse score as a ranking win is incorrect.",
+      "nextjs_how": "Add lib/cwv.ts: (a) POST chromeuxreport.googleapis.com/v1/records:queryRecord for url then origin, formFactor PHONE and DESKTOP, metrics largest_contentful_paint, interaction_to_next_paint, cumulative_layout_shift, experimental_time_to_first_byte, first_contentful_paint; (b) PSI v5 for lighthouseResult + loadingExperience. Store collectionPeriod. UI: two columns — Field (ranking) vs Lab (debug). If URL CrUX missing, show origin fallback and say so. If both missing, show lab + 'not enough Chrome traffic; this is not a Search pass'. Optional later: CrUX History API for 40-week trend.",
+      "seoBoost_gap": "No CrUX, PSI, Lighthouse, or web-vitals dependency exists in package.json. No API key/env for those services. Report has no field/lab split, no p75 gauges, no mobile/desktop toggle, no 'insufficient CrUX' state. Product therefore cannot coach the metric Google actually uses.",
+      "files_to_change": [
+        "lib/cwv.ts",
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "package.json"
+      ],
+      "verify_how": "Scan https://developers.google.com (has CrUX) and a brand-new low-traffic URL (likely no CrUX). First report: URL or origin p75 + lab. Second: explicit insufficient-field-data, lab only, no fake pass. Confirm INP appears in field and TBT (not INP) in lab.",
+      "sources": [
+        "https://web.dev/articles/vitals",
+        "https://web.dev/articles/optimize-lcp",
+        "https://web.dev/articles/optimize-cls",
+        "https://developer.chrome.com/docs/crux/guides/crux-api",
+        "https://developer.chrome.com/docs/crux/methodology/tools"
+      ]
+    },
+    {
+      "id": "02-05",
+      "priority": "P1",
+      "title": "No TTFB/FCP diagnostic chain — scanner cannot explain a bad LCP",
+      "why_it_ranks": "LCP is TTFB + resource load delay + resource load time + render delay. web.dev treats TTFB <=0.8s (poor >1.8s) as a rough floor and FCP <=1.8s (poor >3.0s) as the render-blocking/CSR check. A large TTFB→FCP gap means blocking CSS/JS or client render. A large FCP→LCP gap means the LCP resource was late-discovered or deprioritized. Without this chain the product cannot coach a fix.",
+      "nextjs_how": "Record server-side nav timing on each crawl fetch (start → first byte → complete). Surface TTFB as a diagnostic, not a vital. In PSI lab, read lighthouse TTFB/FCP/LCP and print the three deltas. Next.js coaching: cacheComponents static shell, streaming Suspense so HTML starts before auth/DB, CDN cache on public HTML, avoid cookies() on the marketing route, 103 Early Hints only if the platform supports it.",
+      "seoBoost_gap": "fetchUrl() in lib/scanner.ts uses AbortSignal.timeout but never records timing. Compression/page-size checks mention TTFB qualitatively and mislabel it a vital. No FCP check exists. Homepage cookies() + full-page auth is the opposite of a streamed shell, so the product cannot demo the advice.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "lib/cwv.ts",
+        "app/page.tsx",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Scan a slow-TTFB origin and a CSR-heavy SPA. Report must show TTFB, FCP, LCP, and which gap is the bottleneck. Homepage TTFB after moving auth into Suspense should drop vs cookies()-blocked render (compare two Lighthouse runs).",
+      "sources": [
+        "https://web.dev/articles/optimize-lcp",
+        "https://web.dev/articles/ttfb",
+        "https://web.dev/articles/fcp",
+        "https://nextjs.org/docs/app/guides/streaming"
+      ]
+    },
+    {
+      "id": "02-06",
+      "priority": "P1",
+      "title": "Zero INP measurement or third-party script coaching",
+      "why_it_ranks": "INP is the 2026 responsiveness ranking vital (Good <=200ms at p75). It needs real interactions; Lighthouse uses TBT as a proxy. The usual field killers are GTM/analytics, chat widgets, consent CMPs (Accept click), ads, and long tasks on the main thread. next/script exists so those scripts are not beforeInteractive on every route.",
+      "nextjs_how": "Detect third-party script hosts in HTML (GTM, GA, Hotjar, Intercom, Crisp, cookie CMPs). Flag <script src> without async/defer and next/script strategy mistakes. Coach: afterInteractive for needed pixels, lazyOnload for chat, never beforeInteractive unless the script is required for first paint; keep CMP on its own origin with preconnect; yield after Accept. Report field INP from CrUX and lab TBT from PSI. Do not invent an INP number from HTML.",
+      "seoBoost_gap": "No INP/TBT check id. render-blocking only counts inline scripts/styles with a loose >8 threshold and ignores GTM. next/script is used in app/layout.tsx only for JSON-LD. No third-party pixels on the product itself (good) but the product does not audit customers' pixels. Login page still promises 'Core Web Vitals' visibility it cannot deliver for INP.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "lib/cwv.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Scan a page that loads GTM + a chat widget. Expect: third-party script list, strategy advice, field INP if CrUX exists, lab TBT. Scan SeoBoost itself: no false INP fail from JSON-LD Script.",
+      "sources": [
+        "https://web.dev/articles/optimize-inp",
+        "https://web.dev/articles/vitals",
+        "https://web.dev/articles/cookie-notice-best-practices",
+        "https://nextjs.org/docs/app/guides/scripts"
+      ]
+    },
+    {
+      "id": "02-07",
+      "priority": "P1",
+      "title": "CLS audit covers some images and misses fonts, ads, cookies, and post-load shift",
+      "why_it_ranks": "Good CLS is <=0.1 at p75 for the full page life. Lab CLS is usually load-only, so field CLS is often worse. Common causes: images/videos without dimensions, ads/iframes/embeds without reserved space, cookie/consent banners injected at the top, webfont swap without size-adjusted fallback, Suspense fallbacks that do not match final height.",
+      "nextjs_how": "Split image dimensions into its own check (do not bury under img-alt). Detect ads/iframes/embeds without width/height or aspect-ratio. Detect cookie/consent scripts and top-fixed banners; coach overlay/footer + reserved min-height (web.dev cookie notice + Search interstitial rules). Detect Google Fonts <link> without next/font / font-display / size-adjust; coach next/font (self-host + adjustFontFallback). For Next.js streaming, coach skeleton fallbacks that match final size. Always show field CLS vs lab CLS.",
+      "seoBoost_gap": "Missing width/height only fires when alt is complete AND imgCount>3 AND missingDims >= 50% (lib/scanner.ts:886-892). A page with 2 undimensioned images and missing alt never gets a CLS warning. No font, ad, iframe, or cookie-banner CLS checks. Product has no cookie banner (good) but also no coaching for customers who do.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "lib/glossary-data.ts"
+      ],
+      "verify_how": "Fixture pages: (1) undimensioned hero img, (2) Google Fonts CSS link, (3) unreserved iframe/ad, (4) top cookie banner markup. Each must produce a dedicated CLS check. PSI on a known high-CLS origin should show field CLS > lab CLS with an explanation, not a contradiction.",
+      "sources": [
+        "https://web.dev/articles/optimize-cls",
+        "https://web.dev/articles/cookie-notice-best-practices",
+        "https://developers.google.com/search/docs/appearance/avoid-intrusive-interstitials",
+        "https://nextjs.org/docs/app/getting-started/fonts",
+        "https://nextjs.org/docs/app/guides/streaming"
+      ]
+    },
+    {
+      "id": "02-08",
+      "priority": "P1",
+      "title": "No Speculation Rules / prerender detection or Next.js prefetch coaching",
+      "why_it_ranks": "Speculation Rules prefetch/prerender make subsequent navigations near-instant, which improves LCP/INP for those loads. Google Search itself uses the API on SERPs. This is a 2025-2026 performance practice, not a ranking checkbox — still something an optimizer product should detect and coach. Wrong eagerness on authenticated or mutating routes wastes CPU and can leak data.",
+      "nextjs_how": "Detect <script type='speculationrules'> and Speculation-Rules headers. Coach same-origin document prefetch first (eagerness moderate on hover), then prerender for safe public pages. Do not prerender checkout, login, or cookie-gated routes. In Next.js App Router, keep <Link> prefetch for static public routes; combine with cacheComponents so the prerendered shell is cheap. Optional: inject speculation rules on SeoBoost for /pricing, /glossary, /sign-up from the homepage.",
+      "seoBoost_gap": "No scanner check for speculationrules. No product-site rules. next.config.ts has no experimental prefetch flags. Homepage links to /sign-up, /pricing, /glossary with default Link prefetch only — fine, but the product never mentions the 2026 pattern customers will ask about.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx",
+        "app/page.tsx"
+      ],
+      "verify_how": "Scan a site that ships speculationrules (or a fixture). Check appears with eagerness/target summary. SeoBoost homepage (if rules added): Chrome DevTools Application → Speculative loads shows /pricing or /glossary as prefetch/prerender.",
+      "sources": [
+        "https://developer.chrome.com/docs/web-platform/prerender-pages",
+        "https://developer.chrome.com/docs/web-platform/implementing-speculation-rules",
+        "https://developer.chrome.com/blog/search-speculation-rules"
+      ]
+    },
+    {
+      "id": "02-09",
+      "priority": "P1",
+      "title": "Next.js 16 cacheComponents / PPR / React Compiler unused and uncoached",
+      "why_it_ranks": "TTFB and LCP on App Router sites are usually 'the page waited on cookies/DB before sending HTML'. Next.js 16 replaces experimental PPR with cacheComponents: static shell now, dynamic holes stream later. React Compiler cuts client re-renders that show up as INP. An SEO product aimed at Next.js sites must detect and coach this; SeoBoost is itself on next@16.1.6 / react@19.2.3 and does not use it.",
+      "nextjs_how": "Enable cacheComponents in next.config.ts once routes are migrated. Mark cacheable UI with 'use cache' + cacheLife. Wrap cookies()/headers()/searchParams consumers in Suspense with size-matched fallbacks. Add reactCompiler: true (or annotation mode first). In the product, detect Next.js via x-powered-by / _next/static / RSC payload and emit a Next.js-specific CWV playbook (font, image, script, cache, compiler, streaming CLS).",
+      "seoBoost_gap": "next.config.ts has only security headers + a blanket immutable cache. No cacheComponents, no reactCompiler. Every marketing and dashboard page that calls createClient() is request-dynamic. Scanner has no Next.js framework playbook — snippets still say next.config.js CommonJS in places.",
+      "files_to_change": [
+        "next.config.ts",
+        "app/page.tsx",
+        "app/layout.tsx",
+        "lib/scanner.ts",
+        "package.json"
+      ],
+      "verify_how": "next build output should show a static shell for / and /glossary. Lighthouse TTFB on / lower than the cookies()-blocked baseline. A scanned Next.js site gets a Next.js playbook card; a PHP site does not.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents",
+        "https://nextjs.org/docs/app/guides/upgrading/version-16",
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/reactCompiler",
+        "https://nextjs.org/docs/app/guides/streaming"
+      ]
+    },
+    {
+      "id": "02-10",
+      "priority": "P2",
+      "title": "next/font is used; next/image and next/script are mis-aimed; scanner does not coach either",
+      "why_it_ranks": "next/font self-hosts and applies size-adjusted fallbacks so webfont CLS stays near zero. next/image reserves space and can preload the LCP image (priority deprecated in Next 16 in favor of preload). next/script strategies keep third-party work off the first paint. Misusing high fetch priority on decorative images steals bandwidth from LCP.",
+      "nextjs_how": "Keep Inter via next/font/google with subsets:['latin'] (already correct; adjustFontFallback defaults on). Drop fonts.googleapis.com from CSP if nothing else needs it. Use next/image without priority on avatars. Put JSON-LD in a raw <script type='application/ld+json'> in the document, not next/script. Scanner: if HTML has fonts.googleapis.com stylesheet, recommend next/font; if <img> lacks dimensions, recommend next/image; if third-party <script>, recommend next/script strategy.",
+      "seoBoost_gap": "app/layout.tsx uses next/font correctly, then loads JSON-LD through next/script. CSP still allows https://fonts.googleapis.com and https://fonts.gstatic.com. Hero marks four remote SVGs priority+fetchPriority high. Scanner resource-hints check treats 'no third-party + no preconnect' as good even when a fonts.googleapis.com link exists only sometimes; it never mentions next/font or next/image.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/hero-animations.tsx",
+        "next.config.ts",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Network panel on /: font files from same origin (/_next/static/media), not fonts.gstatic.com. No preload/high priority on 32px avatars. JSON-LD present in first HTML without a next/script hydration hop. Customer report for a create-next-app site mentions next/font and next/image by name.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/components/font",
+        "https://nextjs.org/docs/app/getting-started/fonts",
+        "https://nextjs.org/docs/app/api-reference/components/image",
+        "https://nextjs.org/docs/app/guides/scripts"
+      ]
+    },
+    {
+      "id": "02-11",
+      "priority": "P2",
+      "title": "Caching check passes year-long immutable HTML — the worst TTFB/SEO cache policy",
+      "why_it_ranks": "Hashed static assets should be immutable. HTML must stay short-lived or SWR so users and Googlebot see fresh titles, prices, and CWV fixes. A 1-year immutable HTML header can serve stale documents and still look 'cached' to a naive auditor. Scanner currently treats any Cache-Control except no-store as good.",
+      "nextjs_how": "Split next.config.ts headers: '/_next/static/:path*' → public, max-age=31536000, immutable; HTML routes → public, s-maxage=3600, stale-while-revalidate=86400 (tune). Scanner: if content-type is HTML (or the URL has no hashed asset extension) and max-age >= 86400 without a validator that still revalidates HTML, warn. Keep ETag/Last-Modified as a plus, not a substitute for sane max-age on documents.",
+      "seoBoost_gap": "next.config.ts:32-34 sets immutable 1y on '/(.*)'. lib/scanner.ts:749-767: missing headers = warning; no-store = warning; anything else including 1y HTML = good. SeoBoost would give itself a green caching check for a policy that freezes HTML.",
+      "files_to_change": [
+        "next.config.ts",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "curl -I https://<prod>/ must not include immutable year-long cache. curl -I a /_next/static JS file may. Scan SeoBoost after the split: HTML caching check good for SWR, not for 1y immutable. Scan a site with Cache-Control: public, max-age=31536000 on text/html → warning.",
+      "sources": [
+        "https://web.dev/articles/ttfb",
+        "https://web.dev/articles/fcp",
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/headers"
+      ]
+    },
+    {
+      "id": "02-12",
+      "priority": "P2",
+      "title": "Report UI and glossary cannot coach CWV the way an optimizer product should",
+      "why_it_ranks": "A CWV product has one job: tell the user whether Google’s field data passes, which vital fails, which LCP subpart or INP phase or CLS source to fix, and what 'good' will look like in Search Console after ~28 days. A flat list of HTML hints under a 'performance' heading does not do that job.",
+      "nextjs_how": "Add a CWV panel above Action Plan: three p75 gauges (LCP/INP/CLS) with official thresholds, mobile/desktop toggle, field vs lab switch, collection period, origin-fallback banner. Under each vital: cause → Next.js fix → verify in GSC/PSI. Glossary CWV entry: add field vs lab, p75, 28-day lag, TTFB/FCP diagnostics, INP-not-FID. Stop promising 'mobile performance benchmarks' on login until PSI mobile lab+field exist.",
+      "seoBoost_gap": "app/dashboard/report/[id]/page.tsx only maps checksByCategory. No gauges, no device split, no field/lab. lib/glossary-data.ts CWV entry is threshold-correct but incomplete. Login/pricing copy oversells. Health score folds performance hints into the same -5/-15 weights as title tags, so a green CWV site with a short title looks worse than a slow site with a long title — weights do not reflect ranking reality.",
+      "files_to_change": [
+        "app/dashboard/report/[id]/page.tsx",
+        "lib/glossary-data.ts",
+        "lib/scanner.ts",
+        "app/seo-audit-login/page.tsx",
+        "app/pricing/page.tsx"
+      ],
+      "verify_how": "Open a report that has CrUX: three gauges match PSI p75 within rounding. Toggle mobile/desktop. A no-CrUX report shows the empty field state, not zeros. Glossary /glossary/core-web-vitals mentions p75, 28 days, and TTFB-is-not-a-vital. Score no longer treats a lazy-loading hint as equal to a missing title.",
+      "sources": [
+        "https://web.dev/articles/vitals",
+        "https://web.dev/articles/optimize-lcp",
+        "https://developers.google.com/search/docs/appearance/core-web-vitals",
+        "https://developer.chrome.com/docs/crux/methodology/tools"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "02-01: Stop selling HTML hints as a Core Web Vitals audit — add CrUX + PSI measurement before the next Pro copy push.",
+    "02-02: Delete FID/TTI/TTFB-as-vital language from lib/scanner.ts in the same change as 02-01.",
+    "02-03: Unblock homepage LCP — server-render the H1, stop opacity:0 on the headline, remove avatar fetchPriority, split HTML vs asset Cache-Control.",
+    "02-04: Ship field-first report UI (p75, mobile/desktop, insufficient-CrUX state) so 02-01 is user-visible, not just an API call."
+  ],
+  "conflicts_to_avoid": [
+    "Do not grade Core Web Vitals from Cheerio HTML heuristics. Hints stay hints; pass/fail is CrUX p75 only.",
+    "Do not treat a green Lighthouse/PSI lab score as a Search ranking win. Lab diagnoses; field ranks.",
+    "Do not list TTFB, FCP, TBT, TTI, or FID as ranking Core Web Vitals.",
+    "Do not lazy-load or deprioritize the LCP image; do not fetchpriority=high decorative avatars or below-fold images.",
+    "Do not apply Cache-Control: public, max-age=31536000, immutable to HTML documents.",
+    "Do not prerender or speculation-prerender login, checkout, account, or cookie-gated URLs.",
+    "Do not hide LCP text with client-only opacity:0 / framer-motion initial hide.",
+    "Do not call cookies() at the top of a marketing Server Component if you want a static shell — isolate auth in Suspense.",
+    "Cookie/consent overlays: overlay or reserve space; do not push the whole document down. Legally required interstitials are exempt from Search's interstitial penalty but still hurt CLS/LCP.",
+    "Sibling agents: do not overwrite this file. Technical-SEO (cache headers, CSP) and on-page (JSON-LD Script) changes must keep the HTML vs asset cache split and must not reintroduce fonts.googleapis.com runtime requests if next/font stays."
+  ],
+  "cross_agent_notes": {
+    "siblings_read": ["03-structured-data.json", "07-media-seo.json", "08-internal-linking.json"],
+    "note": "Those two siblings were written in parallel. This file was not overwritten. Other agents: append notes here; do not rewrite 02 findings.",
+    "with_07_media_seo": "07-05 and 07-11 overlap this lane on next/image LCP/CLS. Split: 02 owns field CrUX LCP/CLS pass-fail and the opacity-0 homepage H1 (02-03, 02-04, 02-07). 07 owns image-SEO checks and Next 16 snippet language (fetchPriority/preload, not priority). Do not add a second LCP check id — extend lazy-loading / img-dimensions. 07-11's img-dimensions split is the same gap as 02-07. 07-06 AVIF/WebP is an LCP-byte helper; keep it in media, reference it from CWV howToFix only.",
+    "with_08_internal_linking": "08-11: do not flag next/link prefetch as an SEO problem. 02-08 adds Speculation Rules as an optional nav-speed layer on top of default prefetch, never as a 'disable prefetch' recommendation. 08-04 glossary href escape is not a CWV issue.",
+    "for_technical_seo_agent": "next.config.ts sets one Cache-Control on '/(.*)'. That fights crawl freshness and CWV HTML caching (02-03, 02-11). Split headers with this lane. CSP still allowlists fonts.googleapis.com even though app/layout.tsx uses next/font self-host.",
+    "with_03_structured_data": "03-05 already flags global next/script JSON-LD + the 1-item BreadcrumbList. 02-10 only cares about Script strategy / first-HTML; 03 owns schema validity. One RSC <script type='application/ld+json'> fixes both. Do not add a second json-ld injection path.",
+    "for_onpage_schema_agent": "JSON-LD is injected via next/script in app/layout.tsx. Prefer a raw application/ld+json tag in the document for first-HTML discovery; not a CWV ranking issue, but it is a Script-strategy smell (02-10). Coordinate with 03-05.",
+    "for_product_copy_agent": "app/page.tsx, app/pricing/page.tsx, and app/seo-audit-login/page.tsx claim a Core Web Vitals audit. That claim is false until 02-01/02-04 ship. Do not add more CWV marketing until field metrics exist.",
+    "for_js_framework_agent": "Repo is next@16.1.6. experimental.ppr is gone; coach cacheComponents. reactCompiler is the INP lever for client islands (hero-animations, bento-grid, report-actions).",
+    "for_measurement_agent": "Canonical product shape: CrUX API first, PSI API for lab+field combo, GSC CWV as the user-facing source of truth after 28 days. web-vitals on SeoBoost itself is optional RUM, not a substitute for customer CrUX."
+  }
+}

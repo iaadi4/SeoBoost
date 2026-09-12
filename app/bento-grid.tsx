@@ -1,326 +1,96 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
-import type { Variants } from 'framer-motion'
-import {
-  Globe,
-  BarChart3,
-  CheckCircle2,
-  TrendingUp,
-  Zap,
-  Shield,
-} from 'lucide-react'
-import { useRef, useEffect, useState } from 'react'
-
-const card: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-}
-
-// Animated Incrementing Counter Component
-function Counter({ to, duration = 1500 }: { to: number; duration?: number }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true })
-
-  useEffect(() => {
-    if (!inView) return
-    let start = 0
-    const step = Math.ceil(to / (duration / 16))
-    const timer = setInterval(() => {
-      start += step
-      if (start >= to) {
-        setCount(to)
-        clearInterval(timer)
-      } else setCount(start)
-    }, 16)
-    return () => clearInterval(timer)
-  }, [inView, to, duration])
-
-  return <span ref={ref}>{count}</span>
-}
-
-// CSS animated background scan lines
-function ScanLines() {
-  return (
-    <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-          initial={{ top: '0%', opacity: 0 }}
-          animate={{ top: ['0%', '100%', '0%'], opacity: [0, 1, 0] }}
-          transition={{
-            duration: 3 + i * 0.5,
-            repeat: Infinity,
-            delay: i * 0.6,
-            ease: 'linear',
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// SVG animated node networking web
-function NodeNetwork() {
-  const nodes = [
-    { x: 20, y: 30 },
-    { x: 50, y: 15 },
-    { x: 80, y: 40 },
-    { x: 35, y: 65 },
-    { x: 65, y: 70 },
-    { x: 85, y: 80 },
-  ]
-  const edges = [
-    [0, 1],
-    [1, 2],
-    [0, 3],
-    [1, 4],
-    [2, 5],
-    [3, 4],
-    [4, 5],
-  ]
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl opacity-40">
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        {edges.map(([a, b], i) => (
-          <motion.line
-            key={i}
-            x1={nodes[a].x}
-            y1={nodes[a].y}
-            x2={nodes[b].x}
-            y2={nodes[b].y}
-            stroke="#3ecf8e"
-            strokeWidth="0.5"
-            initial={{ opacity: 0.2 }}
-            animate={{ opacity: [0.2, 0.7, 0.2] }}
-            transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-          />
-        ))}
-        {nodes.map((n, i) => (
-          <motion.circle
-            key={i}
-            cx={n.x}
-            cy={n.y}
-            r="2"
-            fill="#3ecf8e"
-            initial={{ scale: 1 }}
-            animate={{ scale: [1, 1.6, 1], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.25 }}
-          />
-        ))}
-      </svg>
-    </div>
-  )
-}
-
-// Simulated DOM typing effect
-const DOMAINS = ['example.com', 'myshop.io', 'startup.app', 'blog.co']
-
-function TypedDomain() {
-  const [idx, setIdx] = useState(0)
-  const [text, setText] = useState('')
-  const [deleting, setDeleting] = useState(false)
-
-  useEffect(() => {
-    const full = DOMAINS[idx]
-    if (!deleting && text === full) {
-      const t = setTimeout(() => setDeleting(true), 1400)
-      return () => clearTimeout(t)
-    }
-    if (deleting && text === '') {
-      const t = setTimeout(() => {
-        setDeleting(false)
-        setIdx((i) => (i + 1) % DOMAINS.length)
-      }, 40)
-      return () => clearTimeout(t)
-    }
-    const t = setTimeout(
-      () => {
-        setText(deleting ? text.slice(0, -1) : full.slice(0, text.length + 1))
-      },
-      deleting ? 40 : 80
-    )
-    return () => clearTimeout(t)
-  }, [text, deleting, idx])
-
-  return (
-    <span className="text-primary font-mono">
-      {text}
-      <span className="animate-pulse">|</span>
-    </span>
-  )
-}
+import { MarketingPhoto } from '@/components/marketing-photo'
 
 export function BentoGrid() {
-  const containerRef = useRef(null)
-  const inView = useInView(containerRef, { once: true, margin: '-80px' })
-
-  const containerVariants: Variants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.1 } },
-  }
-
   return (
-    <motion.div
-      ref={containerRef}
-      className="grid md:grid-cols-3 gap-5"
-      variants={containerVariants}
-      initial="hidden"
-      animate={inView ? 'show' : 'hidden'}
-    >
-      {/* Deep Technical Scan Module */}
-      <motion.div
-        variants={card}
-        whileHover={{ y: -4 }}
-        transition={{ duration: 0.2 }}
-        className="md:col-span-2 p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card flex flex-col gap-6 shadow-sm relative overflow-hidden group"
-      >
-        <ScanLines />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-primary/8 rounded-bl-full blur-3xl -z-10 group-hover:bg-primary/12 transition-colors duration-500" />
-        <div className="h-12 w-12 rounded-xl bg-primary/15 flex items-center justify-center border border-primary/20">
-          <Globe className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h3 className="text-2xl font-bold mb-2">Deep Technical Scan</h3>
-          <p className="text-muted-foreground text-base max-w-md leading-relaxed">
-            Scanning <TypedDomain /> — crawling up to 5 pages, checking titles,
-            meta, canonical URLs, Open Graph, Twitter Cards, security headers,
-            JSON-LD, and 45+ more signals.
+    <div className="grid gap-4 md:grid-cols-3">
+      <article className="overflow-hidden rounded-3xl border border-border bg-card md:col-span-2">
+        <MarketingPhoto
+          src="/images/hero-audit.png"
+          alt="Cream paper card with a circled B health grade"
+          width={1600}
+          height={900}
+          className="rounded-none border-0 border-b border-border"
+          sizes="(min-width: 768px) 42rem, 100vw"
+        />
+        <div className="p-8">
+          <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Included on Hobby
+          </p>
+          <h3 className="font-display text-3xl leading-tight">
+            Meta, social, and headings
+          </h3>
+          <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
+            Title, description, canonical, robots, H1, heading order, Open Graph,
+            and Twitter Cards — the checks every scan runs.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap mt-auto">
-          {['Meta & Canonical', 'OG + Twitter', 'Security Headers', 'JSON-LD', 'WCAG', 'Core Web Vitals', 'Image Alt', 'Sitemaps'].map(
-            (t) => (
-              <span
-                key={t}
-                className="text-xs bg-primary/10 text-primary border border-primary/20 rounded-full px-3 py-1 font-medium"
-              >
-                {t}
-              </span>
-            )
-          )}
-        </div>
-      </motion.div>
+      </article>
 
-      {/* Analytics Score Counter */}
-      <motion.div
-        variants={card}
-        whileHover={{ y: -4 }}
-        transition={{ duration: 0.2 }}
-        className="p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card flex flex-col shadow-sm relative overflow-hidden group"
-      >
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 to-transparent rounded-2xl" />
-        </div>
-        <div className="h-12 w-12 rounded-xl bg-primary/15 flex items-center justify-center border border-primary/20 mb-5">
-          <BarChart3 className="h-6 w-6 text-primary" />
-        </div>
-        <h3 className="text-2xl font-bold mb-2">Health Score</h3>
-        <p className="text-muted-foreground text-base mb-6">
-          Proprietary A–F SEO grade out of 100 — calculated from 45+ checks
-          across your entire site.
-        </p>
-        <div className="mt-auto flex items-end gap-2">
-          <span className="text-6xl font-black text-primary tabular-nums">
-            <Counter to={87} duration={1800} />
-          </span>
-          <span className="text-xl text-muted-foreground mb-2">/100</span>
-        </div>
-        <div className="mt-3 h-2 rounded-full bg-primary/10 overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary/70 to-primary rounded-full"
-            initial={{ width: '0%' }}
-            animate={{ width: '87%' }}
-            transition={{ duration: 1.5, delay: 0.5, ease: 'easeOut' }}
-          />
-        </div>
-      </motion.div>
-
-      {/* Actionable Remedies Display */}
-      <motion.div
-        variants={card}
-        whileHover={{ y: -4 }}
-        transition={{ duration: 0.2 }}
-        className="p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card flex flex-col shadow-sm group relative overflow-hidden"
-      >
-        <div className="h-12 w-12 rounded-xl bg-primary/15 flex items-center justify-center border border-primary/20 mb-5">
-          <CheckCircle2 className="h-6 w-6 text-primary" />
-        </div>
-        <h3 className="text-2xl font-bold mb-2">Actionable Fixes</h3>
-        <p className="text-muted-foreground text-base mb-6">
-          Plain-English fixes, not just a list of problems.
-        </p>
-        <div className="mt-auto space-y-2">
-          {[
-            { text: 'Add missing meta description', done: true },
-            { text: 'Compress hero image (2.4MB)', done: false },
-            { text: 'Fix 3 broken links found', done: false },
-          ].map((fix, i) => (
-            <motion.div
-              key={fix.text}
-              className="flex items-center gap-2.5 text-sm"
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8 + i * 0.15, duration: 0.4 }}
-            >
-              <CheckCircle2
-                className={`h-4 w-4 shrink-0 ${fix.done ? 'text-primary' : 'text-muted-foreground/40'}`}
-              />
-              <span
-                className={
-                  fix.done
-                    ? 'line-through text-muted-foreground/60'
-                    : 'text-foreground'
-                }
-              >
-                {fix.text}
-              </span>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Content Network Analysis */}
-      <motion.div
-        variants={card}
-        whileHover={{ y: -4 }}
-        transition={{ duration: 0.2 }}
-        className="md:col-span-2 p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card flex flex-col justify-between shadow-sm relative overflow-hidden group"
-      >
-        <NodeNetwork />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary/6 rounded-tr-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors duration-500" />
-        <div>
-          <div className="h-12 w-12 rounded-xl bg-primary/15 flex items-center justify-center border border-primary/20 mb-5">
-            <TrendingUp className="h-6 w-6 text-primary" />
-          </div>
-          <h3 className="text-2xl font-bold mb-2">Content Analysis</h3>
-          <p className="text-muted-foreground text-base max-w-md leading-relaxed">
-            Word count, heading hierarchy, keyword density, and internal linking
-            — spot thin-content penalties before Google does.
+      <article className="overflow-hidden rounded-3xl border border-border bg-card">
+        <MarketingPhoto
+          src="/images/feature-health-score.png"
+          alt="Printed cream report with a large B grade and empty checkboxes"
+          width={1200}
+          height={900}
+          className="aspect-[4/3] rounded-none border-0 border-b border-border"
+          sizes="(min-width: 768px) 20rem, 100vw"
+        />
+        <div className="p-8">
+          <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Score
+          </p>
+          <h3 className="font-display text-3xl leading-tight">A–F from HTML</h3>
+          <p className="mt-3 text-base text-muted-foreground">
+            Weighted on-page grade. Not field vitals. Not an AI Overview badge.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-8">
-          {[
-            { label: 'SEO Checks', value: '45+', icon: Shield },
-            { label: 'Internal Links', value: '17', icon: Zap },
-            { label: 'Audit Categories', value: '11', icon: TrendingUp },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl bg-primary/8 border border-primary/15 p-3 text-center"
-            >
-              <p className="text-lg font-bold text-primary">{s.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-            </div>
-          ))}
+      </article>
+
+      <article className="overflow-hidden rounded-3xl border border-border bg-card">
+        <MarketingPhoto
+          src="/images/feature-ai-search.png"
+          alt="Search snippet card and torn paper note on cream"
+          width={1200}
+          height={900}
+          className="aspect-[4/3] rounded-none border-0 border-b border-border"
+          sizes="(min-width: 768px) 20rem, 100vw"
+        />
+        <div className="p-8">
+          <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Pro
+          </p>
+          <h3 className="font-display text-3xl leading-tight">AI search heuristics</h3>
+          <p className="mt-3 text-base text-muted-foreground">
+            nosnippet and bot-table warnings. No GEO score. No llms.txt fail.
+          </p>
         </div>
-      </motion.div>
-    </motion.div>
+      </article>
+
+      <article className="overflow-hidden rounded-3xl border border-border bg-card md:col-span-2">
+        <MarketingPhoto
+          src="/images/feature-html-crawl.png"
+          alt="Laptop showing first HTML beside printed pages on a cream desk"
+          width={1600}
+          height={900}
+          className="rounded-none border-0 border-b border-border"
+          sizes="(min-width: 768px) 42rem, 100vw"
+        />
+        <div className="p-8">
+          <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Limits
+          </p>
+          <h3 className="font-display text-3xl leading-tight">
+            Sitemap seed. Plan cap.
+          </h3>
+          <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
+            Hobby 50 pages, Pro 500. Non-200 responses are dropped. No
+            JavaScript render. If discovered URLs exceed the cap, the report
+            says so.
+          </p>
+        </div>
+      </article>
+    </div>
   )
 }

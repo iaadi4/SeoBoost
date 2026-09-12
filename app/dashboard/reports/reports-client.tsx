@@ -1,20 +1,12 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import type { Variants } from 'framer-motion'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-  Search,
-  ArrowUpRight,
-  Zap,
-  ArrowLeft,
-  Calendar,
-  Filter,
-  TrendingUp,
-  Globe,
-} from 'lucide-react'
+import { SiteHeader } from '@/components/site-chrome'
+import { PaperGlow } from '@/components/seo-art'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface Report {
   id: string
@@ -23,57 +15,18 @@ interface Report {
   createdAt: string
 }
 
-const container: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.04 } },
-}
-const item: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
-}
-
-// Floating background orb
-function Orb({
-  className,
-  delay = 0,
-  duration = 8,
-}: {
-  className: string
-  delay?: number
-  duration?: number
-}) {
-  return (
-    <motion.div
-      className={`absolute rounded-full blur-3xl pointer-events-none ${className}`}
-      animate={{
-        y: [-20, 20, -20],
-        x: [-10, 10, -10],
-        opacity: [0.4, 0.6, 0.4],
-      }}
-      transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
-    />
-  )
-}
-
 type TimeFilter = 'all' | 'today' | 'week' | 'month'
 
 function ScoreRing({ score }: { score: number }) {
-  const color = score >= 80 ? '#3ecf8e' : score >= 50 ? '#f59e0b' : '#ef4444'
+  const color = score >= 80 ? '#3d6b4f' : score >= 50 ? '#c47a4a' : '#b42318'
   const radius = 18
   const circumference = 2 * Math.PI * radius
   const dash = (score / 100) * circumference
 
   return (
-    <div className="relative flex items-center justify-center h-12 w-12 shrink-0">
+    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
       <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-        <circle
-          cx="24"
-          cy="24"
-          r={radius}
-          fill="none"
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth="3"
-        />
+        <circle cx="24" cy="24" r={radius} fill="none" stroke="#e6e1d8" strokeWidth="3" />
         <circle
           cx="24"
           cy="24"
@@ -85,19 +38,19 @@ function ScoreRing({ score }: { score: number }) {
           strokeLinecap="round"
         />
       </svg>
-      <span className="absolute text-xs font-bold" style={{ color }}>
+      <span className="absolute text-xs font-medium" style={{ color }}>
         {score}
       </span>
     </div>
   )
 }
 
-export function ReportsClient({ 
+export function ReportsClient({
   reports,
   totalScans,
   avgScore,
   subscriptionPlan,
-}: { 
+}: {
   reports: Report[]
   totalScans: number
   avgScore: number
@@ -110,13 +63,11 @@ export function ReportsClient({
   const filtered = useMemo(() => {
     let result = reports
 
-    // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       result = result.filter((r) => r.domainUrl.toLowerCase().includes(q))
     }
 
-    // Time filter
     const now = new Date()
     if (timeFilter === 'today') {
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -133,180 +84,115 @@ export function ReportsClient({
   }, [reports, searchQuery, timeFilter])
 
   const timeOptions: { value: TimeFilter; label: string }[] = [
-    { value: 'all', label: 'All Time' },
+    { value: 'all', label: 'All time' },
     { value: 'today', label: 'Today' },
-    { value: 'week', label: 'Last 7 Days' },
-    { value: 'month', label: 'Last 30 Days' },
+    { value: 'week', label: 'Last 7 days' },
+    { value: 'month', label: 'Last 30 days' },
   ]
 
   const stats = [
     {
-      label: 'Total Scans',
+      label: 'Total scans',
       value: totalScans,
-      icon: Globe,
       suffix: '',
       description: 'reports generated',
     },
     {
-      label: 'Avg. Score',
+      label: 'Avg. score',
       value: avgScore,
-      icon: TrendingUp,
       suffix: '/100',
       description: 'domain health avg',
     },
     {
       label: 'Plan',
       value: isPro ? 'Pro' : 'Free',
-      icon: Zap,
       suffix: '',
       description: isPro ? 'unlimited access' : 'standard features',
-      highlight: isPro,
     },
   ]
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      {/* Top nav */}
-      <div className="border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-8 max-w-6xl h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-base tracking-tight">
-              SEO Boost
-            </span>
-          </div>
-          <Link href="/dashboard">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground text-sm gap-1.5"
-            >
-              <ArrowLeft className="h-4 w-4" /> Dashboard
-            </Button>
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <SiteHeader signedIn variant="app" />
 
-      <motion.div
-        className="container mx-auto px-4 sm:px-8 py-10 max-w-6xl relative"
-        variants={container}
-        initial="hidden"
-        animate="show"
-      >
-        {/* Background orbs for "living" feel */}
-        <Orb
-          className="w-[500px] h-[500px] bg-primary/10 -top-10 -right-40"
-          delay={1}
-          duration={12}
-        />
-        <Orb
-          className="w-[450px] h-[450px] bg-primary/8 bottom-20 -left-60"
-          delay={4}
-          duration={15}
-        />
+      <div className="relative container mx-auto max-w-6xl px-4 py-10 sm:px-8">
+        <PaperGlow className="opacity-70" />
 
-        {/* Header */}
-        <motion.div variants={item} className="mb-8">
+        <div className="mb-8">
           <Link
             href="/dashboard"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors mb-2 inline-flex items-center gap-1"
+            className="mb-2 inline-flex text-sm text-muted-foreground underline-offset-4 hover:underline"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
+            Back to dashboard
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight mt-2">
-            All Reports
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {reports.length} total domain{reports.length !== 1 ? 's' : ''}{' '}
-            scanned
+          <h1 className="mt-2 font-display text-3xl tracking-tight">All reports</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {reports.length} total domain{reports.length !== 1 ? 's' : ''} scanned
           </p>
-        </motion.div>
+        </div>
 
-        {/* Key Performance Indicators (KPIs) */}
-        <motion.div
-          variants={item}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
-        >
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className={`rounded-xl border p-5 flex items-center gap-4 hover:border-primary/30 transition-colors duration-200 bg-card ${stat.highlight ? 'border-primary/40 shadow-md shadow-primary/5' : 'border-border/60'}`}
+              className="rounded-3xl border border-border bg-card p-5"
             >
-              <div
-                className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${stat.highlight ? 'bg-primary/15' : 'bg-primary/10'}`}
-              >
-                <stat.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-0.5">
-                  {stat.label}
-                </p>
-                <p className="text-2xl font-bold leading-none">
-                  {stat.value}
-                  {stat.suffix && (
-                    <span className="text-sm text-muted-foreground font-normal ml-0.5">
-                      {stat.suffix}
-                    </span>
-                  )}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stat.description}
-                </p>
-              </div>
+              <p className="mb-0.5 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                {stat.label}
+              </p>
+              <p className="text-2xl font-medium leading-none">
+                {stat.value}
+                {stat.suffix && (
+                  <span className="ml-0.5 text-sm font-normal text-muted-foreground">
+                    {stat.suffix}
+                  </span>
+                )}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
             </div>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Search & Filters */}
-        <motion.div variants={item} className="flex flex-col sm:flex-row gap-3 mb-8">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row">
+          <div className="flex-1">
+            <Label htmlFor="report-search" className="sr-only">
+              Search domains
+            </Label>
+            <Input
+              id="report-search"
               type="text"
-              placeholder="Search domains..."
+              placeholder="Search domains…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-muted-foreground/50"
             />
           </div>
-
-          {/* Time filter */}
-          <div className="flex items-center gap-1.5 bg-card border border-border rounded-xl p-1">
+          <div className="flex items-center gap-1 rounded-full border border-border bg-card p-1">
             {timeOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setTimeFilter(opt.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   timeFilter === opt.value
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {opt.label}
               </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Results count */}
         {(searchQuery || timeFilter !== 'all') && (
-          <motion.p variants={item} className="text-xs text-muted-foreground mb-4 flex items-center gap-1.5">
-            <Filter className="h-3.5 w-3.5" />
+          <p className="mb-4 text-xs text-muted-foreground">
             Showing {filtered.length} of {reports.length} reports
             {searchQuery && <span> matching &quot;{searchQuery}&quot;</span>}
-          </motion.p>
+          </p>
         )}
 
-        {/* Reports Grid */}
         {filtered.length === 0 ? (
-          <div className="text-center py-24 border border-dashed border-border/60 rounded-2xl bg-muted/20">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Search className="h-6 w-6 text-primary/60" />
-            </div>
-            <h3 className="text-base font-semibold mb-2">
+          <div className="rounded-3xl border border-dashed border-border bg-card py-24 text-center">
+            <h3 className="mb-2 font-display text-xl">
               {searchQuery || timeFilter !== 'all'
                 ? 'No matching reports'
                 : 'No reports yet'}
@@ -320,7 +206,7 @@ export function ReportsClient({
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-4 text-primary"
+                className="mt-4"
                 onClick={() => {
                   setSearchQuery('')
                   setTimeFilter('all')
@@ -331,9 +217,7 @@ export function ReportsClient({
             )}
           </div>
         ) : (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((report) => {
               let hostname = report.domainUrl
               try {
@@ -351,28 +235,22 @@ export function ReportsClient({
               })
 
               return (
-                <motion.div key={report.id} variants={item}>
-                  <Link href={`/dashboard/report/${report.id}`}>
-                    <div className="group rounded-xl border border-border/60 bg-card p-5 flex items-center gap-4 hover:border-primary/40 hover:bg-card/80 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 cursor-pointer">
-                      <ScoreRing score={report.score} />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate group-hover:text-primary transition-colors duration-200">
-                          {hostname}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {dateStr} · {timeStr}
-                        </p>
-                      </div>
-                      <ArrowUpRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0" />
+                <Link key={report.id} href={`/dashboard/report/${report.id}`}>
+                  <div className="flex items-center gap-4 rounded-3xl border border-border bg-card p-5 transition-colors hover:bg-muted/40">
+                    <ScoreRing score={report.score} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{hostname}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {dateStr} · {timeStr}
+                      </p>
                     </div>
-                  </Link>
-                </motion.div>
+                  </div>
+                </Link>
               )
             })}
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   )
 }

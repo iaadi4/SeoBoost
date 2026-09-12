@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       'Optimize your website SEO in seconds with professional technical audits.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0a0a0a',
-    theme_color: '#3ecf8e',
+    background_color: '#f6f3ee',
+    theme_color: '#1c1915',
     icons: [
       {
         src: '/icon.png',

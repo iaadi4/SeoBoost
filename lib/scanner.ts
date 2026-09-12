@@ -1,4 +1,14 @@
 import * as cheerio from 'cheerio'
+import { evaluateLlmsTxt, evaluateRobotsTxt } from '@/lib/ai-search'
+import {
+  HOBBY_MAX_PAGES,
+  MAX_SITEMAP_CHILD_FILES,
+  MAX_SITEMAP_SEED_LOCS,
+  PAGES_PER_TICK,
+} from '@/lib/crawl-limits'
+import { parseSitemapLocs } from '@/lib/sitemap-locs'
+
+export { evaluateLlmsTxt, evaluateRobotsTxt } from '@/lib/ai-search'
 
 export type CheckStatus = 'good' | 'warning' | 'critical'
 
@@ -12,7 +22,8 @@ export type CheckCategory =
   | 'security'         // HTTPS, HSTS, security headers, CSP
   | 'links'            // Internal linking, external rel, anchor text, placeholders
   | 'images'           // Alt text, dimensions, format hints
-  | 'structured-data'  // JSON-LD validity, Schema types, FAQ/Video opportunity
+  | 'structured-data'  // JSON-LD required properties (not parse-only eligibility)
+  | 'ai-search'        // Snippet/AIO eligibility heuristics — not a GEO score
   | 'domain'           // Robots.txt, XML Sitemap (checked once per scan)
 
 export interface CheckResult {
@@ -83,6 +94,15 @@ export interface ScanSummary {
   topPriorities: AggregatedCheck[]
 }
 
+export type StopReason = 'complete' | 'cap'
+
+export interface CrawlCoverage {
+  crawled: number
+  discovered: number
+  cap: number
+  stopReason: StopReason
+}
+
 export interface SEOReport {
   domain: string
   summary: ScanSummary
@@ -93,10 +113,11 @@ export interface SEOReport {
   scannedAt: string
   /** Total scan duration in ms */
   durationMs: number
+  coverage?: CrawlCoverage
 }
 
 export interface ScanOptions {
-  /** Max HTML pages to crawl. Default: 5 */
+  /** Max HTML pages to crawl. Default: Hobby 50 */
   maxPages?: number
   /** Per-request timeout in ms. Default: 10 000 */
   fetchTimeoutMs?: number
@@ -144,7 +165,7 @@ interface FetchResult {
   finalUrl: string
 }
 
-interface RawPageResult {
+export interface AnalysePageResult {
   url: string
   path: string
   checks: CheckResult[]
@@ -152,12 +173,12 @@ interface RawPageResult {
 }
 
 const DEFAULTS: Required<ScanOptions> = {
-  maxPages: 5,
+  maxPages: HOBBY_MAX_PAGES,
   fetchTimeoutMs: 10_000,
   stripTrackingParams: true,
   userAgent: 'SEOScanBot/2.0 (+https://seoscan.dev/bot)',
   revalidate: 0,
-  politenessDelayMs: 500,
+  politenessDelayMs: 300,
   fetchRetries: 2,
 }
 
@@ -320,16 +341,44 @@ function check(
   return { id, label, category, status, value, message, whyItMatters, howToFix, ...extra }
 }
 
+function jsonLdNodesFromData(data: unknown): Record<string, unknown>[] {
+  if (data == null) return []
+  if (Array.isArray(data)) return data.flatMap((item) => jsonLdNodesFromData(item))
+  if (typeof data === 'object') {
+    const obj = data as Record<string, unknown>
+    const base = obj['@graph'] != null ? jsonLdNodesFromData(obj['@graph']) : [obj]
+    const extra = ['mainEntity', 'hasPart', 'about'].flatMap((key) =>
+      jsonLdNodesFromData(obj[key])
+    )
+    return [...base, ...extra]
+  }
+  return []
+}
+
+function jsonLdTypes(node: Record<string, unknown>): string[] {
+  const t = node['@type']
+  if (Array.isArray(t)) return t.map(String)
+  if (typeof t === 'string') return [t]
+  return []
+}
+
+function breadcrumbItemCount(node: Record<string, unknown>): number {
+  const el = node.itemListElement
+  if (Array.isArray(el)) return el.length
+  if (el && typeof el === 'object') return 1
+  return 0
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PAGE-LEVEL ANALYSIS  (~35 checks)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function analysePage(
+export function analysePage(
   urlStr: string,
   html: string,
-  responseHeaders: Record<string, string>,
-  domainUrl: URL
-): RawPageResult {
+  responseHeaders: Record<string, string> = {},
+  domainUrl: URL = new URL(urlStr)
+): AnalysePageResult {
   const url = new URL(urlStr)
   let path = url.pathname || '/'
   if (path !== '/' && path.endsWith('/')) path = path.slice(0, -1)
@@ -451,6 +500,42 @@ function analysePage(
       'No indexing restrictions detected',
       'Page is crawlable and all links pass PageRank by default.',
       'Review robots directives before any major site migration or launch.'))
+  }
+
+  const googleBotMeta = $('meta[name="googlebot"]').attr('content')?.toLowerCase() ?? ''
+  const bingBotMeta = $('meta[name="bingbot"]').attr('content')?.toLowerCase() ?? ''
+  const snippetDirectives = `${robotsCombined} ${googleBotMeta} ${bingBotMeta}`
+  const maxSnippetZero = /max-snippet\s*:\s*0/.test(snippetDirectives)
+  const hasNosnippet = snippetDirectives.includes('nosnippet') || maxSnippetZero
+  const hasNoarchive = snippetDirectives.includes('noarchive')
+  const hasNocache = snippetDirectives.includes('nocache')
+  const dataNosnippetOnMain =
+    $('main[data-nosnippet], article[data-nosnippet]').length > 0 ||
+    $('main').closest('[data-nosnippet]').length > 0
+
+  if (hasNosnippet || dataNosnippetOnMain) {
+    checks.push(check('ai-snippet-eligible', 'AI snippet eligibility', 'ai-search', 'warning',
+      hasNosnippet ? (maxSnippetZero ? 'max-snippet:0' : 'nosnippet') : 'data-nosnippet on main',
+      'Page text is withheld from Google AI Overviews / AI Mode as a direct input; the URL may still rank as a result without a snippet',
+      'nosnippet, max-snippet:0, and data-nosnippet on main content block the page as a direct input to AI Overviews and AI Mode. This is an eligibility heuristic, not a ranking penalty and not a GEO score.',
+      'If you want the page usable as AI Overview / AI Mode input, remove nosnippet and max-snippet:0 from public pages, and do not wrap <main> in data-nosnippet. Keep data-nosnippet on paywall or sensitive fragments only.',
+      { reference: 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag', effort: 'low', impact: 'high' }))
+  } else if (hasNoarchive || hasNocache) {
+    checks.push(check('ai-snippet-eligible', 'AI snippet eligibility', 'ai-search', 'warning',
+      hasNoarchive ? 'noarchive' : 'nocache',
+      hasNoarchive
+        ? 'noarchive is a Bing Chat / Copilot control (2023); Google ignores noarchive'
+        : 'nocache limits Bing Chat / Copilot to URL/title/snippet',
+      'Bing noarchive excludes the page from Bing Chat / Copilot answers while Bing Search listings remain. Google documents noarchive as unused. This is not a Google AI opt-out and not a GEO score.',
+      'Do not treat noarchive as a Google AI Overview control. To withhold Google AI-feature input, use nosnippet / max-snippet / noindex. Disallowing bingbot also drops Bing Search, not only Copilot.',
+      { reference: 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag', effort: 'low', impact: 'low' }))
+  } else {
+    checks.push(check('ai-snippet-eligible', 'AI snippet eligibility', 'ai-search', 'good',
+      'Snippet allowed',
+      'No nosnippet / max-snippet:0 / main data-nosnippet detected',
+      'Google AI Overviews and AI Mode use indexed, snippet-eligible pages. This check is a heuristic for those preview controls, not a citation rank or GEO score.',
+      'Keep public pages snippet-eligible unless you intend to withhold body text from AI features.',
+      { reference: 'https://developers.google.com/search/docs/appearance/ai-features' }))
   }
 
   // ── META: URL Structure ────────────────────────────────────────────────────
@@ -581,21 +666,38 @@ function analysePage(
 
   if (wordCount < 100) {
     checks.push(check('word-count', 'Content Length', 'content', 'critical', `${wordCount} words`,
-      'Critically thin content (< 100 words)',
-      'Google\'s Helpful Content system downgrades pages that offer little value. Pages under 100 words rarely satisfy user search intent and almost never rank for competitive keywords.',
-      'Add substantive, user-first content. Informational pages should target 800–2 000 words; service pages 300–600 words.',
-      { reference: 'https://developers.google.com/search/docs/appearance/helpful-content-system', effort: 'high', impact: 'high' }))
+      'Very little visible text in the first HTML (< 100 words)',
+      'Word count is a coverage heuristic, not a Google ranking penalty. A short first HTML may be a CSR shell that crawlers cannot extract.',
+      'If this URL is meant to be a document, put the answer in server-rendered HTML. Do not pad words to hit a number.',
+      { reference: 'https://developers.google.com/search/docs/fundamentals/creating-helpful-content', effort: 'high', impact: 'high' }))
   } else if (wordCount < 300) {
     checks.push(check('word-count', 'Content Length', 'content', 'warning', `${wordCount} words`,
-      'Content may be too thin (< 300 words)',
-      'While word count is not a direct ranking factor, pages under 300 words often fail to fully address search intent — the actual metric Google measures.',
-      'Expand to at least 300–500 words for service/landing pages. Use Google\'s People Also Ask to find related questions to answer.',
-      { effort: 'high', impact: 'high' }))
+      'Short first-HTML text (< 300 words)',
+      'Word count is not a ranking penalty. Short pages can rank; empty or client-only pages cannot be extracted.',
+      'Add unique, useful copy in the initial HTML if the page is informational. Do not treat 300 words as a Google requirement.',
+      { effort: 'medium', impact: 'medium' }))
   } else {
     checks.push(check('word-count', 'Content Length', 'content', 'good', `${wordCount} words`,
-      'Content length is solid',
-      'Comprehensive content addresses user intent more fully and tends to rank for more keyword variants.',
-      'Use Search Console to find page-2 queries and expand those content sections to improve rankings.'))
+      'First HTML has substantial visible text',
+      'Length is a coverage heuristic, not a ranking factor.',
+      'Prefer unique evidence over padding.'))
+  }
+
+  const mainText = $('main, article').text().replace(/\s+/g, ' ').trim()
+  const looksLikeCsr = $('#root, #app').length > 0 && wordCount < 40
+  if (wordCount < 20 || looksLikeCsr || (mainText.length < 40 && wordCount < 40)) {
+    checks.push(check('ai-extractable-text', 'First-HTML extractable text', 'ai-search', 'warning',
+      `${wordCount} words in first HTML`,
+      'static HTML only — little extractable text in the first response',
+      'AI search crawlers (OAI-SearchBot, PerplexityBot, Claude-SearchBot) and this scanner read the HTTP response. Text that appears only after JavaScript cannot be cited. This is an eligibility heuristic, not a GEO score.',
+      'Put the definitional answer in a Server Component <article> or <main> so it ships in the first HTML. Do not hide the H1 behind client-only islands.',
+      { effort: 'medium', impact: 'high' }))
+  } else {
+    checks.push(check('ai-extractable-text', 'First-HTML extractable text', 'ai-search', 'good',
+      `${wordCount} words in first HTML`,
+      'First HTML has extractable main text',
+      'AI engines cite text they can fetch. Visible first-HTML copy is the citability gate — still SEO (indexed + snippet-eligible), not a special GEO ranking system.',
+      'Keep the answer in the initial HTML as the page grows.'))
   }
 
   // ── CONTENT: Keyword in Intro ──────────────────────────────────────────────
@@ -729,7 +831,7 @@ function analysePage(
     checks.push(check('compression', 'HTTP Compression', 'technical', 'warning',
       `${htmlSizeKb} KB (uncompressed)`,
       'Response served without compression',
-      'Uncompressed responses transfer every raw byte of HTML, CSS and JS. This directly inflates Time to First Byte (TTFB) — a Core Web Vital that impacts LCP scores and Google rankings.',
+      'Uncompressed responses transfer every raw byte of HTML, CSS and JS. This can inflate TTFB, which is a supporting diagnostic for LCP, not a ranking Core Web Vital.',
       'Enable Brotli (preferred) or gzip compression on your CDN or web server.',
       { snippet: '# Nginx\ngzip on;\ngzip_types text/html text/css application/javascript;\n\n# Or enable Brotli via CDN (Cloudflare, Vercel, etc.)\n# Next.js on Vercel enables Brotli automatically', effort: 'low', impact: 'high' }))
   } else {
@@ -770,7 +872,7 @@ function analysePage(
   if (htmlSizeKb > 500) {
     checks.push(check('page-size', 'HTML Size', 'technical', 'critical', `${htmlSizeKb} KB`,
       `Very large HTML (${htmlSizeKb} KB)`,
-      'Excessively large HTML documents delay TTFB and DOM parsing, negatively impacting LCP and FID — both Core Web Vitals used in Google\'s ranking algorithm.',
+      'Excessively large HTML documents delay TTFB and DOM parsing, which can worsen LCP. INP is the responsiveness vital; this HTML-size check is a hint, not a field CWV grade.',
       'Minify HTML. Extract large inline CSS/JS to external files. Lazy-load non-critical content. Consider streaming SSR.',
       { effort: 'high', impact: 'high' }))
   } else if (htmlSizeKb > 150) {
@@ -796,7 +898,7 @@ function analysePage(
     checks.push(check('lazy-loading', 'Lazy Loading', 'performance', 'warning',
       `0 / ${imgCount} images lazy`,
       'No native lazy loading on any images',
-      'Without lazy loading, all images — including those far below the fold — are fetched on page load. This inflates initial payload size, hurting LCP and TTI Core Web Vitals.',
+      'Without lazy loading, all images — including those far below the fold — are fetched on page load. This inflates initial payload size and can worsen LCP. TTI is not a Core Web Vital.',
       'Add loading="lazy" to all below-the-fold images. Keep hero / LCP images as eager and add fetchpriority="high".',
       { snippet: '<!-- LCP hero image (above fold) -->\n<img src="hero.jpg" alt="…" loading="eager" fetchpriority="high" width="1200" height="630">\n\n<!-- Below fold -->\n<img src="content.jpg" alt="…" loading="lazy" width="800" height="400">', effort: 'low', impact: 'high' }))
   } else if (imgCount > 0) {
@@ -834,7 +936,7 @@ function analysePage(
     checks.push(check('render-blocking', 'Render-Blocking Resources', 'performance', 'warning',
       `${inlineScriptCount} inline scripts, ${inlineStyleCount} inline styles`,
       'Heavy inline JS/CSS may block HTML parsing',
-      'Large inline scripts block browser HTML parsing. Extensive inline styles prevent Critical CSS optimisation. Both inflate FCP and LCP, which are Core Web Vitals ranking signals.',
+      'Large inline scripts block browser HTML parsing. Extensive inline styles prevent Critical CSS optimisation. Both can inflate FCP (a diagnostic) and LCP (a Core Web Vital). This is an HTML hint, not a field CWV measurement.',
       'Extract inline JS/CSS to external files with proper caching. Use Critical CSS for above-fold styles only. Defer or async non-critical scripts.',
       { snippet: '<!-- Defer non-critical JS -->\n<script src="app.js" defer></script>\n\n<!-- Non-blocking stylesheet -->\n<link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel=\'stylesheet\'">', effort: 'medium', impact: 'high' }))
   } else {
@@ -1072,113 +1174,133 @@ function analysePage(
 
   // ── STRUCTURED DATA: Schema Markup ────────────────────────────────────────
   const schemaScripts = $('script[type="application/ld+json"]')
+  const jsonLdNodes: Record<string, unknown>[] = []
+  let parseErrors = 0
+  schemaScripts.each((_, el) => {
+    try {
+      const raw = $(el).html() ?? ''
+      if (!raw.trim()) return
+      jsonLdNodes.push(...jsonLdNodesFromData(JSON.parse(raw)))
+    } catch {
+      parseErrors++
+    }
+  })
+  const schemaTypes = jsonLdNodes.flatMap(jsonLdTypes)
+  const typeList = [...new Set(schemaTypes)].join(', ')
+
+  const eligibilityGaps: string[] = []
+  for (const node of jsonLdNodes) {
+    const types = jsonLdTypes(node)
+    if (types.includes('BreadcrumbList') && breadcrumbItemCount(node) < 2) {
+      eligibilityGaps.push('BreadcrumbList needs ≥2 ListItems')
+    }
+    if (types.includes('SoftwareApplication') || types.includes('WebApplication')) {
+      const offers = node.offers as Record<string, unknown> | undefined
+      const price = offers && (offers.price ?? offers.lowPrice)
+      if (price == null || price === '') {
+        eligibilityGaps.push('SoftwareApplication missing offers.price')
+      }
+    }
+    if (types.includes('Article') && !node.datePublished) {
+      eligibilityGaps.push('Article missing datePublished (ISO-8601)')
+    }
+  }
+
   if (schemaScripts.length === 0) {
     checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning', 'None detected',
-      'No JSON-LD structured data found',
-      'Schema markup enables rich results in Google (star ratings, FAQs, breadcrumbs, event dates) which dramatically increase SERP real estate and click-through rates without ranking higher.',
-      'Add JSON-LD appropriate to the page type: Organization + WebSite on homepage; Article on posts; Product on product pages; FAQPage for Q&A sections.',
-      { snippet: '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Organization",\n  "name": "Your Company",\n  "url": "https://example.com",\n  "logo": "https://example.com/logo.png"\n}\n</script>', reference: 'https://schema.org/', effort: 'medium', impact: 'high' }))
+      'No JSON-LD structured data found in the first HTML',
+      'JSON-LD can describe Organization, WebSite, Article, Product, or BreadcrumbList. Parse success is not Google rich-result eligibility. FAQPage is not a 2026 Google rich result or an AI Overview lever.',
+      'Add JSON-LD appropriate to the page type in a server <script type="application/ld+json">: Organization + WebSite on the homepage; Article on posts; Product on product pages. Do not add FAQPage to chase SERP or AIO features.',
+      { snippet: '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Organization",\n  "name": "Your Company",\n  "url": "https://example.com",\n  "logo": "https://example.com/logo.png"\n}\n</script>', reference: 'https://developers.google.com/search/docs/appearance/structured-data', effort: 'medium', impact: 'medium' }))
+  } else if (parseErrors > 0 && schemaTypes.length === 0) {
+    checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning',
+      `${parseErrors} invalid JSON-LD block(s)`,
+      `${parseErrors} schema block(s) contain invalid JSON`,
+      'Malformed JSON-LD is ignored. A parse error is not the same as a required-property miss.',
+      'Validate every schema block with the Schema Markup Validator.',
+      { reference: 'https://validator.schema.org/', effort: 'low', impact: 'high' }))
+  } else if (parseErrors > 0 || eligibilityGaps.length > 0) {
+    checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning',
+      eligibilityGaps[0] ?? `${parseErrors} invalid block(s)`,
+      eligibilityGaps.length > 0
+        ? `JSON parsed; required properties missing: ${eligibilityGaps.join('; ')}`
+        : `${parseErrors} invalid JSON-LD block(s); parsed types: ${typeList.substring(0, 40)}`,
+      'JSON.parse success is not rich-result eligibility. Google requires type + required properties + quality guidelines.',
+      'Fix required properties for the detected types. Confirm with the Rich Results Test UI and validator.schema.org — there is no public Rich Results Test API.',
+      { reference: 'https://validator.schema.org/', effort: 'low', impact: 'high' }))
   } else {
-    let parseErrors = 0
-    const schemaTypes: string[] = []
+    checks.push(check('schema', 'Schema Markup', 'structured-data', 'good',
+      typeList.length > 55 ? `${typeList.substring(0, 55)}…` : typeList || `${schemaScripts.length} block(s)`,
+      `${schemaScripts.length} JSON-LD block(s) parsed with required properties present: ${typeList.substring(0, 40)}`,
+      'Parsed JSON-LD plus required properties is an eligibility heuristic, not a Google confirmation that rich results will show.',
+      'Re-test in the Rich Results Test UI after each schema change. Do not add FAQPage for Google rich results or AI Overviews.'))
+  }
 
-    schemaScripts.each((_, el) => {
-      try {
-        const raw = $(el).html() ?? ''
-        const data = JSON.parse(raw)
-        const types = Array.isArray(data)
-          ? data.map((d: { '@type': string }) => d['@type'])
-          : data['@type']
-            ? [data['@type']]
-            : (data['@graph'] ?? []).map((n: { '@type': string }) => n['@type'])
-        schemaTypes.push(...types.filter(Boolean))
-      } catch {
-        parseErrors++
-      }
-    })
-
-    if (parseErrors > 0 && schemaTypes.length === 0) {
-      checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning',
-        `${parseErrors} invalid JSON-LD block(s)`,
-        `${parseErrors} schema block(s) contain invalid JSON`,
-        'Malformed JSON-LD is silently ignored by Google. A single syntax error (trailing comma, unescaped quote) prevents all rich result eligibility for that block.',
-        'Validate every schema block with the Schema Markup Validator. Common fix: remove trailing commas and escape inner quotes.',
-        { reference: 'https://validator.schema.org/', effort: 'low', impact: 'high' }))
-    } else if (parseErrors > 0) {
-      // Some blocks valid, some invalid — surface both facts
-      const typeList = [...new Set(schemaTypes)].join(', ')
-      checks.push(check('schema', 'Schema Markup', 'structured-data', 'warning',
-        `${parseErrors} invalid block(s)`,
-        `${parseErrors} invalid JSON-LD block(s); valid types: ${typeList.substring(0, 40)}`,
-        'Malformed JSON-LD blocks are silently ignored by Google. Fix them to restore full rich-result eligibility.',
-        'Validate every schema block with the Schema Markup Validator.',
-        { reference: 'https://validator.schema.org/', effort: 'low', impact: 'high' }))
+  const crumbNodes = jsonLdNodes.filter((n) => jsonLdTypes(n).includes('BreadcrumbList'))
+  if (crumbNodes.length > 0) {
+    const minItems = Math.min(...crumbNodes.map(breadcrumbItemCount))
+    if (minItems < 2) {
+      checks.push(check('breadcrumb-schema', 'Breadcrumb Schema', 'structured-data', 'warning',
+        `${minItems} ListItem(s)`,
+        'BreadcrumbList has fewer than 2 ListItems',
+        'Google’s BreadcrumbList type needs at least two items. A 1-item Home list is not eligible and should not sit on every page.',
+        'Use a page-local trail with ≥2 items that matches visible breadcrumb nav, or omit BreadcrumbList on the homepage.',
+        { effort: 'low', impact: 'medium' }))
     } else {
-      const typeList = [...new Set(schemaTypes)].join(', ')
-      checks.push(check('schema', 'Schema Markup', 'structured-data', 'good',
-        typeList.length > 55 ? `${typeList.substring(0, 55)}…` : typeList || `${schemaScripts.length} block(s)`,
-        `${schemaScripts.length} valid JSON-LD block(s): ${typeList.substring(0, 40)}`,
-        'Valid structured data makes pages eligible for rich results in Google Search.',
-        'Test eligibility with Google\'s Rich Results Test. Expand with FAQPage, BreadcrumbList, and VideoObject where applicable.'))
+      checks.push(check('breadcrumb-schema', 'Breadcrumb Schema', 'structured-data', 'good',
+        `${minItems}+ items`,
+        'BreadcrumbList has ≥2 ListItems',
+        'Breadcrumb markup must match a real path. Presence alone is not eligibility.',
+        'Keep JSON-LD in sync with visible breadcrumb HTML.'))
+    }
+  } else if (path !== '/') {
+    checks.push(check('breadcrumb-schema', 'Breadcrumb Schema', 'structured-data', 'warning', 'Missing',
+      'No BreadcrumbList schema on inner page',
+      'A BreadcrumbList with ≥2 ListItems can replace a raw URL in SERPs. A missing list is a hint, not a ranking defect.',
+      'Add a page-local BreadcrumbList with at least two items if you show a visible trail.',
+      { snippet: '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "BreadcrumbList",\n  "itemListElement": [\n    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://example.com"},\n    {"@type": "ListItem", "position": 2, "name": "Page"}\n  ]\n}\n</script>', effort: 'low', impact: 'medium' }))
+  }
+
+  const hasRatingNode = jsonLdNodes.some((n) => {
+    const types = jsonLdTypes(n)
+    return types.includes('AggregateRating') || types.includes('Review') || n.aggregateRating != null || n.review != null
+  })
+  if (hasRatingNode) {
+    const visibleRating =
+      $('[itemprop="ratingValue"], [itemprop="review"]').length > 0 ||
+      /★|⭐/.test(bodyText) ||
+      /\b\d(?:\.\d)?\s*(?:\/|out of)\s*5\b/i.test(bodyText) ||
+      /\b\d+\s+reviews?\b/i.test(bodyText)
+    if (!visibleRating) {
+      checks.push(check('aggregate-rating', 'Visible ratings', 'structured-data', 'critical',
+        'AggregateRating without on-page reviews',
+        'JSON-LD ships aggregateRating or Review but the HTML has no visible rating or review text',
+        'Google review-snippet rules require ratings to be visible and from real users. Invented ratingCount is a structured-data spam / manual-action path.',
+        'Remove aggregateRating until real reviews are rendered on the page. Do not invent ratingValue or ratingCount.',
+        { reference: 'https://developers.google.com/search/docs/appearance/structured-data/review-snippet', effort: 'low', impact: 'high' }))
+    } else {
+      checks.push(check('aggregate-rating', 'Visible ratings', 'structured-data', 'good',
+        'Rating text visible',
+        'Rating markup matches visible review text',
+        'Ratings in JSON-LD must match what users can see.',
+        'Keep counts in sync with the on-page reviews.'))
     }
   }
 
-  // ── STRUCTURED DATA: BreadcrumbList (inner pages) ──────────────────────────
-  if (path !== '/') {
-    const hasBreadcrumbSchema = schemaScripts.toArray().some(el => {
-      try {
-        const data = JSON.parse($(el).html() ?? '')
-        const types = [data['@type'], ...(data['@graph'] ?? []).map((n: { '@type': string }) => n['@type'])]
-        return types.includes('BreadcrumbList')
-      } catch { return false }
-    })
-
-    if (!hasBreadcrumbSchema) {
-      checks.push(check('breadcrumb-schema', 'Breadcrumb Schema', 'structured-data', 'warning', 'Missing',
-        'No BreadcrumbList schema on inner page',
-        'BreadcrumbList rich results replace the URL in SERPs with a human-readable path (e.g. Home › Category › Page), improving click appeal and page context.',
-        'Add BreadcrumbList JSON-LD to all inner pages.',
-        { snippet: '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "BreadcrumbList",\n  "itemListElement": [\n    {\n      "@type": "ListItem",\n      "position": 1,\n      "name": "Home",\n      "item": "https://example.com"\n    },\n    {\n      "@type": "ListItem",\n      "position": 2,\n      "name": "Category",\n      "item": "https://example.com/category"\n    }\n  ]\n}\n</script>', effort: 'low', impact: 'medium' }))
-    } else {
-      checks.push(check('breadcrumb-schema', 'Breadcrumb Schema', 'structured-data', 'good', 'Present',
-        'BreadcrumbList schema detected',
-        'Breadcrumb rich results improve SERP appearance and convey site structure to users.',
-        'Keep BreadcrumbList JSON-LD in sync with any visible breadcrumb HTML navigation.'))
-    }
-  }
-
-  // ── STRUCTURED DATA: FAQ Opportunity ──────────────────────────────────────
-  const hasFaqHeadings = $('h2, h3').toArray().some(el => {
-    const t = $(el).text().toLowerCase()
-    return t.startsWith('what') || t.startsWith('how') || t.startsWith('why') || t.startsWith('when') || t.startsWith('is ') || t.startsWith('can ')
-  })
-  const hasFaqSection = $('[class*="faq"], [id*="faq"]').length > 0
-
-  const hasFaqSchema = schemaScripts.toArray().some(el => {
-    try {
-      const data = JSON.parse($(el).html() ?? '')
-      return data['@type'] === 'FAQPage' || (data['@graph'] ?? []).some((n: { '@type': string }) => n['@type'] === 'FAQPage')
-    } catch { return false }
-  })
-
-  if ((hasFaqHeadings || hasFaqSection) && !hasFaqSchema) {
-    checks.push(check('faq-schema', 'FAQ Schema Opportunity', 'structured-data', 'warning',
-      'FAQ content found, schema missing',
-      'FAQ content detected but no FAQPage schema',
-      'FAQ schema can generate expandable Q&A directly in Google SERPs, dramatically increasing SERP real estate and visibility without needing a higher ranking position.',
-      'Wrap your Q&A content in FAQPage JSON-LD.',
-      { snippet: '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "FAQPage",\n  "mainEntity": [{\n    "@type": "Question",\n    "name": "What is your question?",\n    "acceptedAnswer": {\n      "@type": "Answer",\n      "text": "Your full answer here."\n    }\n  }]\n}\n</script>', effort: 'low', impact: 'high' }))
+  const hasFaqSchema = jsonLdNodes.some((n) => jsonLdTypes(n).includes('FAQPage'))
+  if (hasFaqSchema) {
+    checks.push(check('faq-schema', 'FAQPage markup', 'structured-data', 'good',
+      'FAQPage present',
+      'FAQPage markup is unused by Google Search since 2026-05-07 and is not an AI Overview lever',
+      'Google removed FAQ rich results. Unused FAQPage is harmless; it is not a SERP or AIO ranking tactic. Visible FAQ copy is fine.',
+      'Keep visible Q&A for humans. Do not add FAQPage to chase rich results or AI Overviews.',
+      { reference: 'https://developers.google.com/search/updates', effort: 'low', impact: 'low' }))
   }
 
   // ── STRUCTURED DATA: VideoObject ────────────────────────────────────────────
   const videoCount = $('iframe[src*="youtube"], iframe[src*="vimeo"], video').length
   if (videoCount > 0) {
-    const hasVideoSchema = schemaScripts.toArray().some(el => {
-      try {
-        const data = JSON.parse($(el).html() ?? '')
-        return data['@type'] === 'VideoObject' || (data['@graph'] ?? []).some((n: { '@type': string }) => n['@type'] === 'VideoObject')
-      } catch { return false }
-    })
+    const hasVideoSchema = jsonLdNodes.some((n) => jsonLdTypes(n).includes('VideoObject'))
     if (!hasVideoSchema) {
       checks.push(check('video-schema', 'Video Schema', 'structured-data', 'warning',
         `${videoCount} video(s), no schema`,
@@ -1330,10 +1452,10 @@ function analysePage(
 // DOMAIN-LEVEL CHECKS  (robots.txt, sitemap, SSL, security headers, HSTS)
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function runDomainChecks(
+export async function runDomainChecks(
   origin: string,
   opts: Required<ScanOptions>
-): Promise<{ checks: CheckResult[]; robotsDisallowed: string[] }> {
+): Promise<{ checks: CheckResult[]; robotsDisallowed: string[]; sitemapHtml: string | null }> {
   const checks: CheckResult[] = []
 
   // ── SSL ────────────────────────────────────────────────────────────────────
@@ -1369,54 +1491,23 @@ async function runDomainChecks(
   if (!robotsRes) {
     checks.push(check('robots-txt', 'Robots.txt', 'domain', 'warning', 'Missing',
       'No robots.txt at /robots.txt',
-      'Without robots.txt, crawlers have no guidance on what to crawl or avoid, wasting crawl budget on admin pages, private APIs, and duplicate content.',
-      'Create a robots.txt at your domain root with Allow/Disallow rules and a Sitemap reference.',
-      { snippet: 'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/private/\nDisallow: /checkout/\nDisallow: /account/\nSitemap: https://example.com/sitemap.xml', effort: 'low', impact: 'medium' }))
+      'robots.txt is optional. Without it, crawlers that honor the file have no path guidance. Missing the file is not a ranking penalty.',
+      'Create a robots.txt at your domain root with Allow/Disallow rules and a Sitemap reference if you want crawl hints.',
+      { snippet: 'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/private/\nSitemap: https://example.com/sitemap.xml', effort: 'low', impact: 'medium' }))
+    checks.push(check('ai-bots-robots', 'AI / search bot access', 'ai-search', 'good',
+      'No robots.txt',
+      'No robots.txt — named training vs search bot rules cannot be classified; default is allow-all for bots that honor the file',
+      'GPTBot ≠ OAI-SearchBot; ClaudeBot ≠ Claude-SearchBot; Google-Extended ≠ Googlebot. This is not a GEO score.',
+      'Do not Disallow Googlebot to opt out of AI. Add a robots.txt only if you need path or training-bot rules.'))
   } else {
-    const rb = robotsRes.html.toLowerCase()
-    const blocksEverything = /^disallow:\s*\/\s*$/m.test(rb) && !/^allow:\s*\//m.test(rb)
-    const hasUserAgent = rb.includes('user-agent:')
-    const hasSitemapRef = rb.includes('sitemap:')
-
-    // Extract Disallow paths for the `*` user-agent block so the crawler
-    // can skip them, just as Googlebot would.
-    let inWildcardBlock = false
-    for (const line of rb.split(/\r?\n/)) {
-      const trimmed = line.trim()
-      if (trimmed.startsWith('user-agent:')) {
-        inWildcardBlock = trimmed.replace('user-agent:', '').trim() === '*'
-      } else if (inWildcardBlock && trimmed.startsWith('disallow:')) {
-        const path = trimmed.replace('disallow:', '').trim()
-        if (path && path !== '/') robotsDisallowed.push(path)
-      }
-    }
-
-    if (blocksEverything) {
-      checks.push(check('robots-txt', 'Robots.txt', 'domain', 'critical', 'Blocks all crawling',
-        'Robots.txt contains Disallow: / — all crawling blocked',
-        'Disallow: / prevents every search engine crawler from indexing any page on the site. This single line completely removes your site from Google search results.',
-        'Remove or narrow the Disallow: / rule. Only disallow specific sensitive paths.',
-        { snippet: '# Fix: Replace blanket block with specific paths\nUser-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nSitemap: https://example.com/sitemap.xml', impact: 'high', effort: 'low' }))
-    } else if (!hasUserAgent) {
-      checks.push(check('robots-txt', 'Robots.txt', 'domain', 'warning', 'Invalid format',
-        'Robots.txt has no User-agent directive',
-        'A robots.txt without User-agent directives is malformed and may be ignored by crawlers.',
-        'Add valid User-agent and Disallow/Allow directives.',
-        { snippet: 'User-agent: *\nAllow: /\nDisallow: /admin/', effort: 'low', impact: 'medium' }))
-    } else {
-      checks.push(check('robots-txt', 'Robots.txt', 'domain',
-        hasSitemapRef ? 'good' : 'warning',
-        hasSitemapRef ? 'Valid + Sitemap ref' : 'Valid, no Sitemap ref',
-        hasSitemapRef
-          ? 'Robots.txt is valid and references the sitemap'
-          : 'Robots.txt valid but missing Sitemap directive',
-        'Robots.txt correctly guides crawlers.',
-        hasSitemapRef
-          ? 'Audit regularly for accidentally blocked important paths.'
-          : 'Add Sitemap: directive for faster indexing of new content.',
-        { snippet: 'Sitemap: https://example.com/sitemap.xml', effort: 'low', impact: 'low' }))
-    }
+    const evaluated = evaluateRobotsTxt(robotsRes.html)
+    robotsDisallowed = evaluated.robotsDisallowed
+    checks.push(evaluated.check)
+    checks.push(evaluated.aiBotsCheck)
   }
+
+  const llmsRes = await fetchUrl(`${origin}/llms.txt`, opts)
+  checks.push(evaluateLlmsTxt(!!llmsRes))
 
   // ── XML Sitemap ────────────────────────────────────────────────────────────
   if (!sitemapRes) {
@@ -1550,20 +1641,20 @@ async function runDomainChecks(
     }
   }
 
-  return { checks, robotsDisallowed }
+  return { checks, robotsDisallowed, sitemapHtml: sitemapRes?.html ?? null }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCORE CALCULATION
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SCORE_WEIGHTS: Record<CheckStatus, number> = {
+export const SCORE_WEIGHTS: Record<CheckStatus, number> = {
   critical: -15,
   warning: -5,
   good: 0,
 }
 
-function calculatePageScore(checks: CheckResult[]): number {
+export function calculatePageScore(checks: CheckResult[]): number {
   let score = 100
   for (const c of checks) score += SCORE_WEIGHTS[c.status]
   return Math.max(0, Math.min(100, score))
@@ -1573,15 +1664,59 @@ function calculatePageScore(checks: CheckResult[]): number {
 // MAIN EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function scanDomain(
+export interface CrawlSession {
+  origin: string
+  opts: Required<ScanOptions>
+  queue: string[]
+  queued: string[]
+  visited: string[]
+  discovered: string[]
+  rawPages: AnalysePageResult[]
+  domainChecks: CheckResult[]
+  robotsDisallowed: string[]
+  lastFetchAt: number
+  startedAt: number
+}
+
+function rememberDiscovered(session: CrawlSession, href: string) {
+  if (!session.discovered.includes(href)) session.discovered.push(href)
+}
+
+function enqueue(session: CrawlSession, href: string) {
+  rememberDiscovered(session, href)
+  if (session.visited.includes(href)) return
+  if (session.queued.includes(href)) return
+  session.queue.push(href)
+  session.queued.push(href)
+}
+
+async function seedSitemapLocs(
+  session: CrawlSession,
+  sitemapHtml: string | null
+) {
+  if (!sitemapHtml) return
+  const parsed = parseSitemapLocs(sitemapHtml, session.origin)
+  let pageLocs = parsed.kind === 'index' ? [] : parsed.locs
+
+  if (parsed.kind === 'index') {
+    for (const child of parsed.locs.slice(0, MAX_SITEMAP_CHILD_FILES)) {
+      const childRes = await fetchUrl(child, session.opts, true)
+      if (!childRes) continue
+      const childParsed = parseSitemapLocs(childRes.html, session.origin)
+      if (childParsed.kind !== 'index') pageLocs.push(...childParsed.locs)
+    }
+  }
+
+  for (const loc of pageLocs.slice(0, MAX_SITEMAP_SEED_LOCS)) {
+    enqueue(session, normaliseUrl(loc, session.origin, session.opts))
+  }
+}
+
+export async function startCrawl(
   domainInput: string,
   options: ScanOptions = {}
-): Promise<SEOReport> {
-  const startMs = Date.now()
+): Promise<CrawlSession> {
   const opts: Required<ScanOptions> = { ...DEFAULTS, ...options }
-
-  // Validate and normalise the input URL up-front so callers get a typed error
-  // instead of an unhandled `new URL()` TypeError crashing their call-site.
   let domainUrl: URL
   try {
     const rawUrl = domainInput.startsWith('http') ? domainInput : `https://${domainInput}`
@@ -1593,83 +1728,135 @@ export async function scanDomain(
     )
   }
   const origin = domainUrl.origin
+  const { checks: domainChecks, robotsDisallowed, sitemapHtml } =
+    await runDomainChecks(origin, opts)
 
-  // ── Domain checks run first to get the robots.txt Disallow list ────────────
-  const { checks: domainChecks, robotsDisallowed } = await runDomainChecks(origin, opts)
+  const home = normaliseUrl(origin + '/', origin, opts)
+  const session: CrawlSession = {
+    origin,
+    opts,
+    queue: [],
+    queued: [],
+    visited: [],
+    discovered: [],
+    rawPages: [],
+    domainChecks,
+    robotsDisallowed,
+    lastFetchAt: 0,
+    startedAt: Date.now(),
+  }
+  enqueue(session, home)
+  await seedSitemapLocs(session, sitemapHtml)
+  return session
+}
 
-  // ── Crawl ──────────────────────────────────────────────────────────────────
-  const queue: string[] = [normaliseUrl(origin + '/', origin, opts)]
-  const queued = new Set<string>(queue)   // mirrors queue contents for O(1) lookup
-  const visited = new Set<string>()
-  const rawPages: RawPageResult[] = []
-  let lastFetchAt = 0
+export function crawlIsDone(session: CrawlSession): boolean {
+  return session.queue.length === 0 || session.rawPages.length >= session.opts.maxPages
+}
 
-  while (queue.length > 0 && rawPages.length < opts.maxPages) {
-    const target = queue.shift()!
+export function coverageFromSession(session: CrawlSession): CrawlCoverage {
+  const crawled = session.rawPages.length
+  const discovered = session.discovered.length
+  const cap = session.opts.maxPages
+  const hitCap = crawled >= cap && session.queue.length > 0
+  return {
+    crawled,
+    discovered,
+    cap,
+    stopReason: hitCap ? 'cap' : 'complete',
+  }
+}
+
+export async function crawlTick(
+  session: CrawlSession,
+  pageBudget = PAGES_PER_TICK
+): Promise<CrawlSession> {
+  const { opts, origin } = session
+  const domainUrl = new URL(origin)
+  let added = 0
+
+  while (
+    session.queue.length > 0 &&
+    session.rawPages.length < opts.maxPages &&
+    added < pageBudget
+  ) {
+    const target = session.queue.shift()!
     const normTarget = normaliseUrl(target, origin, opts)
+    rememberDiscovered(session, normTarget)
 
-    if (visited.has(normTarget)) continue
-    visited.add(normTarget)
+    if (session.visited.includes(normTarget)) continue
+    session.visited.push(normTarget)
 
-    // Skip programmatic paths and robots.txt Disallow rules
     try {
       const u = new URL(normTarget)
       if (isProgrammatic(u.pathname, u.search)) continue
-      // Respect robots.txt Disallow directives for the * agent, as Googlebot does.
-      if (robotsDisallowed.some(prefix => u.pathname.startsWith(prefix))) continue
-    } catch { continue }
+      if (session.robotsDisallowed.some((prefix) => u.pathname.startsWith(prefix)))
+        continue
+    } catch {
+      continue
+    }
 
-    // Politeness delay: ensure at least opts.politenessDelayMs between page fetches.
-    const sinceLastFetch = Date.now() - lastFetchAt
-    if (lastFetchAt > 0 && sinceLastFetch < opts.politenessDelayMs) {
-      await new Promise(r => setTimeout(r, opts.politenessDelayMs - sinceLastFetch))
+    const sinceLastFetch = Date.now() - session.lastFetchAt
+    if (session.lastFetchAt > 0 && sinceLastFetch < opts.politenessDelayMs) {
+      await new Promise((r) =>
+        setTimeout(r, opts.politenessDelayMs - sinceLastFetch)
+      )
     }
 
     const fetched = await fetchUrl(normTarget, opts)
-    lastFetchAt = Date.now()
+    session.lastFetchAt = Date.now()
     if (!fetched) continue
 
-    // Skip pages that redirected to a foreign domain.
     try {
-      const sameHost = new URL(fetched.finalUrl).hostname.replace(/^www\./, '') ===
-                       new URL(origin).hostname.replace(/^www\./, '')
+      const sameHost =
+        new URL(fetched.finalUrl).hostname.replace(/^www\./, '') ===
+        new URL(origin).hostname.replace(/^www\./, '')
       if (!sameHost) continue
-    } catch { continue }
+    } catch {
+      continue
+    }
 
-    // Track the final resolve URL to prevent redirect loops
     if (fetched.finalUrl) {
       const finalNorm = normaliseUrl(fetched.finalUrl, origin, opts)
       if (finalNorm !== normTarget) {
-        if (visited.has(finalNorm)) continue
-        visited.add(finalNorm)
+        rememberDiscovered(session, finalNorm)
+        if (session.visited.includes(finalNorm)) continue
+        session.visited.push(finalNorm)
       }
     }
 
-    // Only process HTML
     const ct = fetched.headers['content-type'] ?? ''
     if (!ct.includes('text/html')) continue
 
-    const analysed = analysePage(fetched.finalUrl || normTarget, fetched.html, fetched.headers, domainUrl)
-    rawPages.push(analysed)
+    const analysed = analysePage(
+      fetched.finalUrl || normTarget,
+      fetched.html,
+      fetched.headers,
+      domainUrl
+    )
+    session.rawPages.push(analysed)
+    added++
 
-    // Enqueue discovered links
     for (const link of analysed.outboundLinks) {
       const normLink = normaliseUrl(link, origin, opts)
-      // Guard against malformed / off-domain URLs.
       try {
         const linkHost = new URL(normLink).hostname.replace(/^www\./, '')
         const originHost = new URL(origin).hostname.replace(/^www\./, '')
         if (linkHost !== originHost) continue
-      } catch { continue }
-
-      if (!visited.has(normLink) && !queued.has(normLink)) {
-        queue.push(normLink)
-        queued.add(normLink)
+      } catch {
+        continue
       }
+      enqueue(session, normLink)
     }
   }
 
+  return session
+}
+
+export function finalizeReport(session: CrawlSession): SEOReport {
+  const { domainChecks, rawPages } = session
   const pagesScanned = rawPages.length
+  const coverage = coverageFromSession(session)
 
   // ── Aggregation ────────────────────────────────────────────────────────────
   interface AggEntry {
@@ -1812,7 +1999,7 @@ export async function scanDomain(
   const CATEGORIES: CheckCategory[] = [
     'meta', 'content', 'technical', 'performance',
     'social', 'accessibility', 'security',
-    'links', 'images', 'structured-data', 'domain',
+    'links', 'images', 'structured-data', 'ai-search', 'domain',
   ]
   const checksByCategory = Object.fromEntries(
     CATEGORIES.map(cat => [cat, aggregatedChecks.filter(c => c.category === cat)])
@@ -1856,13 +2043,25 @@ export async function scanDomain(
   }
 
   return {
-    domain: origin,
+    domain: session.origin,
     summary,
     pagesScanned,
     pageAnalysis,
     aggregatedChecks,
     checksByCategory,
     scannedAt: new Date().toISOString(),
-    durationMs: Date.now() - startMs,
+    durationMs: Date.now() - session.startedAt,
+    coverage,
   }
+}
+
+export async function scanDomain(
+  domainInput: string,
+  options: ScanOptions = {}
+): Promise<SEOReport> {
+  let session = await startCrawl(domainInput, options)
+  while (!crawlIsDone(session)) {
+    session = await crawlTick(session)
+  }
+  return finalizeReport(session)
 }

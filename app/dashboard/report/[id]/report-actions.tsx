@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Printer, Copy, Check } from 'lucide-react'
 import { SEOReport } from '@/lib/scanner'
+import { LLM_EXPORT_DO_NOT, sanitizeAuditText } from '@/lib/llm-export'
 
 interface ReportActionsProps {
   report: SEOReport
@@ -17,37 +17,45 @@ export function ReportActions({ report, domainUrl }: ReportActionsProps) {
     window.print()
   }
 
-  // Generates a descriptive prompt for LLMs based on diagnostic failures
   const handleCopyPrompt = () => {
     const failures: string[] = []
 
     if (report.aggregatedChecks) {
-      // New Multi-Page Schema
-      report.aggregatedChecks.filter(c => c.status !== 'good').forEach(c => {
-        let text = `- **${c.label}**: ${c.issueText}`
-        if (c.worstPage) text += ` (Affected target: ${c.worstPage})`
-        failures.push(text)
-      })
+      report.aggregatedChecks
+        .filter((c) => c.status !== 'good')
+        .forEach((c) => {
+          let text = `- **${c.label}**: ${sanitizeAuditText(c.issueText)}`
+          if (c.howToFix) text += `\n  Fix: ${sanitizeAuditText(c.howToFix)}`
+          if (c.worstPage) text += ` (Affected target: ${c.worstPage})`
+          failures.push(text)
+        })
     } else {
-      // Fallback for legacy database records
-      // @ts-expect-error - legacy shape
-      if (!report.title?.pass) failures.push(`- **Title Tag**: ${report.title?.message}`)
-      // @ts-expect-error - legacy shape
-      if (!report.description?.pass) failures.push(`- **Meta Description**: ${report.description?.message}`)
-      // @ts-expect-error - legacy shape
-      if (!report.h1?.pass) failures.push(`- **H1 Tag**: ${report.h1?.message}`)
-      // @ts-expect-error - legacy shape
-      if (!report.images?.pass) failures.push(`- **Images**: ${report.images?.message}`)
-      // @ts-expect-error - legacy shape
-      if (!report.content?.pass) failures.push(`- **Content Volume**: ${report.content?.message}`)
-      // @ts-expect-error - legacy shape
-      if (!report.technical?.pass) failures.push(`- **Technical Meta**: Missing essential meta tags.`)
+      const legacy = report as SEOReport & {
+        title?: { pass?: boolean; message?: string }
+        description?: { pass?: boolean; message?: string }
+        h1?: { pass?: boolean; message?: string }
+        images?: { pass?: boolean; message?: string }
+        content?: { pass?: boolean; message?: string }
+        technical?: { pass?: boolean }
+      }
+      if (!legacy.title?.pass) failures.push(`- **Title Tag**: ${legacy.title?.message}`)
+      if (!legacy.description?.pass)
+        failures.push(`- **Meta Description**: ${legacy.description?.message}`)
+      if (!legacy.h1?.pass) failures.push(`- **H1 Tag**: ${legacy.h1?.message}`)
+      if (!legacy.images?.pass) failures.push(`- **Images**: ${legacy.images?.message}`)
+      if (!legacy.content?.pass)
+        failures.push(`- **Content Volume**: ${legacy.content?.message}`)
+      if (!legacy.technical?.pass)
+        failures.push(`- **Technical Meta**: Missing essential meta tags.`)
     }
 
-    const score = report.summary?.score ?? (report as SEOReport & { score?: number }).score ?? 0
+    const score =
+      report.summary?.score ?? (report as SEOReport & { score?: number }).score ?? 0
 
     if (failures.length === 0) {
-      navigator.clipboard.writeText(`This domain (${domainUrl}) scored ${score}/100 and no critical SEO issues were found. Excellent work!`)
+      navigator.clipboard.writeText(
+        `This domain (${domainUrl}) scored ${score}/100 and no critical SEO issues were found.`
+      )
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
       return
@@ -57,12 +65,14 @@ export function ReportActions({ report, domainUrl }: ReportActionsProps) {
 
 Here are the specific issues that need to be fixed:
 
-${failures.join('\\n')}
+${failures.join('\n')}
 
 For each issue above, provide:
 1. A clear explanation of why it matters for SEO
-2. The exact code snippet to fix it (use Next.js/React where applicable)
+2. The exact code snippet to fix it (use Next.js/React generateMetadata and RSC where applicable)
 3. Where in the codebase to place the fix
+
+${LLM_EXPORT_DO_NOT}
 
 Be specific and actionable. Focus only on the failed checks listed above.`
 
@@ -73,13 +83,11 @@ Be specific and actionable. Focus only on the failed checks listed above.`
 
   return (
     <div className="flex gap-3 print:hidden">
-      <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
-        <Printer className="w-4 h-4" />
+      <Button variant="outline" size="sm" onClick={handlePrint}>
         Export PDF
       </Button>
-      <Button size="sm" onClick={handleCopyPrompt} className="gap-2">
-        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-        {copied ? 'Copied!' : 'Copy as LLM Prompt'}
+      <Button size="sm" onClick={handleCopyPrompt}>
+        {copied ? 'Copied' : 'Copy as LLM prompt'}
       </Button>
     </div>
   )

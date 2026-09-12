@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`analysePage fixtures > golden score snapshot stays tied to SCORE_WEIGHTS 1`] = `75`;

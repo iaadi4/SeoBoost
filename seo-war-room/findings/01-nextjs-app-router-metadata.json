@@ -1,0 +1,332 @@
+{
+  "agent": "01-nextjs-app-router-metadata",
+  "as_of": "2026-09-11",
+  "lane": "Next.js App Router metadata, sitemap, robots, OG",
+  "sources": [
+    {
+      "title": "Next.js generateMetadata / Metadata API (App Router, current)",
+      "url": "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js Metadata and OG images (getting started)",
+      "url": "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js sitemap.ts file convention (v16 id is Promise; images[] / videos[])",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js robots.ts file convention (v16.3.0 other field)",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js generateViewport (viewport/themeColor/colorScheme left metadata in v13.2 / v14)",
+      "url": "https://nextjs.org/docs/app/api-reference/functions/generate-viewport",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js htmlLimitedBots / streaming metadata (v15.2.0)",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js Metadata Files API (icon, OG, manifest, robots, sitemap)",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google: Specify a canonical (rel=canonical vs redirects vs sitemap)",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google: Influencing title links",
+      "url": "https://developers.google.com/search/docs/appearance/title-link",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google: Meta descriptions / snippets",
+      "url": "https://developers.google.com/search/docs/appearance/snippet",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google: Robots meta tags / X-Robots-Tag",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google: robots.txt introduction (last updated 2025-12-10)",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Google: Build and submit a sitemap (lastmod accuracy; ignores changefreq/priority)",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google: Robots refresher, page-level granularity",
+      "url": "https://developers.google.com/search/blog/2025/03/robots-refresher-page-level",
+      "date": "2025-03-14"
+    }
+  ],
+  "findings": [
+    {
+      "id": "01-01",
+      "priority": "P0",
+      "title": "Two production origins: metadataBase/canonical on boost-seo.vercel.app, sitemap/OG/robots on seoboost.app",
+      "why_it_ranks": "Google consolidates duplicates using redirects (strongest), rel=canonical (strong), and sitemap inclusion (weak). When those three point at different hosts, Google picks one and the other host wastes crawl and splits link signals. Lighthouse's canonical audit fails when the collected URL host ≠ declared canonical host.",
+      "nextjs_how": "Pick https://seoboost.app (already used by sitemap, robots Sitemap:, openGraph.url, Organization.url, hello@seoboost.app). In app/layout.tsx set metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://seoboost.app') and alternates.canonical: '/'. Relative canonicals, OG images, and twitter images then resolve on that origin. Add a next.config.ts redirect (or Vercel domain redirect) from https://boost-seo.vercel.app/:path* → https://seoboost.app/:path* (308). Point NEXT_PUBLIC_APP_URL at the same origin (already used in app/api/billing/checkout/route.ts).",
+      "seoBoost_gap": "app/layout.tsx:27 metadataBase and :29 canonical are https://boost-seo.vercel.app. :39 openGraph.url is https://seoboost.app. :115 WebSite.url and :125 BreadcrumbList item stay on Vercel; :105 Organization.url is seoboost.app. app/sitemap.ts:5 and app/robots.ts:10 use https://seoboost.app. Child relative canonicals (/pricing, /glossary, /glossary/${slug}) compose against metadataBase, so they emit https://boost-seo.vercel.app/pricing while the sitemap lists https://seoboost.app/pricing.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/sitemap.ts",
+        "app/robots.ts",
+        "next.config.ts",
+        "app/api/billing/checkout/route.ts"
+      ],
+      "verify_how": "curl -sI https://boost-seo.vercel.app/pricing must 308 to https://seoboost.app/pricing. view-source on / /pricing /glossary: every rel=canonical, og:url, and WebSite.url start with https://seoboost.app. curl -s https://seoboost.app/sitemap.xml and /robots.txt: every <loc> and Sitemap: line use that same origin. LH canonical audit on the production host passes.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap"
+      ]
+    },
+    {
+      "id": "01-02",
+      "priority": "P0",
+      "title": "Root layout hard-codes homepage canonical; login, signup, and dashboard inherit it",
+      "why_it_ranks": "Next.js shallow-merges metadata. A child that omits alternates keeps the parent's canonical. Google treats that as a strong hint that those URLs are duplicates of /. Login/signup/app URLs then donate signals to the homepage or get clustered as 'duplicate, Google chose different canonical'.",
+      "nextjs_how": "Root layout must set alternates.canonical: '/' (self-home only via metadataBase), never an absolute homepage URL meant for every child. Every indexable route sets its own relative canonical ('/pricing', '/glossary', '/glossary/canonical-tag'). Auth and app routes set robots: { index: false, follow: false } and a self canonical or no canonical — do not point them at /.",
+      "seoBoost_gap": "app/layout.tsx:28-30 sets canonical: 'https://boost-seo.vercel.app' with no per-route override on app/seo-audit-login/layout.tsx, app/sign-up/layout.tsx, or any app/dashboard/** page. Only app/pricing/layout.tsx:6-8 and app/glossary/page.tsx:10-12 (plus the broken glossary generateMetadata) set a self canonical. Dashboard report URLs therefore advertise the marketing homepage as canonical.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/seo-audit-login/layout.tsx",
+        "app/sign-up/layout.tsx",
+        "app/dashboard/layout.tsx"
+      ],
+      "verify_how": "curl -s localhost:3000/seo-audit-login | grep canonical — must not be the homepage. Same for /sign-up and /dashboard (after login cookie, or check the noindex tag). /pricing canonical path must be /pricing. / must be https://seoboost.app or https://seoboost.app/.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "01-03",
+      "priority": "P0",
+      "title": "Glossary generateMetadata interpolations are escaped; titles and canonicals ship as literal ${...}",
+      "why_it_ranks": "Google builds title links from <title>, H1, and og:title. A title of 'What is ${termData.title}? | SEO Boost Glossary | SEO Boost' is boilerplate junk and will be rewritten or ignored. The canonical becomes /glossary/${termData.slug} (literal), which 404s and fights sitemap locs for the real slugs (canonical-tag, core-web-vitals, robots-txt, backlinks).",
+      "nextjs_how": "In app/glossary/[term]/page.tsx keep await params (Next 15/16 Promise API — already correct) and generateStaticParams (already lists all four slugs). Unescape template literals: title: `${termData.title} | SEO Glossary`, description: termData.description, alternates.canonical: `/glossary/${termData.slug}`. Use title.absolute only if you need to skip the root template. Call notFound() from generateMetadata when the slug is missing instead of returning a soft 'Term Not Found' title for a URL that 404s.",
+      "seoBoost_gap": "app/glossary/[term]/page.tsx:27 title, :30 canonical, and :33 openGraph.title use \\${termData.title} / \\${termData.slug}. generateStaticParams (lines 40-44) and the page body H1 (termData.title) are real. Sitemap already emits the four real URLs. 08-04 owns the matching escaped hrefs on the index and 'Keep Learning' links; this lane owns the SERP strings.",
+      "files_to_change": [
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "curl -s localhost:3000/glossary/canonical-tag | grep -E '<title>|rel=\"canonical\"|og:title' — title contains 'Canonical Tag', not the characters ${termData.title}. Canonical href ends with /glossary/canonical-tag. Repeat for /glossary/robots-txt.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://developers.google.com/search/docs/appearance/title-link",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images"
+      ]
+    },
+    {
+      "id": "01-04",
+      "priority": "P0",
+      "title": "title.template '%s | SEO Boost' doubles brand on every child that already includes '| SEO Boost'",
+      "why_it_ranks": "Google's title-link doc flags repetitive boilerplate and site-name stuffing. Next.js applies title.template to child segments only; a child string title is interpolated into %s. Dashboard pages that set no title inherit the homepage default, so private URLs would share the marketing title if ever indexed.",
+      "nextjs_how": "Keep root title.default as the homepage string and template as '%s | SEO Boost'. Child titles must be the unique phrase only: 'Pricing', 'SEO Glossary', 'Sign in'. Use title.absolute for one-off strings that already contain the brand. Add app/dashboard/layout.tsx with title: 'Dashboard' plus robots noindex so it never inherits the homepage default.",
+      "seoBoost_gap": "app/layout.tsx:10-13 template is '%s | SEO Boost'. app/pricing/layout.tsx:4 is 'Pricing | SEO Boost' → rendered 'Pricing | SEO Boost | SEO Boost'. app/glossary/page.tsx:8 is 'SEO Glossary | Learn SEO Terms | SEO Boost' → triple brand. app/seo-audit-login/layout.tsx:4 and app/sign-up/layout.tsx:4 already include '| SEO Boost'. Glossary generateMetadata titles include '| SEO Boost Glossary' and then get another '| SEO Boost'. app/dashboard/page.tsx, reports/page.tsx, and report/[id]/page.tsx export no metadata, so they inherit title.default from the root.",
+      "files_to_change": [
+        "app/pricing/layout.tsx",
+        "app/glossary/page.tsx",
+        "app/glossary/[term]/page.tsx",
+        "app/seo-audit-login/layout.tsx",
+        "app/sign-up/layout.tsx",
+        "app/dashboard/layout.tsx"
+      ],
+      "verify_how": "curl -s localhost:3000/pricing | grep '<title>' — exactly one '| SEO Boost'. /glossary title is not triple-branded. /dashboard (authed) title is not the homepage audit tagline.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://developers.google.com/search/docs/appearance/title-link"
+      ]
+    },
+    {
+      "id": "01-05",
+      "priority": "P0",
+      "title": "Login is index:true; dashboard inherits index:true; robots.txt disallow cannot replace noindex",
+      "why_it_ranks": "Google's robots.txt intro (2025-12-10) and March 2025 robots refresher: robots.txt manages crawl, not index. A disallowed URL can still appear in results without a snippet if it is linked. noindex is only seen if the URL is crawlable. Combining Disallow: /dashboard/ with inherited index:true means Google never sees a noindex and may still list the URL.",
+      "nextjs_how": "Export robots: { index: false, follow: false } from app/seo-audit-login/layout.tsx, app/sign-up/layout.tsx (already noindex — keep it), and a new app/dashboard/layout.tsx. Leave app/robots.ts Disallow for /api/ and /auth/. Either (a) allow /dashboard/ in robots.txt so Googlebot can read noindex, or (b) keep Disallow and rely on the existing auth redirect (password-equivalent). Do not Disallow /seo-audit-login. Do not index the login page.",
+      "seoBoost_gap": "Root app/layout.tsx:61-71 sets index:true follow:true and googleBot max-image-preview:large (keep that on public pages). app/seo-audit-login/layout.tsx:6-9 sets index:true follow:true. app/sign-up/layout.tsx:6-9 is noindex but still inherits the homepage canonical (01-02). No dashboard layout metadata. app/robots.ts:8 disallows /dashboard/, /api/, /auth/ only.",
+      "files_to_change": [
+        "app/seo-audit-login/layout.tsx",
+        "app/sign-up/layout.tsx",
+        "app/dashboard/layout.tsx",
+        "app/robots.ts"
+      ],
+      "verify_how": "curl -s localhost:3000/seo-audit-login | grep 'noindex'. Same for /sign-up. curl -s localhost:3000/robots.txt — Disallow: /api/ and /auth/; /seo-audit-login is not disallowed. Search Console URL Inspection on /seo-audit-login: 'Indexing allowed' must be false after recrawl.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+        "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+        "https://developers.google.com/search/blog/2025/03/robots-refresher-page-level",
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata"
+      ]
+    },
+    {
+      "id": "01-06",
+      "priority": "P1",
+      "title": "Glossary openGraph object shallow-replaces root OG and drops images, url, siteName",
+      "why_it_ranks": "Next.js metadata merge is shallow for openGraph and twitter. The last segment that sets openGraph replaces the whole object. Term pages therefore lose og:image / og:url / siteName and ship article OG with only title+description — and those strings are the escaped ${} placeholders (01-03).",
+      "nextjs_how": "Either omit openGraph on the term page (title/description already flow into OG via defaults) or extend parent: const parentOg = (await parent).openGraph; return { openGraph: { ...parentOg, title, description, type: 'article', url: `/glossary/${slug}` } }. Same for twitter if you set it. File-based app/opengraph-image.tsx (07) then still applies.",
+      "seoBoost_gap": "app/glossary/[term]/page.tsx:32-36 sets openGraph: { title, description, type: 'article' } only. Root app/layout.tsx:36-52 has type, locale, url, siteName, title, description, images[1200x630]. Those images never appear on term HTML. twitter stays the root 'Fix Your SEO in 8 Seconds' card on every glossary URL.",
+      "files_to_change": [
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "curl -s localhost:3000/glossary/canonical-tag | grep og: — must include og:image, og:site_name, og:url ending in /glossary/canonical-tag, og:type=article, and a title that contains Canonical Tag.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images"
+      ]
+    },
+    {
+      "id": "01-07",
+      "priority": "P1",
+      "title": "sitemap.ts lastModified is always now; locs disagree with canonicals; 1-year Cache-Control covers /sitemap.xml",
+      "why_it_ranks": "Google ignores changefreq and priority. It uses lastmod only when it matches real content change. lastModified: new Date() on every request trains Google to ignore the field. Sitemap <loc> values are a weak canonical hint — they must match the preferred host (01-01). next.config.ts headers() sets Cache-Control: public, max-age=31536000, immutable on source '/(.*)', so Googlebot can cache a stale sitemap and robots.txt for a year.",
+      "nextjs_how": "Keep a single app/sitemap.ts (four glossary rows — generateSitemaps is unnecessary under 50k URLs). Use a real lastModified (git date or a constant in lib/glossary-data.ts), or omit lastModified. Emit only indexable canonicals on https://seoboost.app: /, /pricing, /glossary, /glossary/{slug}. Do not list /dashboard, /sign-up, /seo-audit-login. images[] is 07's job once OG files exist. In next.config.ts, exclude /sitemap.xml, /robots.txt, and HTML from the immutable header (02-03/02-11 own the HTML/asset split).",
+      "seoBoost_gap": "app/sitemap.ts uses lastModified: new Date() on all 7 URLs, changeFrequency/priority theatre, and baseUrl https://seoboost.app while metadataBase is Vercel. Missing from sitemap is fine for noindex routes. next.config.ts:31-32 applies immutable 1y to every path including sitemap and robots.",
+      "files_to_change": [
+        "app/sitemap.ts",
+        "next.config.ts",
+        "lib/glossary-data.ts"
+      ],
+      "verify_how": "curl -sI localhost:3000/sitemap.xml — Cache-Control is not immutable year-long. Body: 7 https://seoboost.app locs, no /dashboard. lastmod is stable across two curls 5s apart, or absent. Google ignores changefreq — do not assert it in CI (10-06).",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+      ]
+    },
+    {
+      "id": "01-08",
+      "priority": "P1",
+      "title": "robots.ts Sitemap host is seoboost.app; login is crawlable and indexable; host field unused",
+      "why_it_ranks": "Google discovers sitemaps from the robots.txt Sitemap: line. That URL must be the same origin as canonicals (01-01). robots.txt cannot hide login from the index (01-05). The Next.js host field emits a Host: line some crawlers use as a preferred-host hint — useful while both Vercel and the custom domain resolve.",
+      "nextjs_how": "export default function robots(): MetadataRoute.Robots { return { rules: { userAgent: '*', allow: '/', disallow: ['/api/', '/auth/'] }, sitemap: 'https://seoboost.app/sitemap.xml', host: 'https://seoboost.app' } }. Pair with 01-05 noindex on auth/app layouts. Do not add crawlDelay (Google ignores it). Do not add fake per-bot blocks.",
+      "seoBoost_gap": "app/robots.ts already has the right Disallow prefixes for /api/ and /auth/ and points Sitemap at seoboost.app. It does not set host. It does not mention /seo-audit-login (public, currently index:true). Cached by default as a special Route Handler — fine if the file stays static.",
+      "files_to_change": [
+        "app/robots.ts"
+      ],
+      "verify_how": "curl -s localhost:3000/robots.txt contains Sitemap: https://seoboost.app/sitemap.xml and Host: https://seoboost.app (or omit Host after the Vercel 308). No Disallow for /glossary or /pricing. GSC robots tester: /seo-audit-login allowed, /api/scan disallowed.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots",
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+      ]
+    },
+    {
+      "id": "01-09",
+      "priority": "P1",
+      "title": "metadata.icons / openGraph.images / twitter.images / manifest icons point at files that do not exist",
+      "why_it_ranks": "OG and Twitter cards need an absolute HTTPS image that returns 200. Google can use og:title and og:image when building title links and Discover/SERP thumbnails. Broken image URLs waste the card and look like a logo-less result. File-based metadata (app/icon.tsx, app/opengraph-image.tsx) is the Next.js 15/16 recommended path and overrides the config object.",
+      "nextjs_how": "Stop listing /icon.png, /opengraph-image.png, /twitter-image.png in app/layout.tsx and app/manifest.ts until 07 ships the files. Prefer app/icon.tsx (>=48 PNG), app/apple-icon.tsx (180), app/opengraph-image.tsx + app/twitter-image.tsx (ImageResponse, export alt/size/contentType) or static opengraph-image.png. Then drop the icons/images keys so you do not emit duplicate link tags. Manifest icons must be real 192 and 512 PNGs, not one missing file claimed as both 32 and 512.",
+      "seoBoost_gap": "app/layout.tsx:31-35 icons all /icon.png; :44-50 OG /opengraph-image.png 1200x630; :58 twitter /twitter-image.png. app/manifest.ts:13-24 claims 32x32 and 512x512 from the same /icon.png. public/ contains only googlecfc4c7654c4c969a.html. No app/icon.*, app/favicon.ico, app/opengraph-image.*, app/twitter-image.*. 07 owns the bytes; this lane owns the metadata pointers.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/manifest.ts"
+      ],
+      "verify_how": "curl -sI localhost:3000/opengraph-image (or /opengraph-image.png) is 200 image/* after 07 ships. view-source / has og:image absolute https://seoboost.app/... not a 404. Do not also keep metadata.icons pointing at /icon.png.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://developers.google.com/search/docs/appearance/title-link"
+      ]
+    },
+    {
+      "id": "01-10",
+      "priority": "P1",
+      "title": "Keep metadata on Server Components; pricing/login/signup already do this — do not move it onto 'use client' pages",
+      "why_it_ranks": "Next.js only resolves metadata / generateMetadata / generateViewport / sitemap / robots / manifest on the server so tags land in the first HTML. Client pages cannot export metadata. Streaming metadata (v15.2) still injects tags for JS bots; HTML-limited bots get blocking metadata via the default htmlLimitedBots list. Do not set htmlLimitedBots: /.*/ — that overrides the default list and can lengthen TTFB.",
+      "nextjs_how": "Leave metadata in the Server layouts: app/pricing/layout.tsx, app/seo-audit-login/layout.tsx, app/sign-up/layout.tsx. Keep app/page.tsx a Server Component that imports client islands (hero-animations, bento-grid). Keep glossary [term]/page.tsx as an async Server Component with generateMetadata + generateStaticParams. Never add 'use client' to those layouts. Default htmlLimitedBots is enough (Googlebot, Bingbot, Twitterbot, Slackbot, AdsBot-Google).",
+      "seoBoost_gap": "The split is already correct for metadata: pricing/login/signup pages are 'use client' and metadata lives in sibling layouts. Homepage metadata is the root export (same segment — template does not apply, default title is used). Risk is a future refactor that moves metadata onto the client page files or marks the layouts client. Homepage H1 opacity:0 in app/hero-animations.tsx is a CWV/first-HTML issue (02-03), not a missing <title>.",
+      "files_to_change": [
+        "app/pricing/layout.tsx",
+        "app/seo-audit-login/layout.tsx",
+        "app/sign-up/layout.tsx",
+        "app/page.tsx",
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "curl -s localhost:3000/pricing (no JS) contains <title> and meta name=description. Same for /. Do not add htmlLimitedBots to next.config.ts. A file with 'use client' must not export metadata or generateMetadata (tsc / eslint would fail if someone tries).",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots"
+      ]
+    },
+    {
+      "id": "01-11",
+      "priority": "P2",
+      "title": "No export const viewport; themeColor still belongs in viewport, not metadata",
+      "why_it_ranks": "Next.js 16 still auto-emits width=device-width, initial-scale=1. That is enough for Google mobile-first indexing. themeColor and colorScheme inside metadata have been deprecated since 13.2 in favor of the viewport export. Matching theme_color #3ecf8e / background #0a0a0a from app/manifest.ts is a polish item, not a ranking lever. Do not set userScalable:false / maximumScale:1 (WCAG 1.4.4; this repo's own scanner flags that).",
+      "nextjs_how": "In app/layout.tsx: import type { Viewport } from 'next'; export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0a0a0a' }. Do not put viewport inside the metadata object. Do not export both viewport and generateViewport.",
+      "seoBoost_gap": "No viewport or generateViewport export anywhere under app/. Root metadata omits the deprecated viewport field (good). lib/scanner.ts:675-699 already grades customer viewport tags. Product HTML relies on the Next.js default.",
+      "files_to_change": [
+        "app/layout.tsx"
+      ],
+      "verify_how": "curl -s localhost:3000/ | grep 'name=\"viewport\"' contains width=device-width and initial-scale=1. theme-color is #0a0a0a. No user-scalable=no.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-viewport",
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata"
+      ]
+    },
+    {
+      "id": "01-12",
+      "priority": "P2",
+      "title": "No alternates.languages or types; do not invent hreflang on a single-locale site",
+      "why_it_ranks": "hreflang is only a ranking/serving signal when each language URL is real and reciprocal, including x-default. Fake or incomplete hreflang is ignored and can confuse clustering. SeoBoost is en-only (html lang=en, openGraph.locale en_US, no app/[lang] tree). RSS via alternates.types is optional once glossary is a real feed — not a 2026 ranking requirement.",
+      "nextjs_how": "Keep <html lang=\"en\">. After 01-01, set alternates: { canonical: '/' } on the root and per-route self canonicals. Do not add languages: { 'en-US': ... } unless a second locale ships. If a glossary RSS is added later: alternates.types['application/rss+xml'] plus a matching sitemap alternates.languages only for real localized URLs.",
+      "seoBoost_gap": "No [lang] segment, no i18n proxy, no RSS route. Root alternates only has the homepage canonical. This is correct for a one-locale product; the gap is the homepage-absolute canonical (01-02), not missing hreflang.",
+      "files_to_change": [
+        "app/layout.tsx"
+      ],
+      "verify_how": "view-source / has html lang=en and exactly one rel=canonical. Zero hreflang link tags. Do not add them in this PR.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "01-01: One origin (https://seoboost.app) for metadataBase, canonical, og:url, sitemap <loc>, robots Sitemap:, and a 308 from boost-seo.vercel.app.",
+    "01-02: Root canonical is '/' only; login/signup/dashboard must not inherit the homepage canonical.",
+    "01-03: Unescape generateMetadata template literals on app/glossary/[term]/page.tsx (titles + canonicals).",
+    "01-04: Child titles drop the baked-in '| SEO Boost'; add dashboard title so it does not inherit the homepage default.",
+    "01-05: noindex login + dashboard; keep signup noindex; do not treat robots.txt Disallow as an indexer."
+  ],
+  "conflicts_to_avoid": [
+    "Do not set metadataBase / canonical / sitemap locs back to https://boost-seo.vercel.app. 03, 07, 08, and 10 already treat seoboost.app as the production origin.",
+    "Do not invent alternates.languages / hreflang / sitemap xhtml:link for a one-locale app.",
+    "Do not export both metadata and generateMetadata from the same segment. Do not put either on a 'use client' file.",
+    "Do not set htmlLimitedBots: /.*/ — that replaces Next's default bot list and can raise TTFB.",
+    "Do not change root robots.googleBot max-image-preview/max-video-preview/max-snippet (07-09 says those are correct).",
+    "Do not create app/opengraph-image.tsx / icon.tsx in this lane — 07 owns the bytes. This lane only removes 404 pointers or consumes the files once they exist.",
+    "Do not 'fix' glossary href={`/glossary/\\${term.slug}`} here — 08-04 owns the link graph. Unescape titles/canonicals/OG in the same file in one PR so you do not fight.",
+    "Do not assert changefreq or priority in CI (Google ignores them; 10-06).",
+    "Do not apply Cache-Control immutable year-long to HTML, /sitemap.xml, or /robots.txt (02-03/02-11 own the header split).",
+    "Do not add FAQPage, fake AggregateRating, or next/script JSON-LD while touching app/layout.tsx (03).",
+    "Do not robots-disallow a URL that still needs its noindex tag crawled, unless it is auth-gated."
+  ],
+  "cross_agent_notes": [
+    "Siblings read 2026-09-11: 02-core-web-vitals.json, 03-structured-data.json, 07-media-seo.json, 08-internal-linking.json, 10-verification-harness.json. This file was not present when they wrote; they already reserved the host decision and glossary ${} fix for this lane.",
+    "03-03 / 08 / 10-03: same dual-host bug. 01-01 picks https://seoboost.app. Schema (WebSite.url, Organization.url, BreadcrumbList item) must follow that origin in the same change as metadataBase — 03 implements the JSON-LD edit, 01 implements metadata/sitemap/robots/redirect.",
+    "03-05 / 02-10: JSON-LD must stay a raw <script type=\"application/ld+json\">, not next/script. 01 will not wrap layout metadata work in next/script.",
+    "08-04 / 03-09 / 10-02: escaped \\${} in app/glossary/[term]/page.tsx breaks hrefs (08), Article/FAQ names (03), and titles/canonicals/OG (01-03). One PR, three string fixes. 08 owns the <Link href>; 01 owns generateMetadata.",
+    "07-04 / 07-06: missing /icon.png /opengraph-image.png /twitter-image.png. 01-09 removes or waits on those pointers; 07 ships app/opengraph-image.tsx, app/twitter-image.tsx, app/icon.tsx, app/apple-icon.tsx. Do not emit duplicate icons via both file conventions and metadata.icons.",
+    "07-02: sitemap images[] / image:loc is 07 after OG files exist. 01-07 only requires host-correct <loc> and honest lastmod.",
+    "02-03 / 02-11 / 10 technical note: next.config.ts Cache-Control on '/(.*)' also freezes /sitemap.xml and /robots.txt. 01-07 requires those two paths (and HTML) excluded when 02 splits headers.",
+    "02-03 homepage H1 opacity:0 is CWV/first-HTML, not a missing Metadata API title. Root <title> already ships in the initial HTML.",
+    "10-01 / 10-02 / 10-06: Playwright request.get must assert title, self-canonical on the seoboost.app origin, noindex on /seo-audit-login and /sign-up, glossary title ≠ '${termData.title}', and sitemap/robots host match. 01 is the implementation those tests should lock.",
+    "10 for_onpage_metadata_agent: dual host + glossary generateMetadata literals are the first HTML-contract failures — acknowledged as 01-01 and 01-03."
+  ]
+}

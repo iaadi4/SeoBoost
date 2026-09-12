@@ -1,10 +1,15 @@
+import { after } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import prisma from '@/lib/prisma'
-import { scanDomain } from '@/lib/scanner'
 import { NextResponse } from 'next/server'
+import { maxPagesForPlan } from '@/lib/crawl-limits'
+import { createRunningScan, processScanTick } from '@/lib/scan-job'
+import { ScanError } from '@/lib/scanner'
 
 /** Lifetime scan limit for free-tier users (3 scans total, any domain). */
 const FREE_SCAN_LIMIT = 3
+
+export const maxDuration = 60
 
 export async function POST(req: Request) {
   try {
@@ -28,7 +33,6 @@ export async function POST(req: Request) {
       ? urlMatch
       : `https://${urlMatch}`
 
-    // Ensure the Supabase user exists in the Prisma User table (FK guard)
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },
       update: {
@@ -44,7 +48,6 @@ export async function POST(req: Request) {
       },
     })
 
-    // Enforce free tier lifetime scan limit (3 total scans across all domains)
     if (dbUser.subscriptionPlan === 'free') {
       const scanCount = await prisma.domainReport.count({
         where: { userId: user.id },
@@ -57,28 +60,24 @@ export async function POST(req: Request) {
       }
     }
 
-    // Perform the scan
-    const report = await scanDomain(domainUrl)
-
-    // Save report to database
-    const savedReport = await prisma.domainReport.create({
-      data: {
-        userId: user.id,
-        domainUrl: domainUrl,
-        score: report.summary.score,
-        reportData: JSON.stringify(report),
-      },
+    const { id } = await createRunningScan({
+      userId: user.id,
+      domainUrl,
+      maxPages: maxPagesForPlan(dbUser.subscriptionPlan),
     })
 
-    // Redirect to report view
-    return NextResponse.redirect(
-      new URL(`/dashboard/report/${savedReport.id}`, req.url),
-      {
-        status: 303, // See Other (forces GET instead of POST on redirect)
-      }
-    )
+    after(() => {
+      void processScanTick(id)
+    })
+
+    return NextResponse.redirect(new URL(`/dashboard/report/${id}`, req.url), {
+      status: 303,
+    })
   } catch (error) {
     console.error('Scan error:', error)
+    if (error instanceof ScanError) {
+      return new NextResponse(error.message, { status: 400 })
+    }
     return new NextResponse('Failed to scan domain. Please try again later.', {
       status: 500,
     })

@@ -1,0 +1,326 @@
+{
+  "agent": "08-internal-linking",
+  "as_of": "2026-09-11",
+  "lane": "Internal linking and IA",
+  "sources": [
+    {
+      "title": "Link best practices for Google",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Breadcrumb (BreadcrumbList) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "URL structure best practices for Google Search",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/url-structure",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Tell Google about localized versions of your page",
+      "url": "https://developers.google.com/search/docs/specialty/international/localized-versions",
+      "date": "2025-12-22"
+    },
+    {
+      "title": "Optimize your crawl budget",
+      "url": "https://developers.google.com/crawling/docs/crawl-budget",
+      "date": "2026-07-22"
+    },
+    {
+      "title": "SEO Starter Guide — organize your site",
+      "url": "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Managing multi-regional and multilingual sites",
+      "url": "https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Next.js Link component (App Router)",
+      "url": "https://nextjs.org/docs/app/api-reference/components/link",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js prefetching",
+      "url": "https://nextjs.org/docs/app/guides/prefetching",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js linking and navigating",
+      "url": "https://nextjs.org/docs/app/getting-started/linking-and-navigating",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js internationalization (App Router)",
+      "url": "https://nextjs.org/docs/app/guides/internationalization",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Internal linking strategy 2026 — large-site architecture",
+      "url": "https://www.digitalapplied.com/blog/internal-linking-strategy-2026-large-site-architecture-guide",
+      "date": "2026"
+    }
+  ],
+  "findings": [
+    {
+      "id": "08-01",
+      "priority": "P0",
+      "title": "No orphan-page detection: sitemap URLs never compared to inbound HTML links",
+      "why_it_ranks": "Google discovers and recrawls pages primarily by following <a href> links. A URL that exists only in XML sitemap (or generateStaticParams) with zero inbound HTML links is an orphan: crawl demand stays low, updates lag, and the page inherits almost no internal PageRank. Google’s crawl-budget guide (updated 2026-07-22) still lists an up-to-date sitemap as a discovery hint, not a substitute for crawl paths. Every page you care about must have at least one crawlable internal link (Search Central link best practices, 2025-12-10).",
+      "nextjs_how": "Build a URL inventory from (1) BFS over rendered <a href> and (2) parsed <loc> from /sitemap.xml plus sitemap indexes. In App Router, app/sitemap.ts is the source of truth for intended indexables; orphans are sitemap locs (and generateStaticParams slugs) with in-degree 0 from other indexable HTML pages. Exclude robots-disallowed and noindex URLs from the orphan set.",
+      "seoBoost_gap": "scanDomain() BFS-starts at origin only. runDomainChecks() fetches sitemap.xml to count <loc> but never extracts those URLs into the crawl queue or an inventory. outboundLinks are used only to enqueue, then discarded. There is no in-degree map, so a sitemap-listed glossary term with zero incoming <a href> would pass as unscanned, not as an orphan. Marketing still sells “Internal link graph analysis” as Pro in app/page.tsx and app/pricing/page.tsx — the graph does not exist.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "app/page.tsx",
+        "app/pricing/page.tsx"
+      ],
+      "verify_how": "Scan a fixture site whose sitemap lists /orphan but no page links to it. Expect a domain-level check id=orphans, status=critical, listing /orphan. Scan seoboost.app: /glossary/* slugs in app/sitemap.ts must appear as orphans until glossary hrefs are fixed (08-04).",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+        "https://developers.google.com/crawling/docs/crawl-budget",
+        "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+      ]
+    },
+    {
+      "id": "08-02",
+      "priority": "P0",
+      "title": "No click-depth or in-degree graph; URL folder depth is used as a false proxy",
+      "why_it_ranks": "Click depth (BFS hops from the homepage along followed internal links) is the operational importance signal: pages at depth 4+ are crawled less often and inherit less equity. Industry 2026 IA guidance still targets ≤3 hops for money pages. Folder count in the path is not click depth — /glossary/canonical-tag is 2 folders but 1 hop if the homepage links the hub and the hub links the spoke. Confusing the two mis-prioritizes flattened URLs over real crawl paths.",
+      "nextjs_how": "Keep an adjacency list while crawling. After the crawl, BFS from / to assign clickDepth. Compute inDegree and outDegree per URL. Flag: (a) indexable pages with clickDepth >= 4, (b) money/hub templates with inDegree < 2, (c) homepage outDegree so high that unique destinations are buried. Do not use path.split('/').length as depth.",
+      "seoBoost_gap": "analysePage() computes urlDepth = path.split('/').filter(Boolean).length and warns when > 4 (lib/scanner.ts url-structure). RawPageResult.outboundLinks is never turned into edges. SEOReport has no graph fields. The report UI only lists page path + score — no depth, no inlinks. A 2-segment URL that is 6 clicks from home would score “Clean, SEO-friendly URL”.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Fixture: Home → /a → /b → /c → /d → /e. /e must be critical (clickDepth 5) even if the slug is /e. /glossary/x linked from homepage must be depth 1, not “2 levels”. Report must show a Depth column.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+        "https://developers.google.com/crawling/docs/crawl-budget",
+        "https://www.digitalapplied.com/blog/internal-linking-strategy-2026-large-site-architecture-guide"
+      ]
+    },
+    {
+      "id": "08-03",
+      "priority": "P0",
+      "title": "Hard 5-page crawl and no sitemap seed make orphan/depth/equity checks impossible",
+      "why_it_ranks": "Orphans, click depth, and link-equity waste are graph properties. A 5-URL BFS from the homepage usually never leaves the nav/footer set. Google still finds the rest via sitemap and external links; SeoBoost cannot. Crawl-budget work is only “required” at ~10k–1M URL scale (Google, 2026-07-22), but discovery-vs-inventory comparison is useful on any site.",
+      "nextjs_how": "Seed the queue with homepage + all same-origin sitemap <loc>s, then BFS. Raise default maxPages (e.g. 50 Hobby / 200+ Pro) and pass it from app/api/scan/route.ts. Follow sitemap index → child sitemaps. Keep politenessDelayMs. Skip programmatic/faceted URLs already in PROGRAMMATIC_PATTERNS, but do not treat sitemap-listed hubs as skippable.",
+      "seoBoost_gap": "DEFAULTS.maxPages is 5. scanDomain(domainUrl) is called with no options, so Pro never crawls more than Hobby. Features table advertises “5 pages crawled per scan” and “Internal link graph analysis” together. Sitemap fetch is a presence/count check only. /tag/, /page/N, and date archives are skipped even when they are real cluster hubs.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/page.tsx",
+        "app/pricing/page.tsx"
+      ],
+      "verify_how": "Scan a 30-URL sitemap site. pagesScanned must exceed 5 on Pro. Queue must include sitemap locs that the homepage does not link. Hobby can stay capped; Pro must not.",
+      "sources": [
+        "https://developers.google.com/crawling/docs/crawl-budget",
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable"
+      ]
+    },
+    {
+      "id": "08-04",
+      "priority": "P0",
+      "title": "SeoBoost’s own glossary hub-spoke is broken: escaped hrefs + homepage nav omits the hub",
+      "why_it_ranks": "Topic clusters need a crawlable hub with descriptive spoke links and spokes that link back. Google: every page you care about needs a link from at least one other page, with descriptive anchors. If the hub’s <a href> is a literal /glossary/${term.slug}, Google and users hit a 404; spokes exist only in XML sitemap → they are orphans. Homepage header never links /glossary, so the only HTML path is a single footer item.",
+      "nextjs_how": "Use next/link with real interpolated hrefs: href={`/glossary/${term.slug}`}. Put the hub in global <nav> (not only footer). On term pages, related links should be same-category spokes plus a hub link, not .slice(0, 2) of the array. Add visible breadcrumbs Home → Glossary → Term. Keep kebab slugs (already good: canonical-tag, core-web-vitals).",
+      "seoBoost_gap": "app/glossary/page.tsx:70 and app/glossary/[term]/page.tsx:160 use href={`/glossary/\\${term.slug}`} — the slug never interpolates. generateMetadata title/canonical/OG and FAQ JSON-LD also use escaped ${...} so SERP titles and canonicals are the literal placeholder. Homepage nav (app/page.tsx) has Features/Pricing hashes, Sign In, Get Started — no Glossary. Footer Resources does link /glossary. Related-term picker is not category-aware. No HTML breadcrumb on glossary templates. Scanner would not flag this today because it neither HEAD-checks hrefs nor diffs sitemap vs inlinks.",
+      "files_to_change": [
+        "app/glossary/page.tsx",
+        "app/glossary/[term]/page.tsx",
+        "app/page.tsx",
+        "lib/glossary-data.ts",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "View-source /glossary: every card href must be /glossary/canonical-tag (etc.), not /glossary/${term.slug}. curl -I those URLs → 200. Homepage <nav> contains /glossary. After scanner 08-01 ships, a self-scan must show 0 glossary orphans.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+        "https://nextjs.org/docs/app/api-reference/components/link",
+        "https://www.digitalapplied.com/blog/internal-linking-strategy-2026-large-site-architecture-guide"
+      ]
+    },
+    {
+      "id": "08-05",
+      "priority": "P0",
+      "title": "Breadcrumb checks are presence-only; sitewide BreadcrumbList is invalid and unsynced",
+      "why_it_ranks": "Google’s BreadcrumbList docs (updated 2026-09-08) require a list of at least two ListItems, recommend a typical user path (not a raw URL dump), and do not require a Home/domain crumb. JSON-LD must match visible breadcrumb HTML. A one-item Home list on every page fails the type definition, wastes a rich-result slot, and can disagree with the live URL (boost-seo.vercel.app vs seoboost.app).",
+      "nextjs_how": "Do not inject a global BreadcrumbList in app/layout.tsx. Per template: visible <nav aria-label=\"Breadcrumb\"> + JSON-LD with position 1..n, last item name = page, last item.item optional. Glossary: Home → Glossary → Term. Pricing: Home → Pricing. Use metadataBase + absolute item URLs. next/link for each crumb except the current page.",
+      "seoBoost_gap": "Scanner breadcrumb-schema only tests @type === BreadcrumbList (and @graph). It does not require >=2 items, sequential position, last-name vs H1, item URL resolvability, or a visible breadcrumb nav. Root layout jsonLd always emits a 1-item Home list pointing at https://boost-seo.vercel.app on every route, including /. /seo-audit-login has a 2-item list still on the Vercel host. Glossary/pricing/sign-up have no page-level BreadcrumbList and no UI trail. Layout skip link targets #main-content; homepage <main> has no that id.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx",
+        "app/glossary/[term]/page.tsx",
+        "app/glossary/page.tsx",
+        "app/pricing/page.tsx",
+        "app/seo-audit-login/page.tsx"
+      ],
+      "verify_how": "Rich Results Test on /glossary/canonical-tag: valid BreadcrumbList with 3 items, last name Canonical Tag, items on https://seoboost.app. Homepage must not expose a 1-item list. Scanner: 1-item or schema-without-UI → warning, not good.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb",
+        "https://schema.org/BreadcrumbList"
+      ]
+    },
+    {
+      "id": "08-06",
+      "priority": "P1",
+      "title": "Internal-link counts treat nav/footer as equity; no waste or sculpting detection",
+      "why_it_ranks": "Google distributes a page’s importance across its outgoing links. Sitewide nav/footer links are weak, repeated signals; contextual body links carry the topical and equity signal. “Healthy” because a template has 12 footer <a>s hides pages with zero in-body links. Equity waste: linking from high-in-degree pages only to login/dashboard/noindex, or blasting 100+ followed links. Do not recommend internal nofollow for sculpting — Google still crawls those URLs when it wants to; use robots.txt / remove the link instead (crawl-budget guide 2026-07-22).",
+      "nextjs_how": "When extracting links, bucket by ancestor: header/nav, footer, main/article, aside. Count contextual (main/article) separately. Flag: content pages with contextualOut < 3 and wordCount > 300; pages whose only inlinks are nav/footer (inDegree_contextual = 0); pages with followedOut > 150; internal rel=nofollow on indexable URLs; homepage/footer links whose unique destination is noindex or robots-disallowed.",
+      "seoBoost_gap": "internal-links counts every same-host <a href>, so homepage/footer always pass. Thresholds (0 on inner pages, <3 if wordCount > 300) ignore chrome. No check for internal nofollow, outbound-link dilution, or links into /dashboard (disallowed in app/robots.ts). Footer on app/page.tsx sends “Documentation” and “Instant Reports” to /dashboard and Legal to href=\"#\".",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/page.tsx"
+      ],
+      "verify_how": "A 800-word article with only header/footer links must warning (contextualOut 0). A page with 5 descriptive body links must good even if footer is empty. Footer → /dashboard on an otherwise indexable chrome must appear as link-equity-waste.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+        "https://developers.google.com/crawling/docs/crawl-budget"
+      ]
+    },
+    {
+      "id": "08-07",
+      "priority": "P1",
+      "title": "Anchor-text and crawlable-href checks miss Google’s 2025 rules",
+      "why_it_ranks": "Google (2025-12-10) only reliably extracts <a href=\"http(s) or path\">. onclick-only, <a> without href, javascript: URLs, and empty anchors are weak or invisible. Anchor text must be descriptive and concise; “click here / read more / learn more” is explicitly bad. Image links use img alt as the anchor. Keyword stuffing in anchors is spam. Surrounding sentence context matters.",
+      "nextjs_how": "Always render next/link (or <a>) with a real href string. next/link compiles to <a href>, so Googlebot can crawl it. Do not use router.push() as the only navigation. For icon-only links, set aria-label or wrap a named img alt. Keep prefetch defaults (see 08-11); prefetch does not change crawlability.",
+      "seoBoost_gap": "genericAnchorWords is an exact Set (click here, here, read more, …) — “Click here to learn more” and “Learn more about audits” miss. Empty text + missing img alt not checked. javascript: counted only as placeholder. No flag for <a> without href, role=link divs, or next/link href that is an uninterpolated template (08-04). placeholder-links only fires when brokenAnchors > 2, so two href=\"#\" Legal links on the homepage pass. Image-as-link alt not used as anchor fallback.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/page.tsx"
+      ],
+      "verify_how": "Fixture with one “Click here to learn more” and one <a onclick=...> without href must both warning. Two href=\"#\" must warning (drop the >2 gate). Icon-only link with aria-label “SEO glossary” must pass.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable"
+      ]
+    },
+    {
+      "id": "08-08",
+      "priority": "P1",
+      "title": "URL IA checks miss locale prefixes, trailing-slash policy, and faceted params",
+      "why_it_ranks": "Google (2025-12-10): hyphenate words, lowercase (URLs are case-sensitive), few parameters, readable slugs, no hash-routed content. Multi-regional sites should use ccTLD or /de/ subdirectories plus hreflang (2025-12-22). Next.js App Router implements this as app/[lang]/... with a proxy that prefixes /en-US/products. Mixed /page and /page/ splits equity. Faceted ?sort=&filter= explodes inventory.",
+      "nextjs_how": "Folders under app/ are the public URL. Use kebab directory names (app/seo-audit-login is already kebab). For locales: app/[lang]/page.tsx + generateStaticParams + html lang={lang} + alternates.languages + x-default. Pick trailingSlash in next.config and 301 the other form. Keep query params out of indexable links; canonicalize or robots-disallow faceted URLs.",
+      "seoBoost_gap": "url-structure already flags uppercase, underscores, special chars, and folder-count > 4 (wrong metric — 08-02). No site-wide trailing-slash consistency. No locale-prefix detection (/en/, /en-US/, ccTLD vs subdirectory) and no pairing with hreflang (hreflang check only runs if tags already exist). No “too many query params on internal links” check. Repo has no [lang] tree and no i18n proxy — fine for a single-locale product, but the scanner cannot audit customer i18n sites. metadataBase (boost-seo.vercel.app) vs sitemap (seoboost.app) creates two URL inventories.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "next.config.ts",
+        "app/layout.tsx",
+        "app/sitemap.ts"
+      ],
+      "verify_how": "Fixture with /About_Us?utm_source=x and /about-us/: warn underscore + recommend hyphen; after tracking-param strip they should collapse. Fixture /en/pricing + /de/pricing without hreflang: warning. Mixed trailing slash across 3 pages: warning.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/url-structure",
+        "https://developers.google.com/search/docs/specialty/international/localized-versions",
+        "https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites",
+        "https://nextjs.org/docs/app/guides/internationalization"
+      ]
+    },
+    {
+      "id": "08-09",
+      "priority": "P1",
+      "title": "No topic-cluster / hub-spoke detection",
+      "why_it_ranks": "2026 IA practice is pillar (hub) + cluster (spokes) with bidirectional contextual links. That is how Google and AI Overviews infer topical authority. A directory of siblings that never link each other or the hub looks like a flat dump, even if the sitemap is complete.",
+      "nextjs_how": "Cluster by first path segment or by shared parent (e.g. /glossary/*). A hub is the index segment (/glossary) or the page that the most siblings link to. Flag spokes with no link to hub, hubs that link <30% of known spokes, and sibling sets with zero cross-links. In content sites, emit “add 2–5 contextual links per 1,000 words to sibling/hub URLs”.",
+      "seoBoost_gap": "No cluster math. Glossary is the only hub-spoke in the product and it is broken (08-04). Term “Keep Learning” links are the first two other terms, not same category (Technical vs Off-Page). Homepage never links the hub in <nav>. Scanner cannot tell a customer “your /blog hub lists 40 posts in the sitemap but only 8 in HTML.”",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/glossary/[term]/page.tsx",
+        "app/page.tsx"
+      ],
+      "verify_how": "Fixture /guides + 6 /guides/* : if hub lists 2 and spokes omit hub, cluster-coverage warning. After glossary href fix, /glossary must show as hub with 100% spoke coverage from the index.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+        "https://www.digitalapplied.com/blog/internal-linking-strategy-2026-large-site-architecture-guide"
+      ]
+    },
+    {
+      "id": "08-10",
+      "priority": "P1",
+      "title": "Nav/footer/HTML-sitemap hygiene not audited; chrome leaks equity to noindex",
+      "why_it_ranks": "Primary nav and footer are the default crawl highways. They should list indexable hubs (product, pricing, glossary), not auth/app shells. An HTML sitemap (or glossary-style index) is a second discovery layer when the header cannot hold every spoke. Linking chrome to robots-disallowed /dashboard or href=\"#\" wastes crawl and UX. XML sitemap ≠ HTML sitemap.",
+      "nextjs_how": "Shared header/footer as Server Components with next/link to indexable routes only. Keep /dashboard, /api, /auth out of public footer (already disallowed in app/robots.ts). Add a crawlable HTML index for glossary (exists) and optionally /sitemap page listing public URLs from the same data as app/sitemap.ts. Use <a> for mailto: and real external URLs.",
+      "seoBoost_gap": "Scanner does not inventory unique nav vs footer hrefs, does not require an HTML sitemap on large sites, and does not flag chrome → noindex/disallow. Product footer: Documentation and Instant Reports → /dashboard; Privacy/Terms → #; Account links are fine. No sitewide footer on glossary/pricing (those pages have isolated headers). sitemap.ts lists marketing + glossary but not a human /sitemap. No <nav> landmark check tied to indexable destinations.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/page.tsx",
+        "app/sitemap.ts"
+      ],
+      "verify_how": "Self-scan: footer unique hrefs must not include /dashboard or #. After adding /glossary to header, nav hubs should include /, /pricing, /glossary. Sites with >50 sitemap URLs and no in-body or /sitemap HTML index → warning.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+        "https://developers.google.com/search/docs/fundamentals/seo-starter-guide"
+      ]
+    },
+    {
+      "id": "08-11",
+      "priority": "P2",
+      "title": "next/link vs <a> and prefetch: scanner should guide, not punish prefetch",
+      "why_it_ranks": "Crawlability depends on a real href in the rendered HTML, not on Next prefetch. Prefetch (default \"auto\"/null, production, viewport) warms client navigations; with Partial Prefetching it fetches an App Shell. prefetch={false} is for huge link lists (tables, infinite scroll), not SEO. Using <a> for same-origin page transitions loses the App Router cache but remains crawlable. router.push without an <a href> is not reliably crawlable.",
+      "nextjs_how": "Internal indexable routes: next/link, leave prefetch default. Large generated lists (glossary already small): prefetch={false} optional. External, mailto, hash-only: plain <a>. Never replace crawlable links with onClick + router.push. Hash URLs (#features) are fine for in-page UX; Google generally does not treat fragments as separate pages (URL structure, 2025-12-10).",
+      "seoBoost_gap": "No check distinguishes next/link, <a>, or JS navigation. No guidance snippet for prefetch={false} on large lists. Homepage correctly uses next/link for routes and hashes. Sign-up success links to /sign-in, a route that does not exist (real login is /seo-audit-login) — a broken internal Link the scanner will not 404-check (08-12). Scanner must not add a “disable prefetch for SEO” recommendation.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/sign-up/page.tsx"
+      ],
+      "verify_how": "Docs/snippet in the links category: “Use next/link with href; prefetch is not a ranking factor.” Fixture using only button onClick → /page must critical (uncrawlable). Do not fail pages that prefetch.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/components/link",
+        "https://nextjs.org/docs/app/guides/prefetching",
+        "https://nextjs.org/docs/app/getting-started/linking-and-navigating",
+        "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+        "https://developers.google.com/search/docs/crawling-indexing/url-structure"
+      ]
+    },
+    {
+      "id": "08-12",
+      "priority": "P2",
+      "title": "Internal hrefs are never status-checked: 404s, chains, and cross-host leaks slip through",
+      "why_it_ranks": "Broken internal links waste crawl, drop users, and strand equity. Long redirect chains cost extra crawl capacity (Google, 2026-07-22). Links that resolve off-origin after redirects leak equity. Soft-404s stay in the crawl queue. A scanner that only parses href strings cannot see /sign-in → 404 or /glossary/${term.slug} → 404.",
+      "nextjs_how": "After extracting unique internal hrefs, sample HEAD/GET (reuse fetchUrl). Record final status, hop count, final host. Flag 4xx, 5xx, soft-404, hop count >= 3, and final host ≠ origin. In App Router, missing routes should notFound() (404), not a 200 empty page. Use root-relative hrefs to avoid parent-relative infinite spaces (Google URL structure).",
+      "seoBoost_gap": "fetchUrl returns null on !res.ok and the crawl just continues — the bad href is not recorded as a broken-internal-link issue on the source page. No redirect-chain metric. normaliseUrl rewrites www to origin host but never checks the live status of each outboundLinks entry. Product bugs 08-04 and /sign-in would be invisible.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Page linking to /missing and /old→301→/older→301→/final: source page gets broken-internal (404) and redirect-chain (2 hops). /sign-up → /sign-in on this repo must surface 404 once status checks ship.",
+      "sources": [
+        "https://developers.google.com/crawling/docs/crawl-budget",
+        "https://developers.google.com/search/docs/crawling-indexing/url-structure"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "08-01",
+    "08-02",
+    "08-03",
+    "08-04",
+    "08-05"
+  ],
+  "conflicts_to_avoid": [
+    "Do not treat URL folder depth as click depth (current url-structure check). Click depth is BFS hops from /.",
+    "Do not recommend internal rel=nofollow for PageRank sculpting. Block with robots.txt or remove the link (Google crawl-budget, 2026-07-22).",
+    "Do not flag next/link prefetch as an SEO problem. Prefetch is client UX only; crawlability is the href.",
+    "Do not keyword-stuff anchors. Google’s 2025-12-10 link doc calls stuffing a spam-policy issue.",
+    "Do not require BreadcrumbList on the homepage or a domain/Home crumb. Google requires ≥2 ListItems and prefers a user path; last item.item is optional.",
+    "Do not claim crawl-budget engineering is required under ~10k rapidly changing URLs. Still ship orphan vs sitemap — that is discovery, not hostload.",
+    "Canonical, hreflang completeness, and seoboost.app vs boost-seo.vercel.app host splits belong to metadata/international agents. This lane only cares when they fork the link graph.",
+    "Do not skip /tag/ or paginated hubs unconditionally if they appear as sitemap locs or cluster indexes."
+  ],
+  "cross_agent_notes": [
+    "Siblings read: 02-core-web-vitals.json, 03-structured-data.json, 07-media-seo.json. Do not overwrite those files.",
+    "03-04/03-05/03-06: same BreadcrumbList bugs (1-item global list, presence-only pass, array/@graph miss). 03 owns JSON-LD placement and type eligibility. 08-05 owns visible crumb UI, schema↔HTML sync, and treating crumbs as crawl paths. Share one JSON-LD walker; do not ship two breadcrumb parsers.",
+    "03-09 glossary escaped ${} in Article/FAQ: same root cause as 08-04 hrefs. One fix in app/glossary/[term]/page.tsx should restore titles, canonicals, and spoke links.",
+    "02-08 (Speculation Rules / Link prefetch): 08-11 agrees — next/link prefetch is UX, not a ranking checkbox. 02 owns speculation/prerender coaching. Do not prerender /seo-audit-login or /dashboard. Optional homepage speculation for /pricing and /glossary is a CWV win only after 08-04 hrefs resolve.",
+    "02-12 glossary coaching: blocked until 08-04 interpolates glossary hrefs/titles. 08 owns crawl paths; 02 owns CWV copy on those pages.",
+    "07-02 image sitemap: when 08-01/08-03 parse sitemap XML, keep image:image / video:video as media extras, not HTML orphans. Only <loc> HTML URLs enter the link graph.",
+    "Structured-data lane: 08-05 tightens BreadcrumbList (count, positions, visible nav sync, drop the global 1-item list in app/layout.tsx). Do not mark “BreadcrumbList present” as a pass.",
+    "Crawl/index + sitemap lane: 08-01/08-03 need sitemap <loc> as crawl seed and inventory. Share one parser with 07’s image/video sitemap work.",
+    "Metadata/canonical lane: app/layout.tsx metadataBase and WebSite/Breadcrumb items use https://boost-seo.vercel.app; app/sitemap.ts and Organization use https://seoboost.app. That splits the link graph across hosts.",
+    "Content/on-page lane: app/glossary/[term]/page.tsx escaped templates also break title, canonical, OG, and FAQ names. 08-04 owns the href/IA break; they own the SERP-string break.",
+    "JS/rendering lane: next/link is crawlable because it emits <a href>. Flag router.push-only navigation with 08-07/08-11, not as a prefetch issue.",
+    "A11y lane: skip link in app/layout.tsx targets #main-content; homepage <main> in app/page.tsx has no id. Broken in-page link, not an IA ranker."
+  ]
+}

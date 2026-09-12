@@ -1,280 +1,365 @@
-import { Button } from '@/components/ui/button'
-import { ArrowRight, Zap, LayoutDashboard, CheckCircle2, X } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
-import { SignOutButton } from '@/components/sign-out-button'
+import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { Button } from '@/components/ui/button'
+import { MarketingPhoto } from '@/components/marketing-photo'
 import { HeroAnimations } from './hero-animations'
 import { BentoGrid } from './bento-grid'
-
-const features = [
-  { name: 'Scans (total / monthly)', free: '3 lifetime', pro: 'Unlimited' },
-  { name: 'Pages crawled per scan', free: '5', pro: '5' },
-  { name: 'SEO Health Score (A–F grade)', free: true, pro: true },
-  { name: 'Title, meta & canonical checks', free: true, pro: true },
-  { name: 'Social (OG + Twitter Cards)', free: true, pro: true },
-  { name: 'Content & heading analysis', free: true, pro: true },
-  { name: 'Accessibility (WCAG hints)', free: false, pro: true },
-  { name: 'Performance & Core Web Vitals', free: false, pro: true },
-  { name: 'Security headers audit', free: false, pro: true },
-  { name: 'Structured data / JSON-LD', free: false, pro: true },
-  { name: 'Internal link graph analysis', free: false, pro: true },
-  { name: 'Image optimisation insights', free: false, pro: true },
-  { name: 'AI-ready prompt export', free: false, pro: true },
-  { name: 'Export report to PDF', free: false, pro: true },
-]
+import {
+  FEATURE_CLAIMS,
+  HOBBY_BULLETS,
+  PRO_BULLETS,
+  SCANNER_CATEGORY_COUNT,
+  SCANNER_CHECK_COUNT,
+} from '@/lib/claims'
+import { JsonLd } from '@/lib/json-ld'
+import { SITE_ORIGIN } from '@/lib/site'
+import { PaperGlow } from '@/components/seo-art'
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (value === true)
-    return <CheckCircle2 className="h-4 w-4 text-primary mx-auto" />
+    return <span className="mx-auto block h-2 w-2 rounded-full bg-index" />
   if (value === false)
-    return <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+    return <span className="mx-auto block h-2 w-2 rounded-full bg-border" />
   return <span className="text-sm font-medium text-foreground">{value}</span>
 }
 
+function HomeJsonLd() {
+  return (
+    <JsonLd
+      data={[
+        {
+          '@context': 'https://schema.org',
+          '@type': ['SoftwareApplication', 'WebApplication'],
+          name: 'SEO Boost',
+          operatingSystem: 'Web',
+          applicationCategory: 'BusinessApplication',
+          url: SITE_ORIGIN,
+          offers: {
+            '@type': 'Offer',
+            price: '9.00',
+            priceCurrency: 'USD',
+          },
+          description:
+            `HTML technical SEO audits: up to 50 pages on Hobby or 500 on Pro, ${SCANNER_CHECK_COUNT} checks across ${SCANNER_CATEGORY_COUNT} categories, A–F health score and a fix list. Not Core Web Vitals. Not a GEO score.`,
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'SEO Boost',
+          url: SITE_ORIGIN,
+          logo: `${SITE_ORIGIN}/icon.png`,
+          sameAs: ['https://twitter.com/seoboost'],
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'SEO Boost',
+          alternateName: ['SeoBoost', 'seoboost.app'],
+          url: SITE_ORIGIN,
+        },
+      ]}
+    />
+  )
+}
+
+function FeatureRow({
+  eyebrow,
+  title,
+  body,
+  src,
+  alt,
+  reverse = false,
+}: {
+  eyebrow: string
+  title: string
+  body: string
+  src: string
+  alt: string
+  reverse?: boolean
+}) {
+  return (
+    <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+      <div className={reverse ? 'md:order-2' : undefined}>
+        <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+          {eyebrow}
+        </p>
+        <h3 className="font-display text-3xl leading-tight sm:text-4xl">{title}</h3>
+        <p className="mt-5 text-lg leading-relaxed text-muted-foreground">{body}</p>
+      </div>
+      <MarketingPhoto
+        src={src}
+        alt={alt}
+        width={1200}
+        height={900}
+        className={`aspect-[4/3] ${reverse ? 'md:order-1' : ''}`}
+        sizes="(min-width: 768px) 32rem, 100vw"
+      />
+    </div>
+  )
+}
+
 export default async function Home() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user: sessionUser },
+    } = await supabase.auth.getUser()
+    user = sessionUser
+  } catch {
+    user = null
+  }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background font-sans overflow-hidden">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 sm:px-8 h-16 flex items-center justify-between max-w-7xl">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">SEO Boost</span>
+    <div className="flex min-h-screen flex-col bg-background font-sans">
+      <SiteHeader signedIn={!!user} />
+      <HomeJsonLd />
+      <main id="main-content" className="flex-1">
+        <section className="relative overflow-visible px-4 pt-24 pb-12 text-center sm:px-8">
+          <PaperGlow />
+          <div className="container relative mx-auto max-w-5xl">
+            <HeroAnimations signedIn={!!user}>
+              <p className="mb-6 text-sm text-muted-foreground">
+                Sitemap-seeded crawl · 50 / 500 pages · {SCANNER_CHECK_COUNT} checks
+              </p>
+              <h1 className="font-display text-5xl leading-[1.05] tracking-[-0.03em] text-foreground sm:text-[64px]">
+                See what search can read on your pages
+              </h1>
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+                Paste a URL. We seed from your sitemap, fetch first HTML up to
+                50 pages on Hobby or 500 on Pro, and return an A–F health score
+                with a fix list. Static HTML only — not Core Web Vitals, not a
+                GEO score.
+              </p>
+            </HeroAnimations>
           </div>
-          <nav className="flex items-center gap-6" aria-label="Main Navigation">
-            <Link
-              href="#features"
-              className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Features
-            </Link>
-            <Link
-              href="#pricing"
-              className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pricing
-            </Link>
-            {user ? (
-              <>
-                <SignOutButton />
-                <Link href="/dashboard">
-                  <Button className="rounded-full shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
-                    Dashboard <LayoutDashboard className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/seo-audit-login"
-                  className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link href="/sign-up">
-                  <Button className="rounded-full shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
-                    Get Started <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        {/* ── Hero ── */}
-        <section className="relative container mx-auto px-4 sm:px-8 pt-32 pb-24 text-center max-w-7xl overflow-visible">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/8 blur-[140px] rounded-full pointer-events-none -z-10" />
-          <HeroAnimations />
         </section>
 
-        {/* ── Features ── */}
-        <section id="features" className="py-24 relative z-10">
-          <div className="container mx-auto px-4 sm:px-8 max-w-7xl">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4">
-                Features
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-                45+ Checks. 11 Audit Categories.
+        <section className="px-4 pb-8 sm:px-8">
+          <div className="container mx-auto max-w-6xl">
+            <MarketingPhoto
+              src="/images/hero-product.png"
+              alt="Laptop on a cream desk showing a large B health grade"
+              width={1600}
+              height={900}
+              priority
+              className="aspect-[16/9]"
+              sizes="(min-width: 1024px) 72rem, 100vw"
+            />
+          </div>
+        </section>
+
+        <section id="features" className="px-4 py-24 sm:px-8">
+          <div className="container mx-auto max-w-6xl space-y-28">
+            <div className="max-w-2xl">
+              <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                Product
+              </p>
+              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                What the scan actually does
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Our crawler scans up to 5 pages per domain and runs deep checks
-                across Meta, Content, Performance, Accessibility, Security,
-                Structured Data, and more — giving you a full picture, fast.
+              <p className="mt-5 text-lg text-muted-foreground">
+                Cheerio reads the HTML Googlebot can get without executing your
+                JavaScript. Hobby stops at 50 pages, Pro at 500. If we hit the
+                cap we say so — that is not a whole-site census.
+              </p>
+            </div>
+
+            <FeatureRow
+              eyebrow="Crawl"
+              title="Sitemap seed, then first HTML"
+              body="We queue the homepage plus same-origin sitemap locs, then follow on-page links. Titles, meta, canonicals, robots, headings, OG tags, and image alts come from that HTML — not a headless browser."
+              src="/images/feature-html-crawl.png"
+              alt="Laptop showing first HTML beside printed pages on a cream desk"
+            />
+            <FeatureRow
+              reverse
+              eyebrow="Score"
+              title="An A–F grade from those checks"
+              body="The health score is a weighted roll-up of the on-page findings. It is not Lighthouse, not CrUX, and not a citation percentage for AI Overviews."
+              src="/images/feature-health-score.png"
+              alt="Printed cream report with a large serif B health grade"
+            />
+            <FeatureRow
+              eyebrow="AI search"
+              title="Snippet eligibility, not a GEO score"
+              body="Pro flags nosnippet, max-snippet:0, data-nosnippet, and training-versus-search robots rules (GPTBot is not OAI-SearchBot). A missing llms.txt is not a fail. Google Search ignores that file."
+              src="/images/feature-ai-search.png"
+              alt="Cream paper still life of a search snippet card and a torn note"
+            />
+          </div>
+        </section>
+
+        <section className="px-4 pb-24 sm:px-8">
+          <div className="container mx-auto max-w-6xl">
+            <div className="mb-12 max-w-2xl">
+              <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                Report
+              </p>
+              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                A fix list you can act on
+              </h2>
+              <p className="mt-5 text-lg text-muted-foreground">
+                Hobby includes the score plus meta, social, and heading checks.
+                Pro adds accessibility hints, HTML performance hints, security
+                headers, JSON-LD required properties, image alts, AI-search
+                heuristics, copy-as-prompt, and PDF export.
               </p>
             </div>
             <BentoGrid />
           </div>
         </section>
 
-        {/* ── Stats strip ── */}
-        <section className="border-y border-border/60 bg-muted/20 py-16">
-          <div className="container mx-auto px-4 sm:px-8 max-w-5xl">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {[
-                { value: '45+', label: 'SEO checks per scan' },
-                { value: '5', label: 'Pages crawled per domain' },
-                { value: '11', label: 'Audit categories covered' },
-                { value: '$9', label: 'One-time unlock price' },
-              ].map((s) => (
-                <div key={s.label}>
-                  <p className="text-4xl font-black text-primary mb-1">
-                    {s.value}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{s.label}</p>
-                </div>
-              ))}
-            </div>
+        <section className="border-y border-border py-20">
+          <div className="container mx-auto grid max-w-5xl grid-cols-2 gap-10 px-4 text-center md:grid-cols-4 sm:px-8">
+            {[
+              { value: String(SCANNER_CHECK_COUNT), label: 'Unique checks the scanner can run' },
+              { value: '50/500', label: 'Page cap (Hobby / Pro)' },
+              { value: String(SCANNER_CATEGORY_COUNT), label: 'Check categories' },
+              { value: '$9', label: 'Pro, unlimited scans' },
+            ].map((s) => (
+              <div key={s.label}>
+                <p className="font-display text-4xl text-foreground">{s.value}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* ── Pricing ── */}
-        <section id="pricing" className="py-24">
-          <div className="container mx-auto px-4 sm:px-8 max-w-5xl">
-            <div className="text-center mb-14">
-              <span className="inline-flex items-center text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-4">
-                Pricing
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 text-foreground">
-                Simple, Transparent{' '}
-                <span className="text-primary">Pricing.</span>
+        <section className="px-4 py-24 sm:px-8">
+          <div className="container mx-auto max-w-6xl">
+            <div className="mb-14 max-w-2xl">
+              <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                How it works
+              </p>
+              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                Paste a URL. Get a graded report.
               </h2>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Start for free with 3 total scans. Upgrade to Pro for unlimited
-                audits — cancel any time.
+            </div>
+            <ol className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  step: '01',
+                  title: 'Paste a domain',
+                  body: 'Hobby includes 3 lifetime scans. Create an account — no card. Pro is unlimited scans at $9/mo.',
+                },
+                {
+                  step: '02',
+                  title: 'We fetch the HTML',
+                  body: 'Homepage plus sitemap locs, then BFS. Hobby 50 pages, Pro 500. First document only. Redirects that never return 200 are dropped today.',
+                },
+                {
+                  step: '03',
+                  title: 'Read the fix list',
+                  body: 'Open the report: score, failed checks, and (on Pro) a prompt you can copy or a PDF export.',
+                },
+              ].map((item) => (
+                <li
+                  key={item.step}
+                  className="rounded-3xl border border-border bg-card p-8"
+                >
+                  <p className="mb-6 font-mono text-xs text-muted-foreground">
+                    {item.step}
+                  </p>
+                  <h3 className="font-display text-2xl">{item.title}</h3>
+                  <p className="mt-3 text-base leading-relaxed text-muted-foreground">
+                    {item.body}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section id="pricing" className="px-4 py-24 sm:px-8">
+          <div className="container mx-auto max-w-5xl">
+            <div className="mb-14 max-w-xl">
+              <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                Pricing
+              </p>
+              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                3 free scans. Pro is $9/mo.
+              </h2>
+              <p className="mt-5 text-lg text-muted-foreground">
+                Hobby crawls up to 50 pages. Pro crawls up to 500 and unlocks
+                extra check groups and exports.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-12">
-              {/* Free */}
-              <div className="rounded-2xl border border-border/60 bg-card p-8 flex flex-col">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            <div className="mx-auto mb-12 grid max-w-3xl gap-4 md:grid-cols-2">
+              <div className="flex flex-col rounded-3xl border border-border bg-card p-8">
+                <p className="mb-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                   Hobby
                 </p>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-5xl font-extrabold">$0</span>
-                  <span className="text-muted-foreground mb-1">forever</span>
+                <div className="mb-1 flex items-end gap-1">
+                  <span className="font-display text-5xl">$0</span>
+                  <span className="mb-1 text-muted-foreground">forever</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-6">
-                  3 total scans — no credit card needed
+                <p className="mb-6 text-sm text-muted-foreground">
+                  3 total scans — no credit card
                 </p>
-                <ul className="space-y-2.5 flex-1 mb-8 text-sm">
-                  {[
-                    '3 scans total',
-                    'Full SEO Health Score (A–F)',
-                    'Meta, title & canonical checks',
-                    'Open Graph & Twitter Cards',
-                    'Content & heading analysis',
-                  ].map((f) => (
+                <ul className="mb-8 flex-1 space-y-2.5 text-sm">
+                  {HOBBY_BULLETS.map((f) => (
                     <li key={f} className="flex items-center gap-2.5">
-                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-index" />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Link href="/sign-up" className="w-full">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full rounded-xl border-border/80 hover:border-primary/40 hover:text-primary transition-all"
-                  >
-                    Get Started Free
+                  <Button variant="outline" size="lg" className="w-full">
+                    Get started free
                   </Button>
                 </Link>
               </div>
 
-              {/* Pro */}
-              <div
-                className="relative rounded-2xl bg-card flex flex-col overflow-hidden"
-                style={{
-                  boxShadow:
-                    '0 0 0 1px rgba(62,207,142,0.4), 0 8px 48px -8px rgba(62,207,142,0.2)',
-                }}
-              >
-                <div className="absolute inset-0 rounded-2xl border border-primary/50 pointer-events-none" />
-                <div className="absolute -top-px left-0 right-0 flex justify-center">
-                  <span className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-b-lg">
-                    Best Value
-                  </span>
+              <div className="relative flex flex-col rounded-3xl border border-foreground/15 bg-card p-8">
+                <p className="mb-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  Pro
+                </p>
+                <div className="mb-1 flex items-end gap-1">
+                  <span className="font-display text-5xl">$9</span>
+                  <span className="mb-1 text-muted-foreground">/mo</span>
                 </div>
-                <div className="p-8 pt-10 flex flex-col flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
-                    Pro
-                  </p>
-                  <div className="flex items-end gap-1 mb-1">
-                    <span className="text-5xl font-extrabold text-primary">
-                      $9
-                    </span>
-                    <span className="text-muted-foreground mb-1">/mo</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Unlimited scans, cancel any time
-                  </p>
-                  <ul className="space-y-2.5 flex-1 mb-8 text-sm">
-                    {[
-                      'Unlimited scans',
-                      '5 pages crawled per scan',
-                      '45+ detailed SEO checks',
-                      'Performance & Core Web Vitals',
-                      'Accessibility (WCAG) audit',
-                      'Security headers analysis',
-                      'Structured data / JSON-LD',
-                      'Image & link optimisation',
-                      'AI-ready prompt export',
-                      'PDF report export',
-                    ].map((f) => (
-                      <li key={f} className="flex items-center gap-2.5">
-                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/pricing" className="w-full">
-                    <Button
-                      size="lg"
-                      className="w-full rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-lg shadow-primary/25 gap-2"
-                    >
-                      Subscribe for $9/mo <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
+                <p className="mb-6 text-sm text-muted-foreground">
+                  Unlimited scans, up to 500 pages
+                </p>
+                <ul className="mb-8 flex-1 space-y-2.5 text-sm">
+                  {PRO_BULLETS.map((f) => (
+                    <li key={f} className="flex items-center gap-2.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-index" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/pricing" className="w-full">
+                  <Button size="lg" className="w-full">
+                    Subscribe for $9/mo
+                  </Button>
+                </Link>
               </div>
             </div>
 
-            {/* Comparison table */}
-            <div className="rounded-2xl border border-border/60 overflow-hidden max-w-3xl mx-auto">
+            <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border/60 bg-muted/30">
-                    <th className="text-left px-6 py-3.5 font-semibold text-muted-foreground">
+                  <tr className="border-b border-border bg-muted/40">
+                    <th className="px-6 py-3.5 text-left font-medium text-muted-foreground">
                       Feature
                     </th>
-                    <th className="text-center px-6 py-3.5 font-semibold w-28">
+                    <th className="w-28 px-6 py-3.5 text-center font-medium">
                       Hobby
                     </th>
-                    <th className="text-center px-6 py-3.5 font-semibold text-primary w-28">
+                    <th className="w-28 px-6 py-3.5 text-center font-medium">
                       Pro
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {features.map((f, i) => (
-                    <tr
-                      key={f.name}
-                      className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}
-                    >
-                      <td className="px-6 py-3 text-muted-foreground">
-                        {f.name}
-                      </td>
+                  {FEATURE_CLAIMS.map((f) => (
+                    <tr key={f.userLabel} className="border-b border-border last:border-0">
+                      <td className="px-6 py-3 text-muted-foreground">{f.userLabel}</td>
                       <td className="px-6 py-3 text-center">
                         <FeatureValue value={f.free} />
                       </td>
@@ -289,173 +374,40 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ── CTA ── */}
-        <section className="py-28 relative overflow-hidden border-t border-border/60">
-          <div
-            className="absolute inset-0 -z-10"
-            style={{
-              background:
-                'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(62,207,142,0.07) 0%, transparent 70%)',
-            }}
-          />
-          <div className="container mx-auto px-4 text-center max-w-2xl">
-            <span className="inline-flex items-center text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-6">
-              Start today
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-extrabold mb-5 tracking-tight">
-              Your site&apos;s SEO score
-              <br />
-              <span className="text-primary">in under 10 seconds.</span>
-            </h2>
-            <p className="text-lg text-muted-foreground mb-10 max-w-lg mx-auto">
-              No setup. No credit card. Paste a domain and get a full technical
-              audit instantly.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/sign-up">
-                <Button
-                  size="lg"
-                  className="h-13 px-10 text-base rounded-full shadow-xl shadow-primary/25 bg-primary text-primary-foreground font-semibold hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+        <section className="border-t border-border px-4 py-28 sm:px-8">
+          <div className="container mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2">
+            <div>
+              <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+                Run the HTML audit on your domain
+              </h2>
+              <p className="mt-5 max-w-lg text-lg text-muted-foreground">
+                Three free scans. Account required. You get a health score and
+                the checks your plan includes — not a ranking promise.
+              </p>
+              <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                <Link href="/sign-up">
+                  <Button size="lg">Create a free account</Button>
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="text-sm text-muted-foreground underline-offset-4 hover:underline"
                 >
-                  Start Free Scan <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link
-                href="#pricing"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                or unlock unlimited for $9 →
-              </Link>
+                  or unlock Pro for $9
+                </Link>
+              </div>
             </div>
+            <MarketingPhoto
+              src="/images/story-review.png"
+              alt="Hands holding a printed SEO report with a large B grade"
+              width={1600}
+              height={900}
+              className="aspect-[16/9]"
+              sizes="(min-width: 768px) 32rem, 100vw"
+            />
           </div>
         </section>
       </main>
-
-      {/* ── Footer ── */}
-      <footer className="border-t border-border/60 bg-background">
-        <div className="container mx-auto px-4 sm:px-8 max-w-7xl">
-          <div className="py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-md shadow-primary/20">
-                  <Zap className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <span className="font-bold text-base tracking-tight">
-                  SEO Boost
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                Instant SEO audits for founders, marketers, and developers who
-                want to rank.
-              </p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                Product
-              </p>
-              <ul className="space-y-2.5">
-                {[
-                  { label: 'Technical Audit', href: '#features' },
-                  { label: 'SEO Health Score', href: '#features' },
-                  { label: 'Pricing Analysis', href: '#pricing' },
-                  { label: 'Instant Reports', href: '/dashboard' },
-                ].map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                Resources
-              </p>
-              <ul className="space-y-2.5">
-                {[
-                  { label: 'Documentation', href: '/dashboard' },
-                  { label: 'SEO Dashboard', href: '/dashboard' },
-                  { label: 'SEO Glossary', href: '/glossary' },
-                  { label: 'Support', href: 'mailto:hello@seoboost.app' },
-                ].map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Account */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                Account
-              </p>
-              <ul className="space-y-2.5">
-                {[
-                  { label: 'Sign In', href: '/seo-audit-login' },
-                  { label: 'Sign Up', href: '/sign-up' },
-                ].map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                Legal
-              </p>
-              <ul className="space-y-2.5">
-                {[
-                  { label: 'Privacy Policy', href: '#' },
-                  { label: 'Terms of Service', href: '#' },
-                ].map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-border/60 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} SEO Boost Analytics. All rights
-              reserved.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Made with <span className="text-primary">♥</span> for founders who
-              want to rank.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

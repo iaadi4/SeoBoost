@@ -1,11 +1,15 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'SEO Audit Login | SEO Boost',
-  description: 'Sign in to your SEO Boost account to view your technical SEO audit reports and scan domains.',
+  title: 'Sign in',
+  description:
+    'Sign in to your SEO Boost account to view your technical SEO audit reports and scan domains.',
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
+  },
+  alternates: {
+    canonical: '/seo-audit-login',
   },
 }
 

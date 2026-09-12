@@ -1,0 +1,458 @@
+{
+  "agent": "04-ai-search-geo",
+  "as_of": "2026-09-11",
+  "lane": "AI search and GEO",
+  "research_status": "Shipped in one pass. Official Google / OpenAI / Anthropic / Perplexity / Bing / Next.js docs read. Third-party citation-overlap studies labeled uncertain. No application source edited.",
+  "proven_consensus": [
+    "Google AI Overviews and AI Mode use core Search ranking + RAG + optional query fan-out. A page must be indexed and snippet-eligible. No extra GEO markup. Google: AEO/GEO for Search is still SEO.",
+    "nosnippet, max-snippet:0, and data-nosnippet limit or block page text as a direct input to AI Overviews and AI Mode (robots-meta-tag, 2026-03-24).",
+    "Training tokens and search tokens are independent: GPTBot ≠ OAI-SearchBot; ClaudeBot ≠ Claude-SearchBot; Google-Extended ≠ Googlebot; PerplexityBot ≠ Perplexity-User.",
+    "Google-Extended is a robots.txt product token with no HTTP UA. It controls Gemini Apps / Vertex training and grounding. It does not affect Google Search inclusion or ranking, including AI Overviews / AI Mode.",
+    "llms.txt / llms-full.txt: community proposal, not an IETF/W3C standard. Google Search ignores them (neither help nor hurt). Fine to keep for other agents.",
+    "User-triggered fetchers (ChatGPT-User, Perplexity-User, Claude-User) generally ignore robots.txt. robots.txt is not a paywall.",
+    "Microsoft Copilot web grounding uses the Bing index (bingbot). There is no CopilotBot. Bing noarchive / nocache (2023) control Bing Chat / Copilot inclusion separately from Bing Search listings. Google noarchive is unused.",
+    "Search Console Generative AI performance report (launched 2026-06-03, worldwide 2026-08-31) reports impressions in AI Overviews / AI Mode by page, country, device, date. Not a citation-rank API."
+  ],
+  "speculative_do_not_sell": [
+    "Ahrefs Mar 2026: ~38% of AI Overview cited URLs also rank in the same-query top 10 (was ~76% in a Jul 2025 top-3-visible parse). Methodology changed; treat as uncertain, not a product metric.",
+    "Semrush 'ghost citations' (~62% cited without brand mention) and low cross-engine overlap: third-party, not Search Central.",
+    "'AI Overviews cite passages not pages' / BrightEdge trigger-rate claims: third-party. Google does not document a passage-citation API.",
+    "llms-full.txt inlined corpora, Knowledge Graph density scores, GEO scores, and 'chunk for RAG' as ranking levers: hype. Google explicitly rejects chunking and special AI files for Search.",
+    "Any tool claiming internal Google AI ranking access: Google says none have it."
+  ],
+  "sources": [
+    {
+      "title": "Optimizing your website for generative AI features on Google Search",
+      "url": "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "AI features and your website (AI Overviews, AI Mode)",
+      "url": "https://developers.google.com/search/docs/appearance/ai-features",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Robots meta tag, data-nosnippet, X-Robots-Tag (nosnippet applies to AI Overviews / AI Mode)",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+      "date": "2026-03-24"
+    },
+    {
+      "title": "Google common crawlers — Google-Extended product token (updated 2026-07-14)",
+      "url": "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers",
+      "date": "2026-07-14"
+    },
+    {
+      "title": "Google Search documentation updates (llms.txt clarification; FAQ rich result removed)",
+      "url": "https://developers.google.com/search/updates",
+      "date": "2026-06-15"
+    },
+    {
+      "title": "Introducing Search Generative AI performance reports in Search Console",
+      "url": "https://developers.google.com/search/blog/2026/06/gen-ai-performance-reports",
+      "date": "2026-06-03"
+    },
+    {
+      "title": "Generative AI performance report (Search) — Search Console Help",
+      "url": "https://support.google.com/webmasters/answer/16984139",
+      "date": "2026-08-31"
+    },
+    {
+      "title": "Creating helpful, reliable, people-first content",
+      "url": "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Spam policies (scaled content abuse)",
+      "url": "https://developers.google.com/search/docs/essentials/spam-policies",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Overview of OpenAI Crawlers (OAI-SearchBot, GPTBot, ChatGPT-User, OAI-AdsBot)",
+      "url": "https://developers.openai.com/api/docs/bots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "OpenAI Publishers and Developers FAQ (OAI-SearchBot + noindex for Atlas link-only)",
+      "url": "https://help.openai.com/en/articles/12627856-publishers-and",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "ChatGPT Search help (allow OAI-SearchBot; no guaranteed placement)",
+      "url": "https://help.openai.com/en/articles/9237897-chatgpt-search",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Perplexity Crawlers (PerplexityBot vs Perplexity-User; IP JSON)",
+      "url": "https://docs.perplexity.ai/docs/resources/perplexity-crawlers",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Anthropic: ClaudeBot, Claude-User, Claude-SearchBot (updated 2026-04-07)",
+      "url": "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler",
+      "date": "2026-04-07"
+    },
+    {
+      "title": "Bing: webmaster controls for Bing Chat (noarchive / nocache)",
+      "url": "https://blogs.bing.com/webmaster/september-2023/Announcing-new-options-for-webmasters-to-control-usage-of-their-content-in-Bing-Chat",
+      "date": "2023-09-01"
+    },
+    {
+      "title": "Bing: data-nosnippet for Search snippets and AI-generated answers",
+      "url": "https://blogs.bing.com/webmaster/October-2025/Bing-Introduces-Support-for-the-data-nosnippet-HTML-Attribute",
+      "date": "2025-10-01"
+    },
+    {
+      "title": "Microsoft Copilot Chat privacy — web grounding via Bing",
+      "url": "https://learn.microsoft.com/en-us/copilot/privacy-and-protections",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "llms.txt community proposal (Answer.AI / llmstxt.org)",
+      "url": "https://llmstxt.org/",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js robots.ts (rules array; other field since v16.3.0)",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js htmlLimitedBots",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js default HTML_LIMITED_BOT_UA_RE (canary html-bots.ts)",
+      "url": "https://github.com/vercel/next.js/blob/canary/packages/next/src/shared/lib/router/utils/html-bots.ts",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Ahrefs: 38% of AI Overview citations also in the same-query top 10 (third-party)",
+      "url": "https://ahrefs.com/blog/ai-overview-citations-top-10/",
+      "date": "2026-03-02"
+    },
+    {
+      "title": "Semrush / Kevin Indig: ghost citations study (third-party)",
+      "url": "https://www.semrush.com/blog/the-ghost-citations-study/",
+      "date": "2026-09-11"
+    }
+  ],
+  "bot_token_map": {
+    "note": "Official tokens as of 2026-09-11. User-agent strings can be spoofed; verify published IP JSON where the vendor publishes one.",
+    "google": {
+      "search_including_ai_overviews_ai_mode": "Googlebot (robots.txt + preview tags). Do not Disallow Googlebot to 'opt out of AI'.",
+      "gemini_apps_vertex_training_and_grounding": "Google-Extended (robots.txt token only; no HTTP UA). Disallow does not change Search ranking.",
+      "preview_controls": "nosnippet | data-nosnippet | max-snippet | noindex — AI Overviews/AI Mode use these, not Google-Extended."
+    },
+    "openai": {
+      "chatgpt_search_index": "OAI-SearchBot (honors robots.txt; ~24h). Opt-out: Disallow. Sites opted out are not shown in ChatGPT search answers; may still appear as navigational links. Use noindex if you also do not want those links.",
+      "training": "GPTBot (honors robots.txt).",
+      "user_fetch": "ChatGPT-User (user-initiated; robots.txt may not apply). Not used to decide Search inclusion.",
+      "ads": "OAI-AdsBot (ad landing checks only; not training)."
+    },
+    "anthropic": {
+      "training": "ClaudeBot",
+      "search_index": "Claude-SearchBot (Disallow may reduce visibility/accuracy in Claude search).",
+      "user_fetch": "Claude-User (Disallow may reduce user-directed retrieval).",
+      "deprecated": "anthropic-ai, Claude-Web — unused; harmless leftovers."
+    },
+    "perplexity": {
+      "search_index": "PerplexityBot (honors robots.txt; not used for foundation-model training per their docs).",
+      "user_fetch": "Perplexity-User (generally ignores robots.txt).",
+      "ip_json": [
+        "https://www.perplexity.com/perplexitybot.json",
+        "https://www.perplexity.com/perplexity-user.json"
+      ]
+    },
+    "microsoft": {
+      "bing_search_and_copilot_web_grounding": "bingbot. No separate Copilot crawler.",
+      "copilot_content_controls": "meta/X-Robots-Tag noarchive (exclude from Bing Chat answers + training going forward); nocache (URL/title/snippet only in answers). These do not remove Bing Search listings. Google ignores noarchive."
+    }
+  },
+  "findings": [
+    {
+      "id": "04-01",
+      "priority": "P0",
+      "confidence": "proven",
+      "title": "Google AI Overviews / AI Mode have no extra GEO ranking system — SeoBoost has zero AI-citability checks and must not invent a GEO score",
+      "why_it_ranks": "Official (ai-features, 2025-12-10; ai-optimization-guide, 2026-09-11): AI Overviews and AI Mode retrieve from the Google Search index via RAG and may fan out related queries. Eligibility = indexed + allowed to show a Search snippet. No special schema, Markdown, or AI file. Google says AEO/GEO for Search is still SEO. Fan-out means a page can be cited for a sub-query it ranks for even if it is not top 10 for the original string — that is still Search retrieval, not a secret GEO factor. Third-party overlap rates (Ahrefs ~38% same-query top 10, Mar 2026) are uncertain and must not become a product number.",
+      "nextjs_how": "Ship indexable Server Component HTML: generateMetadata (title, description, robots, canonical), visible <h1> + <article> in the first response, metadataBase on one origin. Do not add FAQPage, llms.txt, or 'AI Overview schema' to chase citations. Do not generate one route per fan-out variant (scaled-content abuse).",
+      "seoBoost_gap": "lib/scanner.ts has no AI/GEO/citability category. Marketing (app/page.tsx:22) sells 'AI-ready prompt export' which only copies failed HTML checks (app/dashboard/report/[id]/report-actions.tsx:56-67). Competitors (Semrush AI-crawler access) already productize bot access; 09 left that out of scope. The honest Next.js wedge is eligibility + per-bot robots + first-HTML extractability, labeled heuristic — not a citation rank.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "lib/claims.ts"
+      ],
+      "verify_how": "1) Grep lib/scanner.ts: no check id geo-score, aeo-score, or 'eligible for AI Overviews' after JSON.parse. 2) New ids (ai-snippet-eligible, ai-bots-robots) say 'heuristic / eligibility', never 'Google will cite you'. 3) tests/claims/feature-matrix.test.ts fails if a Pro row says 'AI Overview' / 'GEO' with measurement none. 4) Confirm https://developers.google.com/search/docs/appearance/ai-features still says no additional requirements.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+        "https://developers.google.com/search/docs/appearance/ai-features",
+        "https://ahrefs.com/blog/ai-overview-citations-top-10/"
+      ]
+    },
+    {
+      "id": "04-02",
+      "priority": "P0",
+      "confidence": "proven",
+      "title": "nosnippet / max-snippet:0 / data-nosnippet block AI Overviews and AI Mode as a direct input — scanner never reads them that way",
+      "why_it_ranks": "robots-meta-tag (2026-03-24): nosnippet applies to web, Images, Discover, AI Overviews, and AI Mode, and prevents the page from being used as a direct input to those AI features. max-snippet:N limits how much text may be used as that input (0 = nosnippet). data-nosnippet on span/div/section excludes that HTML from snippets. noindex also removes Search + AI-feature eligibility. Google-Extended does not do this. Accidental sitewide nosnippet or max-snippet:0 is an AI-visibility outage that looks like a 'good' meta-robots pass today.",
+      "nextjs_how": "Root metadata.robots.googleBot already sets max-snippet:-1 (app/layout.tsx:64-70) — keep that on public pages. Per-route: robots: { nosnippet: true } or googleBot maxSnippet: 0 only when the publisher intends to withhold body text from AI features. Do not set sitewide X-Robots-Tag: nosnippet in next.config headers(). data-nosnippet belongs on paywall or sensitive blocks, present in the first HTML (do not toggle via useEffect).",
+      "seoBoost_gap": "meta-robots (lib/scanner.ts:430-454) concatenates meta[name=robots] + one x-robots-tag and only branches on noindex (critical) or nofollow (warning). nosnippet, max-snippet:0, data-nosnippet, and name=googlebot are unread. A money page with nosnippet is scored 'good'. 06-04/06-10 already named the parse gap; this lane owns the AI-input interpretation and the customer-facing check copy.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "1) Fixture <meta name=robots content=nosnippet> on /pricing → info/warning 'withheld from AI Overviews/AI Mode as direct input; still may rank as a result without a snippet'. 2) Fixture max-snippet:0 → same. 3) Fixture data-nosnippet wrapping <main> → warn extractable-text hidden. 4) Default max-snippet:-1 → no fail. 5) Copy must not say nosnippet is a ranking penalty.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+        "https://developers.google.com/search/docs/appearance/ai-features"
+      ]
+    },
+    {
+      "id": "04-03",
+      "priority": "P0",
+      "confidence": "proven",
+      "title": "Scanner parses only User-agent: * — it cannot see a training-bot block that also killed ChatGPT / Perplexity / Claude search",
+      "why_it_ranks": "OpenAI: GPTBot (training) and OAI-SearchBot (ChatGPT Search) are independent; opting out of OAI-SearchBot removes the site from ChatGPT search answers. Anthropic (2026-04-07): ClaudeBot vs Claude-SearchBot vs Claude-User. Perplexity: PerplexityBot is the search index (not foundation-model training per their docs). Google-Extended is not Googlebot. A single Disallow: / under * blocks every bot that honors robots.txt, including search indexers. A WAF that blocks 'AI bots' by UA substring often catches OAI-SearchBot and PerplexityBot while robots.txt looks open. Semrush already sells this split; SeoBoost would lie if it said 'robots valid' after only reading *.",
+      "nextjs_how": "app/robots.ts: MetadataRoute.Robots rules can be an array of { userAgent, allow, disallow }. Default for a citation-wanting SaaS: keep User-agent: * Allow: / with Disallow only /api/ /auth/ /dashboard/. Do not add theater Allow lines for every bot. If the business wants training-out / search-in: explicit Disallow: / for GPTBot and ClaudeBot only; do not Disallow OAI-SearchBot, PerplexityBot, Claude-SearchBot, or Googlebot. Google-Extended Disallow is a Gemini Apps/Vertex choice, not a Search ranking lever. Never Disallow Googlebot to 'block AI'.",
+      "seoBoost_gap": "Parser (lib/scanner.ts:1381-1392) lowercases the file, tracks only user-agent: *, ignores Allow, wildcards, and every named group. Product app/robots.ts:5-11 emits one * group — currently allows all bots (fine). howToFix snippets never mention the training/search split. blocksEverything copy (1397) says Disallow: / 'completely removes your site from Google search results' — false for indexation and silent on ChatGPT/Perplexity. 06-09 owns REP correctness; this lane adds the AI token table on that parser.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/robots.ts"
+      ],
+      "verify_how": "1) Fixture User-agent: OAI-SearchBot / Disallow: / plus User-agent: * Allow: / → warning 'ChatGPT Search opted out; Googlebot still allowed'. 2) Fixture User-agent: GPTBot Disallow: / only → info 'training opt-out; search bots unaffected'. 3) Fixture User-agent: Google-Extended Disallow: / → info 'Gemini Apps/Vertex grounding/training preference; Search/AI Overviews unchanged'. 4) Fixture User-agent: * Disallow: / → critical crawl block, copy must not say 'de-indexed'. 5) Product robots.txt after 01-01: no fake per-bot Disallow.",
+      "sources": [
+        "https://developers.openai.com/api/docs/bots",
+        "https://docs.perplexity.ai/docs/resources/perplexity-crawlers",
+        "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler",
+        "https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots"
+      ]
+    },
+    {
+      "id": "04-04",
+      "priority": "P0",
+      "confidence": "proven",
+      "title": "llms.txt / llms-full.txt are optional agent hints — Google ignores them; do not score or generate them as a ranking fix",
+      "why_it_ranks": "Search Central updates + ai-optimization-guide: Google Search (including generative AI features) does not use llms.txt or similar AI text files. Presence neither helps nor hurts rankings or AI Overview/AI Mode visibility. llmstxt.org is a community Markdown convention (H1 + optional blockquote + H2 link lists), not IETF/W3C. llms-full.txt is an unofficial companion (often Mintlify-inlined Markdown) with no single schema. Labs publish them for their own docs so coding agents can fetch a corpus — that is product DX, not SEO. Selling 'add llms.txt to get cited' is snake oil.",
+      "nextjs_how": "If you want an agent-facing docs index later: app/llms.txt/route.ts returning text/plain Markdown, or a static public/llms.txt, listing /glossary/* and /pricing. Do not list it in sitemap as a ranking URL. Do not add a scanner 'missing llms.txt' warning. Do not emit llms-full.txt of the whole marketing site (staleness + size).",
+      "seoBoost_gap": "No public/llms.txt, no app/llms.txt/route.ts. That absence is correct for Google. Risk is a future Pro row 'GEO / llms.txt' or an LLM prompt that tells Next.js users to add the file for rankings. 05-12 and 09 already ban this; this finding is the lane lock.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "tests/scanner/false-positives.test.ts"
+      ],
+      "verify_how": "1) String-ban in tests: howToFix/LLM prompt must not contain 'llms.txt' as a Google/AIO recommendation. 2) Missing /llms.txt is not a check. 3) If a docs customer already has /llms.txt, status=info 'optional for other agents; Google Search ignores'. 4) Re-read https://developers.google.com/search/updates llms.txt note still says no ranking effect.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+        "https://developers.google.com/search/updates",
+        "https://llmstxt.org/"
+      ]
+    },
+    {
+      "id": "04-05",
+      "priority": "P0",
+      "confidence": "proven",
+      "title": "AI search bots are not on Next.js htmlLimitedBots — streamed metadata and client-only main text are invisible to ChatGPT / Perplexity / Claude indexers",
+      "why_it_ranks": "Google: important content must be available as text; JS is allowed but harder. ChatGPT Search / Perplexity / Claude search crawlers fetch HTTP like any bot. Next 15.2+ streams metadata for UAs that do not match htmlLimitedBots. Default HTML_LIMITED_BOT_UA_RE (canary 2026-09-11) includes Bingbot, Twitterbot, Slackbot, [\\w-]+-Google, Google-[\\w-]+, Chrome-Lighthouse — not OAI-SearchBot, PerplexityBot, Claude-SearchBot, ChatGPT-User, or the string Googlebot. Those bots can see an empty <head> while Google-InspectionTool / Bingbot get blocking tags. Cheerio + SEOScanBot/2.0 (lib/scanner.ts:158) is the same blind class. A page whose answer lives only in a client island cannot be cited.",
+      "nextjs_how": "Keep title/canonical/robots and the extractable answer in the Server Component first HTML. Do not set htmlLimitedBots: /.*/ (replaces the default list, raises TTFB). If logs show OAI-SearchBot/PerplexityBot missing <title>, extend htmlLimitedBots by concatenating the default pattern plus those UAs — do not replace. Prefer RSC <article> over useEffect copy. Dual-fetch (09-08) should add OAI-SearchBot and PerplexityBot on Next-detected hosts, not only Googlebot vs SEOScanBot.",
+      "seoBoost_gap": "No Next fingerprint, no dual-UA, no 'main text in first HTML' citability check. Homepage H1 is a client motion node (02-03). Glossary bodies are server HTML (good) but titles can be literal ${} (01-03). Product cannot tell a customer their ChatGPT-Search crawl saw no title.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/hero-animations.tsx",
+        "app/page.tsx"
+      ],
+      "verify_how": "1) curl -A 'OAI-SearchBot/1.4' and curl -A 'Bingbot' on a slow generateMetadata Next page — document whether <title> is in the first chunk. 2) Fixture CSR empty <main> → critical 'no extractable text in first HTML; AI search crawlers may cite nothing'. 3) Do not fail a page that has a real <article> in view-source. 4) Do not add htmlLimitedBots to next.config.ts in this lane.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots",
+        "https://github.com/vercel/next.js/blob/canary/packages/next/src/shared/lib/router/utils/html-bots.ts",
+        "https://developers.google.com/search/docs/appearance/ai-features",
+        "https://developers.openai.com/api/docs/bots"
+      ]
+    },
+    {
+      "id": "04-06",
+      "priority": "P1",
+      "confidence": "proven",
+      "title": "Citable content is unique, non-commodity, and structured for humans — not chunked, not fan-out farms, not FAQPage-for-AIO",
+      "why_it_ranks": "Google's 2026 AI-optimization guide: unique point of view and first-hand evidence beat commodity summaries; organize with paragraphs and headings for readers; add real images/video; do not spawn a page per query/fan-out variation (scaled-content abuse); do not rewrite for long-tail or 'chunk' for AI; no ideal length. Structured data is not required for generative Search. FAQ rich results are gone (2026-05-07); unused FAQPage is not an AI Overview lever (03-01). SeoBoost glossary terms are short commodity definitions with no original data, no named author, no outbound citations — typical 'summary of existing content' Google says not to clone.",
+      "nextjs_how": "Informational routes (glossary/docs): one RSC <article> with a definition in the first screen, H2s for how/risks/alternatives, visible sources (<a href> to primary docs), last-updated date in generateMetadata.openGraph.modifiedTime. Do not generateStaticParams city/query grids. Do not add FAQPage. Media: 07 owns image/video eligibility for AIO thumbnails.",
+      "seoBoost_gap": "Content checks are word-count, keyword-in-intro, LSI, FAQ-schema (05-02/05-05). No outbound-citation check, no 'first-screen answer' check, no original-stat/methodology flag. lib/glossary-data.ts pages have no author, no sources, no dates. LLM export will tell users to pad words and add FAQPage — the opposite of the AI guide.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "lib/glossary-data.ts",
+        "app/glossary/[term]/page.tsx",
+        "app/dashboard/report/[id]/report-actions.tsx"
+      ],
+      "verify_how": "1) Informational fixture with H1 + 2 H2s + 2 outbound citations to primary sources → no 'add FAQPage' / no 'chunk this'. 2) Fixture 12 near-dup 'best X in {city}' → scaled-content (05-03), not 'more GEO pages'. 3) Grep howToFix: zero 'chunk', 'llms.txt', 'AEO', 'GEO hack', 'FAQ schema' as AIO advice.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/essentials/spam-policies",
+        "https://developers.google.com/search/updates"
+      ]
+    },
+    {
+      "id": "04-07",
+      "priority": "P1",
+      "confidence": "proven_with_uncertain_extras",
+      "title": "Entity clarity that is real: visible author/org + sameAs + sourced stats — not a Knowledge Graph density score",
+      "why_it_ranks": "Proven: Google wants identifiable creators (Who/How/Why), Organization/WebSite identity on the homepage, Article author markup that matches visible bylines, and unique non-commodity evidence. Statistics and original data help because they are unique, not because there is a 'cite my table' API. Uncertain: third-party claims that engines prefer pages with more numbered stats, quotation blocks, or entity-schema-on-every-noun. Do not sell those as ranking factors. 05 owns Who/How presence and the /author/ skip; 03 owns JSON-LD fields; this lane owns 'can an answer engine extract a sourced claim from first HTML'.",
+      "nextjs_how": "Homepage: Organization + sameAs (docs, GitHub, X) in RSC JSON-LD matching visible contact. Glossary/docs: byline or 'SEO Boost editorial' linking to /about, ISO dates, citations as real <a href>. Do not mark every noun as DefinedTerm. Do not invent AggregateRating (03-02).",
+      "seoBoost_gap": "No citation/stat/author-visible checks (05-01/05-09). PROGRAMMATIC_PATTERNS skips /author/ (lib/scanner.ts:195). Product metadata.authors is 'SEO Boost Team' only; no /about. Glossary Article JSON-LD is incomplete and escaped (03-09). Scanner would pass a stat-free commodity page if word-count ≥300.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx",
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "1) Informational fixture with a number and no source link → info 'unsourced statistic' (not critical). 2) Fixture with byline + two primary-source links → pass extractable-claim. 3) No check id entity-authority, kg-density, or geo-score. 4) /author/ URLs in sitemap are crawled (05-01).",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+        "https://developers.google.com/search/docs/appearance/structured-data/organization",
+        "https://developers.google.com/search/docs/appearance/structured-data/article",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide"
+      ]
+    },
+    {
+      "id": "04-08",
+      "priority": "P1",
+      "confidence": "proven",
+      "title": "Honest AI-citability audit: eligibility heuristics + GSC Generative AI impressions — never scrape ChatGPT or sell a citation %",
+      "why_it_ranks": "Google: no third-party tool has internal AI ranking access. The official measurement for owned properties is the Search Console Generative AI performance report (2026-06-03; worldwide 2026-08-31): impressions for AI Overviews / AI Mode by page/country/device/date — not clicks, not a rank, not ChatGPT. OpenAI/Perplexity/Anthropic publish no citation API. Scraping those UIs to 'track GEO' is fragile, ToS-risky, and unverifiable. A Next.js SEO product should gate on crawl/index/snippet/bot-access, then optionally overlay GSC gen-AI impressions for verified properties (same OAuth as 09-04).",
+      "nextjs_how": "Report section 'AI search eligibility (heuristic)': (1) indexable + snippet allowed (04-02), (2) first-HTML extractable text (04-05), (3) search-bot robots map (04-03), (4) methods footer (10-12). Pro/owned: join GSC gen-AI impression rows to scanned URLs. Link https://search.google.com/search-console. Do not call undocumented endpoints. Do not query ChatGPT/Perplexity from the scanner.",
+      "seoBoost_gap": "Zero GSC code (09-04). Zero methods block (10-12). 'AI-ready prompt export' implies AI optimization without measuring eligibility. Semrush Site Audit 'AI crawler accessibility' is the competitor shape to copy for robots/WAF — not their visibility index.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "lib/claims.ts"
+      ],
+      "verify_how": "1) Report UI contains 'heuristic, not a Google citation rank' and a GSC Generative AI report help link. 2) No fetch to chatgpt.com or perplexity.ai in lib/. 3) GSC overlay, if added, refuses non-owned hosts (10-08 pattern). 4) Feature matrix: AI row measurement is 'html' or 'gsc', never 'none'.",
+      "sources": [
+        "https://developers.google.com/search/blog/2026/06/gen-ai-performance-reports",
+        "https://support.google.com/webmasters/answer/16984139",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide"
+      ]
+    },
+    {
+      "id": "04-09",
+      "priority": "P1",
+      "confidence": "proven",
+      "title": "Copilot has no crawler — bingbot + Bing noarchive/nocache; Google noarchive is a no-op",
+      "why_it_ranks": "Microsoft Copilot Chat web grounding uses the Bing search service (learn.microsoft.com Copilot privacy). Indexing is bingbot. Bing's Sep 2023 publisher post: default (no tags) may appear in Bing Chat and may be used for training; nocache = URL/title/snippet only in answers + limited training; noarchive = excluded from Bing Chat answers and from that training path, while Bing Search listings remain. Oct 2025: Bing honors data-nosnippet for snippets and AI answers. Google's robots-meta-tag: noarchive is unused. A scanner that treats noarchive as a Google AI opt-out is wrong. Disallow bingbot removes Bing Search and Copilot grounding together.",
+      "nextjs_how": "Do not Disallow Bingbot unless you accept losing Bing + Copilot. To withhold body text from Copilot while staying in Bing Search: metadata.robots or a bingbot-specific meta (Next robots does not emit name=bingbot; add a raw <meta name=\"bingbot\" content=\"nocache\"> in the page RSC if that is the policy). Do not copy those tags onto Googlebot.",
+      "seoBoost_gap": "meta-robots ignores noarchive, nocache, and name=bingbot. howToFix never explains the Bing/Copilot vs Google-Extended split. A customer who pastes 'Disallow: Bingbot' to 'block Copilot' would also leave Bing Search — the product would not warn.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1) Fixture Disallow: Bingbot → warning 'Bing Search + Copilot web grounding both lose this host'. 2) Fixture <meta name=robots content=noarchive> → info 'Bing Chat/Copilot control (2023); Google ignores noarchive'. 3) Fixture Google-Extended Disallow vs Bingbot Disallow must not share the same copy.",
+      "sources": [
+        "https://blogs.bing.com/webmaster/september-2023/Announcing-new-options-for-webmasters-to-control-usage-of-their-content-in-Bing-Chat",
+        "https://blogs.bing.com/webmaster/October-2025/Bing-Introduces-Support-for-the-data-nosnippet-HTML-Attribute",
+        "https://learn.microsoft.com/en-us/copilot/privacy-and-protections",
+        "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+      ]
+    },
+    {
+      "id": "04-10",
+      "priority": "P1",
+      "confidence": "proven",
+      "title": "User-triggered AI fetchers ignore robots.txt; WAF/IP blocks look like 'valid robots' to a Cheerio * parser",
+      "why_it_ranks": "OpenAI: ChatGPT-User is user-initiated; robots.txt may not apply; use OAI-SearchBot for Search opt-out and noindex if you also do not want navigational links. Perplexity-User 'generally ignores robots.txt'. Anthropic: Claude-User honors robots.txt per their 2026-04-07 article (vendor difference — do not collapse all 'User' bots into one behavior). Official WAF guidance (Perplexity, OpenAI IP JSON) is UA + published IP. A Cloudflare bot fight that 403s PerplexityBot/OAI-SearchBot removes citations while /robots.txt still says Allow: /. SeoBoost never fetches as those UAs and never records 403 (06-03/09-03 drop !res.ok).",
+      "nextjs_how": "On Next/Vercel: do not put AI search UAs on a deny list in middleware or vercel.json. If you challenge anonymous bots, allowlist IPs from openai.com/searchbot.json, perplexity.com/perplexitybot.json, and Anthropic's published list — refresh; do not hardcode. robots.txt cannot fix a 403.",
+      "seoBoost_gap": "Single UA SEOScanBot. fetchUrl nulls !res.ok. No WAF/403-to-named-bot check. Domain robots 'good' on a host that 403s OAI-SearchBot. This is the Semrush AI-crawler-accessibility gap 09 declined; this lane specifies the honest subset: optional second HEAD as OAI-SearchBot + PerplexityBot on the homepage only, disclose IP-unverified.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts"
+      ],
+      "verify_how": "1) After 06-03 records status: homepage GET as OAI-SearchBot returning 403 → warning 'ChatGPT Search crawler blocked at HTTP; robots.txt Allow is irrelevant'. 2) 200 for that UA → no fail. 3) Copy must say UA can be spoofed; IP JSON is the vendor source of truth. 4) Hobby plan: homepage only, not every URL.",
+      "sources": [
+        "https://developers.openai.com/api/docs/bots",
+        "https://docs.perplexity.ai/docs/resources/perplexity-crawlers",
+        "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler"
+      ]
+    },
+    {
+      "id": "04-11",
+      "priority": "P2",
+      "confidence": "speculative_third_party",
+      "title": "Do not productize Ahrefs/Semrush citation-overlap or 'ghost citation' rates as engine truth",
+      "why_it_ranks": "Ahrefs Jul 2025 (~76% of visible AIO citations in same-query top 10) and Mar 2026 (~38% of all parsed AIO URLs) are not comparable (parsing changed; they also cite Gemini 3 + more fan-out). Semrush reports many citations without brand mentions and low ChatGPT↔Gemini overlap. Useful as a caution that ranking ≠ citation and engines differ. Not a calibration target. Google: use GSC Generative AI impressions; beware tools claiming internal metrics.",
+      "nextjs_how": "If you ever show 'cited vs ranked' it must be labeled third-party, dated, and optional — never part of the A–F grade. Prefer GSC impressions on owned URLs.",
+      "seoBoost_gap": "No such metric today (good). Risk is a Pro 'AI visibility %' cloned from affiliate GEO tools. 10-05/10-10 must ban it.",
+      "files_to_change": [
+        "lib/claims.ts",
+        "tests/scanner/false-positives.test.ts"
+      ],
+      "verify_how": "String-ban: '76% of AI Overview citations', 'GEO score', 'citation probability'. Grade snapshot must not include an AI-visibility component.",
+      "sources": [
+        "https://ahrefs.com/blog/ai-overview-citations-top-10/",
+        "https://ahrefs.com/blog/search-rankings-ai-citations/",
+        "https://www.semrush.com/blog/the-ghost-citations-study/",
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide"
+      ]
+    },
+    {
+      "id": "04-12",
+      "priority": "P1",
+      "confidence": "proven",
+      "title": "'AI-ready prompt export' will instruct models to ship dead GEO/FAQ tactics until check copy is rewritten",
+      "why_it_ranks": "The only AI-branded product surface (app/page.tsx:22, report-actions.tsx:56-67) dumps failed-check prose and says 'use Next.js/React'. Those checks still teach FAQPage-for-SERP, LSI, word-count targets, and Disallow-deindexes (03/05/06). An LLM will write llms.txt, FAQPage, and Google-Extended-as-Search-opt-out into customer repos. That is how snake oil scales. 09-12 wants App Router codegen; this lane requires a negative prompt: no llms.txt-for-Google, no FAQPage-for-AIO, no chunking, no GEO score, no blocking Googlebot for Gemini.",
+      "nextjs_how": "Prompt template: attach check snippets + Next file paths when Next is detected (09-12). Append a fixed 'Do not' block from this file's conflicts_to_avoid. Strip FAQ-rich-result and llms.txt ranking lines at the source in lib/scanner.ts so the prompt cannot see them.",
+      "seoBoost_gap": "report-actions.tsx does not attach howToFix snippets (09-12). No deny-list. Homepage still labels the button AI-ready. lib/claims.ts does not exist yet (10-05).",
+      "files_to_change": [
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "lib/scanner.ts",
+        "lib/claims.ts"
+      ],
+      "verify_how": "Copy prompt on a Next fixture: contains generateMetadata; does not contain 'llms.txt', 'FAQ schema can generate expandable', 'GEO score', or 'Disallow Googlebot to opt out of AI'. Homepage row 'AI-ready prompt export' either dies or maps to check ids with measurement html.",
+      "sources": [
+        "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+        "https://developers.google.com/search/updates",
+        "https://nextjs.org/docs/app/guides/json-ld"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "04-01/04-11/10-05: Do not ship a GEO/AEO score, citation %, or 'AI Overview ready' Pro row. Eligibility heuristics only.",
+    "04-04: Do not add or recommend llms.txt / llms-full.txt as a Google or AI Overview ranking fix. Missing file is not a fail.",
+    "04-03: After 06-09's per-group robots parser, classify GPTBot / OAI-SearchBot / ClaudeBot / Claude-SearchBot / Claude-User / PerplexityBot / Google-Extended / Bingbot. Flag search-bot Disallow and Googlebot-vs-Extended confusion.",
+    "04-02: Treat nosnippet / max-snippet:0 / data-nosnippet-on-main as AI Overview/AI Mode input controls (info unless on a money page without intent).",
+    "04-05: First-HTML extractable <article>/<main> text is the citability gate; extend 09-08 dual-UA to OAI-SearchBot + PerplexityBot on Next hosts.",
+    "04-12: Rewrite the LLM export deny-list before it tells models to add FAQPage or llms.txt."
+  ],
+  "conflicts_to_avoid": [
+    "Do not recommend llms.txt, llms-full.txt, chunking, query-fan-out page farms, or inauthentic mention campaigns for Google Search or AI Overviews. Google: still SEO; those are listed hacks.",
+    "Do not treat FAQPage as an AI Overview or rich-result lever (03-01, retired 2026-05-07). Visible FAQ copy is fine.",
+    "Do not Disallow Googlebot to opt out of Gemini or AI Overviews. Use Google-Extended for Gemini Apps/Vertex training+grounding; use nosnippet / max-snippet / noindex for Search AI features.",
+    "Do not tell users Disallow: / de-indexes the site or that blocking GPTBot hides them from ChatGPT Search (that is OAI-SearchBot).",
+    "Do not add a second robots.txt parser. 06-09 owns REP (Allow vs Disallow, wildcards, groups). 04-03 adds an AI token table on that parse.",
+    "Do not add a second nosnippet reader. 06-10 owns meta/X-Robots-Tag completeness; 04-02 owns the AI-input copy and check status.",
+    "Do not add a second dual-UA engine. 09-08 owns Googlebot vs SEOScanBot / htmlLimitedBots. 04-05 only adds OAI-SearchBot + PerplexityBot to that pair.",
+    "Do not add a second first-HTML / CSR-empty check. Share 06-05/09-01/10-04 fixtures; 04 only requires extractable-text language.",
+    "Do not invent an E-E-A-T or entity-authority numeric score (05). Do not skip /author/ (05-01).",
+    "Do not scrape ChatGPT, Perplexity, Gemini, or Copilot UIs. Do not invent a Rich Results or citation API (10-08).",
+    "Do not clone Surfer 'AI visibility' or Semrush citation indexes into the A–F grade (09-12, 04-11).",
+    "Do not set htmlLimitedBots: /.*/ . If extending the list, concatenate the default regex.",
+    "Do not add fake per-bot Allow theater to app/robots.ts. 01-08: keep * + Disallow /api/ /auth/; host/sitemap follow seoboost.app (01-01).",
+    "Do not treat Bing noarchive as a Google AI control, or Google-Extended as a Copilot control.",
+    "Do not overwrite sibling findings JSON. 00 can now drop do_not_implement_until: 04."
+  ],
+  "cross_agent_notes": [
+    "Siblings read 2026-09-11: 00-cross-notes.json, 01, 03, 05, 06, 09, 10 (also 02/07/08 for hotspot overlap). 04 was missing; 00.do_not_implement_until was '04'. This file is the missing lane — implementation may proceed. Did not overwrite siblings.",
+    "00 shared_hotspots: 04 will edit lib/scanner.ts (robots parse + meta-robots + new ai-* ids) and app/robots.ts. Merge after 06-09 parser rewrite and 01-01/01-08 origin/host. Do not emit a second robots parser or a second FetchResult. New check ids: ai-snippet-eligible, ai-bots-robots, ai-extractable-text — do not reuse faq-schema, robots-txt, or meta-robots ids.",
+    "01-08 / 01-10: product robots.ts stays one * group unless legal asks for training opt-out. Do not add htmlLimitedBots in 01. 04-05 may later extend htmlLimitedBots by concatenation; 01 already forbids /.*/.",
+    "03-01 / 03 AEO note: agree — do not recommend FAQPage for AI Overviews. 04-06/04-12 kill that string in content coaching and the LLM prompt. 03 owns type gallery.",
+    "05-01/05-03/05-05/05-12: 05 owns Who/How, doorway/fan-out farms, LSI/FAQ-as-score, and the llms.txt ban for content. 04-06/04-07 add extractable first-screen answer + sourced claims. One /author/ skip-list fix. No second completeness engine.",
+    "06-04/06-09/06-10: 06 owns REP + meta/X-Robots parse and 'Disallow does not de-index'. 04-02/04-03 consume that parse for AI tokens and nosnippet-as-AIO-input. 06 leftover copy that says Disallow removes Google results is also wrong for ChatGPT/Perplexity.",
+    "07-04/07-09: AIO/Discover thumbnails stay in media (primaryImageOfPage, og:image, max-image-preview:large). 04 does not add an image check.",
+    "08-03/08-09: fan-out retrieval still needs the page discoverable via links/sitemap. 04 does not add a second crawl. Hub-spoke is 08; on-page extractability is 04/05.",
+    "09-05/09-08/09-12: 09 left Semrush AI-bot checks out of scope and banned llms.txt as a Google ranking fix — 04 now owns the honest subset (per-UA robots + homepage UA probe + LLM deny-list). 09-08 dual-UA is the implementation vehicle for 04-05.",
+    "10-05/10-08/10-10/10-12: claims matrix must fail any GEO/AIO guarantee. Fixtures: nosnippet money page, OAI-SearchBot Disallow, Google-Extended-only Disallow, CSR-empty, llms.txt-missing (must be info/off). Methods block must say AI eligibility is heuristic. No ChatGPT scrape.",
+    "02-03 homepage H1 opacity:0 is a first-HTML citability fail for AI bots as well as CWV — 04-05 verify case, 02 owns the fix."
+  ]
+}

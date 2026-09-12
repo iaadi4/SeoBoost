@@ -9,11 +9,11 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Zap } from 'lucide-react'
+import { Label, RequiredMark } from '@/components/ui/label'
 import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { AuthSplit } from '@/components/auth-split'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -49,70 +49,58 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -z-10" />
-        <Card className="w-full max-w-md border shadow-xl bg-background/50 backdrop-blur-md text-center">
-          <CardHeader className="space-y-2 pb-2">
-            <div className="mx-auto h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center mb-2">
-              <Zap className="h-7 w-7 text-primary" />
-            </div>
-            <CardTitle className="text-2xl font-bold">
-              Check your email
+      <AuthSplit>
+        <Card className="w-full max-w-md py-8 text-center">
+          <CardHeader className="space-y-2 px-6 pb-2">
+            <CardTitle className="font-normal">
+              <h1 className="font-display text-3xl tracking-tight">Check your email</h1>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               We&apos;ve sent a confirmation link to{' '}
               <span className="font-medium text-foreground">{email}</span>.
               Click it to activate your account.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Link href="/sign-in">
-              <Button variant="outline" className="w-full mt-2">
-                Back to Sign In
+          <CardContent className="px-6">
+            <Link href="/seo-audit-login">
+              <Button variant="outline" size="lg" className="mt-2 w-full">
+                Back to sign in
               </Button>
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </AuthSplit>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -z-10" />
-
-      <Link href="/" className="flex items-center gap-2 mb-8 group">
-        <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-          <Zap className="h-6 w-6 text-primary-foreground" />
-        </div>
-        <span className="font-bold text-2xl tracking-tight">SEO Boost</span>
-      </Link>
-
-      <Card className="w-full max-w-md border shadow-xl bg-background/50 backdrop-blur-md">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl font-bold">
-            Create an account
+    <AuthSplit>
+      <Card className="w-full max-w-md py-8">
+        <CardHeader className="space-y-2 px-6 text-left">
+          <CardTitle className="font-normal">
+            <h1 className="font-display text-3xl tracking-tight">Create an account</h1>
           </CardTitle>
-          <CardDescription>
-            Get started with 3 free scans per day. No credit card required.
+          <CardDescription className="text-base">
+            Three free HTML audits. Up to 50 pages per Hobby scan. No credit card.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
+        <CardContent className="px-6">
+          <form onSubmit={handleSignUp} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">Full name</Label>
               <Input
                 id="name"
                 type="text"
-                placeholder="Your Name"
+                placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">
+                Email <RequiredMark />
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -121,10 +109,13 @@ export default function SignUpPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                aria-invalid={error ? true : undefined}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">
+                Password <RequiredMark />
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -134,40 +125,29 @@ export default function SignUpPage() {
                 required
                 minLength={8}
                 autoComplete="new-password"
+                aria-invalid={error ? true : undefined}
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+              <p role="alert" className="field-error">
                 {error}
               </p>
             )}
 
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full font-medium h-12"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="animate-pulse">Creating account...</span>
-              ) : (
-                'Create Account'
-              )}
+            <Button type="submit" size="lg" className="w-full font-medium" disabled={isLoading}>
+              {isLoading ? 'Creating account…' : 'Create account'}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link
-              href="/seo-audit-login"
-              className="text-primary hover:underline font-medium"
-            >
+            <Link href="/seo-audit-login" className="text-foreground underline underline-offset-4">
               Sign in
             </Link>
           </div>
         </CardContent>
       </Card>
-    </div>
+    </AuthSplit>
   )
 }
