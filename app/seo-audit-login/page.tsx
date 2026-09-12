@@ -9,12 +9,12 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Zap } from 'lucide-react'
+import { Label, RequiredMark } from '@/components/ui/label'
 import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { AuthSplit } from '@/components/auth-split'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -42,56 +42,23 @@ export default function SignInPage() {
     }
   }
 
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: 'https://boost-seo.vercel.app',
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'SEO Audit Login',
-        item: 'https://boost-seo.vercel.app/seo-audit-login',
-      },
-    ],
-  }
-
   return (
-    <main id="main-content" className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30 relative">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -z-10" />
-
-      <header>
-        <Link href="/" className="flex items-center gap-2 mb-8 group">
-          <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-            <Zap className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-2xl tracking-tight">SEO Boost</span>
-        </Link>
-      </header>
-
-      <Card className="w-full max-w-md border shadow-xl bg-background/50 backdrop-blur-md">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-2xl font-bold">
-            <h1 className="text-2xl font-bold inline">Sign in to SEO Boost</h1>
+    <AuthSplit>
+      <Card className="w-full max-w-md py-8">
+        <CardHeader className="space-y-2 px-6 text-left">
+          <CardTitle className="text-3xl font-normal">
+            <h1 className="font-display text-3xl tracking-tight">Sign in to SeoBoost</h1>
           </CardTitle>
-          <CardDescription>
-            Sign in to your account to continue scanning domains.
+          <CardDescription className="text-base">
+            Open your reports and run another HTML scan (50 pages Hobby, 500 Pro).
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
+        <CardContent className="px-6">
+          <form onSubmit={handleSignIn} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">
+                Email <RequiredMark />
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -100,67 +67,53 @@ export default function SignInPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
+                aria-invalid={error ? true : undefined}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">
+                Password <RequiredMark />
+              </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
+                aria-invalid={error ? true : undefined}
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+              <p role="alert" className="field-error">
                 {error}
               </p>
             )}
 
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full font-medium h-12"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="animate-pulse">Signing in...</span>
-              ) : (
-                'Sign In'
-              )}
+            <Button type="submit" size="lg" className="w-full font-medium" disabled={isLoading}>
+              {isLoading ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link
-              href="/sign-up"
-              className="text-primary hover:underline font-medium"
-            >
+            <Link href="/sign-up" className="text-foreground underline underline-offset-4">
               Sign up for free
             </Link>
           </div>
         </CardContent>
       </Card>
 
-      <footer className="mt-12 max-w-lg text-center text-sm text-muted-foreground space-y-4">
+      <footer className="mt-12 max-w-md space-y-4 text-center text-sm text-muted-foreground">
         <p>
-          Securely sign in to your SEO Boost account to access your technical SEO audit reports. 
-          Our comprehensive scanning engine analyzes your domains to identify missing H1 tags, thin content, 
-          render-blocking resources, canonical link mismatches, and structural schema opportunities. 
-          By identifying these core issues, you can dramatically improve your website's health score 
-          and increase your organic search engine rankings.
+          Reports cover on-page HTML: titles, canonicals, robots, headings, and
+          the Pro check groups on your plan. Field Core Web Vitals are not
+          measured.
         </p>
-        <p>
-          Gain direct visibility into your Core Web Vitals, accessibility warnings, and mobile performance benchmarks. 
-          Save your progress, export PDF reports for clients, and track improvements over time—all from an intuitive, single dashboard.
-        </p>
-        <p>© {new Date().getFullYear()} SEO Boost Analytics. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} SeoBoost. All rights reserved.</p>
       </footer>
-    </main>
+    </AuthSplit>
   )
 }

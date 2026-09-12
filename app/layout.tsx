@@ -1,18 +1,27 @@
-import { Inter } from 'next/font/google'
+import { Instrument_Serif, Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-
-const inter = Inter({ subsets: ['latin'] })
-
+import { SITE_ORIGIN } from '@/lib/site'
 import { Metadata } from 'next'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
+
+const instrumentSerif = Instrument_Serif({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-display',
+})
 
 export const metadata: Metadata = {
   title: {
-    default: 'SEO Boost | Instant SEO Audits & Website Health Reports',
+    default: 'SEO Boost | HTML technical SEO audits',
     template: '%s | SEO Boost',
   },
   description:
-    'Get a professional SEO audit in under 8 seconds. Analyze your website health, fix technical issues, and rank higher on Google with actionable reports.',
+    'Crawl a site up to 50 pages on Hobby or 500 on Pro, run 48 HTML and domain checks, and get an A–F health score with a fix list. Not Core Web Vitals. Not a GEO score.',
   keywords: [
     'SEO Tool',
     'SEO Audit',
@@ -24,9 +33,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'SEO Boost Team' }],
   creator: 'SEO Boost',
-  metadataBase: new URL('https://boost-seo.vercel.app'),
+  metadataBase: new URL(SITE_ORIGIN),
   alternates: {
-    canonical: 'https://boost-seo.vercel.app',
+    canonical: '/',
   },
   icons: {
     icon: '/icon.png',
@@ -36,25 +45,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://seoboost.app',
+    url: SITE_ORIGIN,
     siteName: 'SEO Boost',
-    title: 'SEO Boost | Instant SEO Audits & Website Health Reports',
+    title: 'SEO Boost | HTML technical SEO audits',
     description:
-      'The simplest and fastest way to optimize your domain. Get actionable reports in seconds.',
+      'HTML crawl up to 50/500 pages, 48 HTML and domain checks, A–F health score and a fix list.',
     images: [
       {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'SEO Boost Branding',
+        alt: 'SeoBoost technical SEO audits from the first HTML',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SEO Boost | Fix Your SEO in 8 Seconds',
+    title: 'SEO Boost | HTML technical SEO audits',
     description:
-      'Professional SEO audits for founders and developers. Instant, actionable, and beautiful reports.',
+      'HTML crawl up to 50/500 pages, 48 HTML and domain checks, A–F health score and a fix list.',
     images: ['/twitter-image.png'],
     creator: '@seoboost',
   },
@@ -71,81 +80,26 @@ export const metadata: Metadata = {
   },
 }
 
-import Script from 'next/script'
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const jsonLd = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: 'SEO Boost',
-      operatingSystem: 'Web',
-      applicationCategory: 'BusinessApplication',
-      offers: {
-        '@type': 'Offer',
-        price: '9.00',
-        priceCurrency: 'USD',
-      },
-      description:
-        'Professional technical SEO audits in seconds. Fix your website issues and rank higher.',
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.9',
-        ratingCount: '120',
-      },
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'SEO Boost',
-      url: 'https://seoboost.app',
-      logo: 'https://seoboost.app/icon.png',
-      sameAs: [
-        'https://twitter.com/seoboost'
-      ]
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'SEO Boost',
-      url: 'https://boost-seo.vercel.app',
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://boost-seo.vercel.app',
-        },
-      ],
-    },
-  ]
-
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" className="light" suppressHydrationWarning>
+      <body
+        className={`${inter.className} ${inter.variable} ${instrumentSerif.variable}`}
+      >
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:m-2"
         >
           Skip to content
         </a>
-        <Script
-          id="json-ld"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
+          defaultTheme="light"
+          forcedTheme="light"
           disableTransitionOnChange
         >
           {children}

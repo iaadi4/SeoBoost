@@ -85,7 +85,7 @@ sequenceDiagram
   </tr>
   <tr>
     <td><b>🧩 structured-data</b></td>
-    <td>JSON-LD Validity · Breadcrumb Schema · FAQ Schema · Video Schema</td>
+    <td>JSON-LD required properties · Breadcrumb ≥2 items · Visible ratings · Video Schema (FAQPage is not a 2026 rich result)</td>
   </tr>
   <tr>
     <td><b>🌐 domain</b></td>

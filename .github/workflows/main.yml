@@ -26,12 +26,27 @@ jobs:
         run: pnpm dlx prettier --check .
       - name: Lint & Type check
         run: pnpm run check
+      - name: Unit tests
+        run: pnpm test
       - name: Build production bundle
         run: pnpm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: https://seoboost.app
+          DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
+          DODO_WEBHOOK_KEY: ${{ secrets.DODO_WEBHOOK_KEY }}
+          NEXT_PUBLIC_DODO_PRODUCT_ID: ${{ secrets.NEXT_PUBLIC_DODO_PRODUCT_ID }}
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: HTML contract tests
+        run: pnpm test:e2e
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: https://seoboost.app
           DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
           DODO_WEBHOOK_KEY: ${{ secrets.DODO_WEBHOOK_KEY }}
           NEXT_PUBLIC_DODO_PRODUCT_ID: ${{ secrets.NEXT_PUBLIC_DODO_PRODUCT_ID }}

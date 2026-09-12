@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         },
       ],
       payment_link: true,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://seoboost.app'}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
     })
 
     // We can also attach metadata during creation if supported, but typically customer mapping is enough.

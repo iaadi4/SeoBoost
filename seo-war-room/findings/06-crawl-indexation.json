@@ -1,0 +1,369 @@
+{
+  "agent": "06-crawl-indexation",
+  "as_of": "2026-09-11",
+  "lane": "Crawl and indexation",
+  "sources": [
+    {
+      "title": "Introduction to robots.txt",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Block Search indexing with noindex",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Robots meta tag, data-nosnippet, and X-Robots-Tag specifications",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+      "date": "2026-03-24"
+    },
+    {
+      "title": "How Google interprets the robots.txt specification",
+      "url": "https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "How to specify a canonical URL with rel=canonical and other methods",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "date": "2026-07-10"
+    },
+    {
+      "title": "Fix canonicalization issues",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/canonicalization-troubleshooting",
+      "date": "2026-08-21"
+    },
+    {
+      "title": "Build and submit a sitemap",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Understand the JavaScript SEO basics",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics",
+      "date": "2026-03-04"
+    },
+    {
+      "title": "Redirects and Google Search",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+      "date": "2026-04-14"
+    },
+    {
+      "title": "How HTTP status codes affect Google's crawlers",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/http-network-errors",
+      "date": "2026-02-04"
+    },
+    {
+      "title": "Optimize your crawl budget",
+      "url": "https://developers.google.com/crawling/docs/crawl-budget",
+      "date": "2026-07-22"
+    },
+    {
+      "title": "Pagination, incremental page loading, and their impact on Google Search",
+      "url": "https://developers.google.com/search/docs/specialty/ecommerce/pagination-and-incremental-page-loading",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Tell Google about localized versions of your page",
+      "url": "https://developers.google.com/search/docs/specialty/international/localized-versions",
+      "date": "2025-12-22"
+    },
+    {
+      "title": "Managing multi-regional and multilingual sites",
+      "url": "https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Next.js trailingSlash",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/trailingSlash",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js skipTrailingSlashRedirect",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/skipTrailingSlashRedirect",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js generateMetadata (canonical / robots / languages)",
+      "url": "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js sitemap file convention",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js robots file convention",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js internationalization (App Router)",
+      "url": "https://nextjs.org/docs/app/guides/internationalization",
+      "date": "2026-09-11"
+    }
+  ],
+  "findings": [
+    {
+      "id": "06-01",
+      "priority": "P0",
+      "title": "Sitemap audit is presence-only; lastmod:new Date() teaches Google to ignore lastmod",
+      "why_it_ranks": "A sitemap is a weak canonical hint and a discovery list, not a ranking score. Google (build-sitemap, still current 2026-09-11) wants only the URLs you want in results: absolute HTTPS canonicals that return 200, are indexable, and are not redirects. Google uses lastmod only when it is consistently and verifiably accurate (real content change, not a rebuild). Google ignores changefreq and priority. Inaccurate lastmod causes Google to drop the signal for the whole file. Crawl-budget (2026-07-22): keep the sitemap limited to what you want crawled.",
+      "nextjs_how": "In app/sitemap.ts set lastModified from real content dates (glossary updatedAt, MDX frontmatter, CMS publishedAt). Never lastModified: new Date(). Omit changeFrequency and priority. List only public indexable routes. After host lock, every loc must match metadataBase. Next MetadataRoute.Sitemap also supports alternates.languages for hreflang in the same file.",
+      "seoBoost_gap": "runDomainChecks (lib/scanner.ts:1421-1448) counts <loc>, notes any <lastmod>, and marks good. It never: (1) HEAD/GET each loc for 200 vs 3xx/4xx, (2) drop noindex or cross-canonical locs, (3) require loc host == page canonical host, (4) flag identical lastmod across all URLs (build stamp), (5) follow sitemapindex children, (6) ignore changefreq/priority as non-signals. Product app/sitemap.ts:8-11 stamps new Date() plus monthly/weekly + priority 0.7–1.0 on every glossary term. robots.ts Sitemap: is https://seoboost.app/sitemap.xml while root canonical is https://boost-seo.vercel.app — two different preferred-URL lists.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/sitemap.ts",
+        "app/robots.ts"
+      ],
+      "verify_how": "1) Scan this repo: sitemap check must warning 'lastmod identical / build stamp', not lastmod ✓. 2) Fixture sitemap with a 301 loc, a noindex loc, and an off-host loc → each listed, status warning/critical. 3) After sitemap.ts fix, lastModified differs per URL and matches a real date. 4) GSC Sitemaps: no 'Submitted URL marked noindex' / redirect errors.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+        "https://developers.google.com/crawling/docs/crawl-budget",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap"
+      ]
+    },
+    {
+      "id": "06-02",
+      "priority": "P0",
+      "title": "Canonical checker strips http/www/slash so it cannot see the host split this site ships",
+      "why_it_ranks": "Google (consolidate-duplicate-urls, updated 2026-07-10) ranks signals: 301/308 redirect > rel=canonical > sitemap inclusion. Do include a self-referential canonical on the chosen URL. Prefer HTTPS. Do not name different URLs via different methods. Trailing-slash and www variants are separate URLs until one 301s. Google may still pick another canonical; URL Inspection is ground truth.",
+      "nextjs_how": "One production origin (likely https://seoboost.app). Root metadataBase + relative alternates.canonical per route. 301 http→https and www↔apex in next.config redirects or the host. Pick trailingSlash (default false) and let Next 301 the other form. Absolute canonicals only. Do not put a site-wide absolute canonical in root layout that children forget to override.",
+      "seoBoost_gap": "analysePage (lib/scanner.ts:400-407) rewrites http→https, strips www, strips trailing slashes, then compares. http vs https, www vs apex, and /page vs /page/ therefore pass as 'Valid self-referencing canonical'. Relative canonicals fail against the absolute page URL. Link: rel=canonical headers are unread. Multiple rel=canonical tags use only the first. Product: app/layout.tsx:27-29 metadataBase + canonical = https://boost-seo.vercel.app; app/pricing/layout.tsx canonical /pricing resolves onto that Vercel host; app/sitemap.ts and app/robots.ts prefer https://seoboost.app; glossary generateMetadata canonical is the literal /glossary/${termData.slug} (08-04). Conflicting methods on one page.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx",
+        "app/sitemap.ts",
+        "app/robots.ts",
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "1) Fixture http://www.example.com/foo/ with canonical https://example.com/foo → must warn scheme + www + slash, not good. 2) Self-scan: canonical host must equal sitemap loc host. 3) View-source /glossary/canonical-tag: rel=canonical is https://<origin>/glossary/canonical-tag, not a ${} string. 4) Lighthouse canonical audit on the collected URL must not fail cross-host.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+        "https://developers.google.com/search/docs/crawling-indexing/canonicalization-troubleshooting",
+        "https://nextjs.org/docs/app/api-reference/functions/generate-metadata"
+      ]
+    },
+    {
+      "id": "06-03",
+      "priority": "P0",
+      "title": "fetchUrl drops every non-200; 301/308 vs 307 and soft 404s never become checks",
+      "why_it_ranks": "Google (http-network-errors, 2026-02-04; redirects, 2026-04-14) uses status as the indexation switch. 200/2xx: content may be indexed (soft 404 if the body is an error). 301 and 308: strong permanent canonical signal. 302/303/307: temporary; source URL can stay in results. Crawlers follow ~10 hops; chains waste budget. 404/410: drop from index, recrawl less. 5xx/429: slow the host, keep old URLs until they persist. JS SEO (2026-03-04): rendering is queued for 200s and may be skipped on non-200.",
+      "nextjs_how": "Use notFound() for missing slugs (real 404). Permanent moves: next.config redirects with statusCode 301 or 308, or permanentRedirect(). next/navigation redirect() is 307 — wrong for retired URLs. Auth gates: 401/403 or 307 to login is fine; do not 301 a dashboard to login. Add app/not-found.tsx that still returns 404.",
+      "seoBoost_gap": "fetchUrl (lib/scanner.ts:285) returns null on !res.ok. Default fetch follows redirects, so the recorded status is the final 200 and hop count is lost. scanDomain (1630) continues. No check ids for 404/410, 5xx, 429, hop>=3, 301 vs 307, or 200+'not found' soft 404. Product: no app/not-found.tsx. dashboard/page.tsx:19 redirect('/seo-audit-login') is 307. Glossary unknown slugs do call notFound() (good) but generateMetadata on miss only sets a title — if notFound were skipped, that would be a soft 404.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/not-found.tsx",
+        "app/dashboard/page.tsx",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "1) Fetch with redirect:'manual' on a 301 fixture: record status 301, hops, finalUrl. 2) Nav link to /missing → source page broken-internal 404 (with 08-12). 3) 200 page titled '404' / 'Not Found' with thin main → soft-404 critical. 4) curl -I /dashboard unauthenticated → 307, not 301. 5) Missing glossary slug → 404, not 200.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/http-network-errors",
+        "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+        "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics",
+        "https://developers.google.com/crawling/docs/crawl-budget"
+      ]
+    },
+    {
+      "id": "06-04",
+      "priority": "P0",
+      "title": "robots.txt vs meta robots vs X-Robots-Tag conflicts are unaudited; login is indexable",
+      "why_it_ranks": "robots.txt controls fetch, not indexation (intro, 2025-12-10). noindex (meta or X-Robots-Tag) removes a URL only if the crawler can fetch it (block-indexing; robots-meta-tag, 2026-03-24). Disallow + noindex = crawler never sees noindex → URL-only listing if linked. noindex is not valid in robots.txt (Google dropped it). Conflicting meta + header: most restrictive wins. nosnippet also blocks AI Overviews / AI Mode as a direct input (2026-03-24).",
+      "nextjs_how": "app/robots.ts: Disallow only paths you never want fetched (/api/, /_next/data is optional — do not Disallow /_next/static or CSS/JS or Google cannot render). Utility/auth pages: allow crawl + metadata.robots = { index: false, follow: false } (or X-Robots-Tag). Password-protect /dashboard. Do not Disallow a URL you need de-indexed. Trailing-slash Disallow:/dashboard/ does not match /dashboard.",
+      "seoBoost_gap": "meta-robots (lib/scanner.ts:430-454) reads only meta[name=robots] + one x-robots-tag. It ignores name=googlebot. Any noindex is critical — including correct noindex on /sign-up. Page-level nofollow is warned as equity loss (hint, not a command). Domain robots check never diffs Disallow prefixes vs sitemap locs vs on-page noindex. Product: app/robots.ts Disallow /dashboard/, /api/, /auth/ but footer still links /dashboard (08-06). /seo-audit-login/layout.tsx robots index:true on a 'use client' login. /sign-up/layout.tsx is noindex,nofollow (correct, and not Disallow'd). Root layout index:true inherits onto /dashboard if Google ever fetches /dashboard (Disallow:/dashboard/ may not match /dashboard).",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/robots.ts",
+        "app/seo-audit-login/layout.tsx",
+        "app/layout.tsx",
+        "app/page.tsx"
+      ],
+      "verify_how": "1) Fixture: Disallow /thin/ plus meta noindex on /thin → critical 'noindex unreachable'. 2) Fixture: googlebot-only noindex, empty robots meta → must still detect. 3) /seo-audit-login view-source: noindex. 4) robots.txt Disallow includes /dashboard and /dashboard/. 5) Self-scan must not mark /sign-up noindex as a money-page critical.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+        "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
+        "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots"
+      ]
+    },
+    {
+      "id": "06-05",
+      "priority": "P0",
+      "title": "Cheerio-only crawl misses RSC/client shells, render queue rules, and Next soft 404s",
+      "why_it_ranks": "Googlebot (JS SEO, 2026-03-04) crawls, then queues 200s for WRS unless the initial HTML/header is noindex — in which case it may skip JavaScript. Non-200 responses may skip render entirely. Soft 404s (200 + error body) stay in the crawl queue (crawl-budget, 2026-07-22). Client-only titles, canonicals, or noindex toggles are unsafe. History API URLs are crawlable; hash routes are not.",
+      "nextjs_how": "Keep indexable content in Server Components / generateMetadata so the first HTML has title, canonical, robots, H1, and links. Call notFound() on empty dynamic data. Do not ship a default noindex in root HTML and remove it in useEffect. Prefer RSC over an SPA shell. app/not-found.tsx for the 404 URL Google should recrawl less.",
+      "seoBoost_gap": "scanDomain never renders. A 'use client' page with empty first HTML scores as thin/missing-title. A 200 not-found UI can still pass word-count from chrome. No check for hash routing, empty #root, or initial noindex that JS clears. Product login is 'use client' (app/seo-audit-login/page.tsx) with robots in the sibling layout (SSR tags exist — lucky). Homepage H1 lives in a client motion component (02-03). No not-found.tsx. User-Agent is SEOScanBot/2.0, not Googlebot, so Next htmlLimitedBots streaming can hide metadata from the scanner while Googlebot sees it (09-08).",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/not-found.tsx",
+        "app/seo-audit-login/page.tsx"
+      ],
+      "verify_how": "1) Fixture CSR shell (empty main, title set in useEffect) → critical 'content not in first HTML; confirm URL Inspection / Rich Results URL mode'. 2) Fixture 200 + h1 'Page not found' → soft-404, not a word-count warning. 3) Fixture initial noindex + JS index → warn 'Google may never run that JS'. 4) Disable JS on / : H1 still present after 02-03.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics",
+        "https://developers.google.com/crawling/docs/crawl-budget"
+      ]
+    },
+    {
+      "id": "06-06",
+      "priority": "P1",
+      "title": "Pagination, infinite scroll, and faceted URLs are skipped — not audited",
+      "why_it_ranks": "Google's pagination guide (still posted 2026-09-11): unique URL per page (?page=n), self-canonical on each page (do not canonicalize page 2+ to page 1), sequential crawlable <a href> next/prev, link back to page 1 of the collection, no #fragments for page numbers (ignored). rel=next/prev is unused by Google. Infinite scroll / Load more: Google does not click buttons; expose paginated hrefs or a sitemap. Facets/sort (?order=price, filter=): noindex or robots.txt Disallow so they do not explode inventory. Do not put those variants in the sitemap.",
+      "nextjs_how": "searchParams pages: generateMetadata with a self canonical including ?page=n (or a /page/n segment). Render <Link href={`?page=${n+1}`}> not onClick. Faceted routes: robots index:false or Disallow /?sort= /?filter= and canonical to the clean category URL. prefetch={false} on huge lists is UX only (08-11).",
+      "seoBoost_gap": "PROGRAMMATIC_PATTERNS (lib/scanner.ts:192-198) skips /page/\\d+, /tag/, and ?filter|sort|order|min_price. Those URLs never get canonical/robots/sitemap checks. No ids for: page-2 canonicalized to page-1, missing sequential <a href>, hash pagination, facet URLs in sitemap, infinite-scroll with no crawlable next. howToFix never states that Google dropped rel=next/prev.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Fixture /cat?page=2 with canonical /cat → warning 'paginated URL must self-canonicalize'. Fixture Load more <button> with no <a href> to page 2 → warning. Fixture sitemap listing /cat?sort=price → sitemap-quality warning (06-01). Do not skip these URLs when they appear as sitemap locs (08-03).",
+      "sources": [
+        "https://developers.google.com/search/docs/specialty/ecommerce/pagination-and-incremental-page-loading",
+        "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
+      ]
+    },
+    {
+      "id": "06-07",
+      "priority": "P1",
+      "title": "hreflang check is x-default-only; no next-intl / [locale] reciprocity audit",
+      "why_it_ranks": "Google (localized-versions, 2025-12-22): every language/region URL must list the full set, including itself, plus x-default. Annotations must be reciprocal. Use hreflang on HTML, HTTP header, or sitemap xhtml:link — pick one consistent method. Canonical in a cluster should be the same-language URL (consolidate-duplicate-urls, 2026-07-10). Wrong codes or one-way links are ignored. html lang is not a substitute.",
+      "nextjs_how": "App Router: app/[locale]/... + generateStaticParams. generateMetadata.alternates.languages + x-default. next-intl or next.config i18n must 308/301 to the prefixed locale, not rewrite silently. Sitemap localizations[] (Next 14.2+) or xhtml:link. Do not mix /de and ?lang=de as two indexable URLs.",
+      "seoBoost_gap": "hreflang (lib/scanner.ts:959-977) runs only if tags already exist, and only tests x-default. No reciprocal pair check, no valid BCP-47 lint, no sitemap hreflang, no html[lang] vs hreflang mismatch, no 'locale URLs exist without annotations'. Reference URL is wrong: .../international/localization (404-class). Repo has no [locale] tree (single-locale is fine) but the product cannot audit customer next-intl sites. 08-08 already noted locale prefixes as IA; this lane owns annotation correctness.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Fixture /en and /de each with only a self hreflang → warning 'not reciprocal'. Fixture both + x-default → good. Fixture /en/pricing + /de/pricing and zero tags → warning. Fix reference to localized-versions. Single-locale SeoBoost: no hreflang warning.",
+      "sources": [
+        "https://developers.google.com/search/docs/specialty/international/localized-versions",
+        "https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+        "https://nextjs.org/docs/app/guides/internationalization"
+      ]
+    },
+    {
+      "id": "06-08",
+      "priority": "P1",
+      "title": "Next.js trailingSlash, basePath, and middleware SEO traps are invisible",
+      "why_it_ranks": "Next default trailingSlash:false 301s /about/ → /about. skipTrailingSlashRedirect makes both 200 — duplicate URLs unless a canonical or Proxy redirect exists. basePath prefixes every public URL; robots.ts, sitemap.ts, and metadataBase that omit it invent a second site. Middleware rewrites (200) hide the real path from the user and from Google; Google indexes the requested URL. Geo/locale middleware that 307-loops or serves the same body on / and /en splits signals. matcher that blocks /_next/static breaks rendering.",
+      "nextjs_how": "Set trailingSlash explicitly. Keep automatic slash redirects unless you handle them in Proxy. If basePath is '/app', metadataBase must include it and sitemap locs must too. Middleware: NextResponse.redirect for URL changes (301/308), NextResponse.rewrite only for internal aliases you do not want indexed separately. Never geo-rewrite without a distinct URL + hreflang.",
+      "seoBoost_gap": "normaliseUrl (lib/scanner.ts:229-233) strips trailing slashes before analysis, so dual-200 slash variants collapse to one visit. No detection of basePath, x-middleware-rewrite, or next.config trailingSlash. Repo: next.config.ts has neither trailingSlash nor basePath and there is no middleware.ts (safe today). Scanner still cannot coach customer Next apps that do have them. Root Cache-Control immutable on / (.*) (02-11) also freezes HTML Googlebot recrawls.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "next.config.ts"
+      ],
+      "verify_how": "1) Request /pricing and /pricing/ on a trailingSlash:false host: one 200, one 308/301. 2) Fixture skipTrailingSlashRedirect both 200 → warning 'choose one slash + 301'. 3) Fixture sitemap loc without basePath while pages live under /docs → host/path mismatch. 4) Response header x-middleware-rewrite on an indexable URL → warning 'rewrite indexed as requested URL'.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/trailingSlash",
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/skipTrailingSlashRedirect",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "06-09",
+      "priority": "P1",
+      "title": "robots.txt parser is * + prefix-only and misstates what Disallow does",
+      "why_it_ranks": "Google's REP (robots-txt-spec): most specific path wins; on a tie, least restrictive (Allow beats Disallow of equal length). Wildcards * and $ are supported. Group by user-agent; Googlebot uses the longest matching group (Googlebot, then *). robots.txt 5xx is retried; a 200 HTML body is not a valid robots file. Disallow does not de-index. Disallow of JS/CSS stops rendering. Crawl-delay is ignored by Google.",
+      "nextjs_how": "Keep app/robots.ts specific. Allow /_next/static. Disallow both /dashboard and /dashboard/. Sitemap: absolute URL on the canonical host. Do not emit noindex in robots.txt. Optional: Google-Extended / AdsBot groups only if you intend them.",
+      "seoBoost_gap": "Parser (lib/scanner.ts:1381-1392) lowercases the file, reads only user-agent: *, ignores Allow exceptions and * $ rules, then crawl uses pathname.startsWith(prefix) — Disallow:/dashboard/ does not skip /dashboard. Missing robots (including 403/5xx, because fetchUrl nulls !res.ok) is a warning that 10-08 lists as a false-positive ranking claim. blocksEverything copy (1397) says Disallow:/ 'completely removes your site from Google search results' — false; URLs can still appear as listings. No check for Disallow /_next/, /static, .js, .css. Product robots.ts paths use trailing slashes only.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/robots.ts"
+      ],
+      "verify_how": "1) Fixture Allow: /dashboard/report + Disallow: /dashboard/ → /dashboard/report is crawlable. 2) Disallow: /*.json$ respected. 3) Disallow: /_next/ → critical 'rendering resources blocked'. 4) 403 robots.txt → 'unreachable', not 'Missing'. 5) Copy must not say Disallow removes the site from the index.",
+      "sources": [
+        "https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec",
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots"
+      ]
+    },
+    {
+      "id": "06-10",
+      "priority": "P1",
+      "title": "X-Robots-Tag, googlebot meta, and Link canonical headers are only half-read",
+      "why_it_ranks": "Google treats meta robots and X-Robots-Tag as equivalent (robots-meta-tag, 2026-03-24). Headers are the only way to noindex PDFs/images. Multiple X-Robots-Tag lines combine; most restrictive wins. rel=canonical may be a Link HTTP header (PDF/non-HTML). googlebot / googlebot-news metas are first-class. unavailable_after is a dated noindex. max-snippet:0 equals nosnippet and limits AI Overview input.",
+      "nextjs_how": "HTML routes: Metadata API robots (+ googleBot max-image-preview/large already in root). Non-HTML: next.config headers() X-Robots-Tag. Do not set a sitewide X-Robots-Tag: noindex on / (.*) — that would noindex the whole site. Prefer one canonical method (HTML link, not both HTML and Link header).",
+      "seoBoost_gap": "x-robots-tag is a single lowercased header (last Set-Cookie-style overwrite if the runtime concatenates poorly). googlebot meta unread. Link response header unread. No unavailable_after / none / noimageindex coaching. Root next.config.ts headers() has no X-Robots-Tag (good) but also no way for the scanner to warn if a CDN injects one. howToFix still recommends <meta name=\"robots\" content=\"index, follow\"> which is a no-op (all is default).",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Fixture X-Robots-Tag: noindex plus meta index,follow → noindex wins, not 'good'. Fixture <meta name=googlebot content=noindex> only → detected. Fixture Link: <https://ex.com/a>; rel=\"canonical\" with no HTML canonical → pass as header canonical. Sitewide X-Robots-Tag noindex → critical.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag",
+        "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+      ]
+    },
+    {
+      "id": "06-11",
+      "priority": "P1",
+      "title": "Product indexation hygiene: indexable login, 307 auth, missing not-found, split Sitemap host",
+      "why_it_ranks": "Google indexes 200 HTML it is allowed to fetch. A login URL with index:true can rank as a thin result. A 307 from /dashboard to login is a temporary signal (keeps /dashboard if it were crawlable). Missing app/not-found.tsx relies on the framework default; custom soft-looking 404s are a GSC class. robots Sitemap: on a different host than the property Google crawled is a cross-submit case, not automatic discovery.",
+      "nextjs_how": "1) seo-audit-login + any /sign-in alias: robots index:false. 2) not-found.tsx with a real 404 status. 3) robots.ts Sitemap: and sitemap.ts locs on the same origin as metadataBase. 4) Disallow both /dashboard and /dashboard/; remove footer links to /dashboard (08-10). 5) Keep sign-up noindex and crawlable.",
+      "seoBoost_gap": "app/seo-audit-login/layout.tsx:6-8 index:true. app/sign-up/layout.tsx already noindex. No not-found.tsx. app/robots.ts:10 Sitemap seoboost.app vs layout canonical vercel.app. Footer Documentation / Instant Reports → /dashboard (app/page.tsx). Scanner would currently fail a correct login noindex as critical (06-04).",
+      "files_to_change": [
+        "app/seo-audit-login/layout.tsx",
+        "app/not-found.tsx",
+        "app/robots.ts",
+        "app/sitemap.ts",
+        "app/layout.tsx",
+        "app/page.tsx"
+      ],
+      "verify_how": "curl -s /seo-audit-login | rg -i 'noindex'. curl -I /this-is-not-a-page → 404. robots.txt Sitemap host == canonical host. Self-scan: login noindex is informational/good, not critical.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
+        "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots"
+      ]
+    },
+    {
+      "id": "06-12",
+      "priority": "P2",
+      "title": "Crawl-budget copy treats folder depth and Disallow as ranking switches",
+      "why_it_ranks": "Google (crawl-budget, 2026-07-22): this guide is for ~1M moderately changing URLs or ~10k+ changing daily, or heavy 'Discovered – currently not indexed'. Hostload is per hostname (www ≠ apex ≠ vercel.app). Budget levers: shrink duplicate inventory, robots-block URL explosions you do not want fetched, 404/410 removed pages (not Disallow — blocked URLs stay in the queue longer), kill soft 404s, accurate lastmod, short redirect chains, fast render. noindex still spends a fetch. Google will not automatically spend freed budget elsewhere unless already at capacity.",
+      "nextjs_how": "Do not engineer crawl budget on a marketing site this small. Do teach customers: 404/410 deleted URLs; robots-block facet explosions; never Disallow JS/CSS; never noindex+Disallow. Click depth is 08-02, not path-segment count.",
+      "seoBoost_gap": "url-structure (lib/scanner.ts:478-482) says URLs >4 folders 'receive less crawl budget'. robots-txt critical copy says Disallow:/ removes the site from results (06-09). No mention of the 10k/1M threshold, per-hostname budget, 404 vs Disallow for deletions, or 304 Not Modified. ssl howToFix still only shows Apache/Nginx 301, not next.config redirects.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Copy review: zero claims that folder depth spends crawl budget. Disallow:/ message = 'blocks crawling; URLs may still list'. Sites under 10k URLs: crawl-budget check is info, not critical, unless soft-404/facet explosion is detected.",
+      "sources": [
+        "https://developers.google.com/crawling/docs/crawl-budget",
+        "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "06-02: Stop stripping scheme/www/slash in the canonical compare; lock one origin across metadataBase, canonical, sitemap locs, and robots Sitemap: (with 03-03).",
+    "06-01: Sitemap quality — only 200/indexable/same-host locs; flag identical lastmod; stop lastModified: new Date() in app/sitemap.ts; drop changefreq/priority coaching.",
+    "06-03: Record status, hops, and soft 404s in fetchUrl (redirect:'manual'); add app/not-found.tsx; do not 301 auth gates.",
+    "06-04: Detect Disallow+noindex collisions; noindex /seo-audit-login; treat utility noindex as good; Disallow /dashboard and /dashboard/.",
+    "06-05: First-HTML vs empty-shell / soft-404 checks; never tell users JS can undo an initial noindex."
+  ],
+  "conflicts_to_avoid": [
+    "Do not use robots.txt Disallow to de-index a URL. Allow the crawl and serve noindex (or password-protect).",
+    "Do not combine Disallow and noindex on the same path. The crawler will never see the noindex.",
+    "Do not treat lastModified: new Date() or changefreq/priority as sitemap quality. Google ignores the latter and distrusts fake lastmod.",
+    "Do not canonicalize paginated page 2+ to page 1. Each page needs its own URL and self-canonical. Google no longer uses rel=next/rel=prev.",
+    "Do not recommend page-level or internal nofollow for PageRank sculpting (08-06, crawl-budget 2026-07-22). Remove the link or robots-block fetch.",
+    "Do not use next/navigation redirect() (307) for permanent URL changes. Use permanentRedirect or next.config 301/308.",
+    "Do not Disallow /_next/static, CSS, or JS. Google skips rendering blocked resources.",
+    "Do not claim crawl-budget engineering is required under ~10k rapidly changing URLs. Folder depth is not click depth (08-02).",
+    "Do not add a second sitemap XML parser. Extend the one 08-03/07-02/09-09 will share. 06 owns loc quality (status, noindex, host, lastmod honesty).",
+    "Do not add a second fetchUrl status recorder. 06-03, 08-12, and 09-03 consume one hop/status object.",
+    "Do not mark every noindex as critical. Auth, thank-you, faceted, and search pages should pass when noindex is intentional.",
+    "Do not pick a different production host than 03-03 / 10-03. Schema, OG, sitemap, and canonical must move together.",
+    "Do not overwrite sibling findings JSON."
+  ],
+  "cross_agent_notes": [
+    "Siblings read: 00-cross-notes.json, 02-core-web-vitals.json, 03-structured-data.json, 05-content-eeat.json, 07-media-seo.json, 08-internal-linking.json, 09-product-gap-competitors.json, 10-verification-harness.json. 01 and 04 were not in the folder.",
+    "00 merge: sitemap parse is owned by 08-03 (HTML <loc> seed). 06-01 adds quality gates on that parse (200, indexable, same-host, lastmod honesty). 07-02/07-08 attach image:image / video:video. 09-09 is the competitor-shaped lastmod-stamp check — same id surface as 06-01, do not ship sitemap-honesty twice.",
+    "03-03 / 10-03 / 09-07: one origin. 06-02 is the crawl-signal version (canonical vs sitemap vs robots Sitemap: vs redirects). Wait for metadata lane 01/04 before coding the host. Do not 'fix' sitemap to vercel.app if 03 picks seoboost.app.",
+    "08-01/08-03/08-12: orphans and click depth need status-aware fetches. 06-03 owns Google status semantics (301/308 vs 307, 10 hops, 404/410 vs Disallow, soft 404). 08-12 owns broken-internal on the source page. One FetchResult { status, hops, finalUrl, headers, html }.",
+    "08-08 locale prefixes vs 06-07 hreflang: 08 detects /en/ folders; 06 validates reciprocity, x-default, sitemap xhtml:link, next-intl. 08-04 escaped glossary canonical is a 06-02 verify case after they unescape.",
+    "09-01/09-03/09-10: JS render, dropped 4xx, Next soft 404. 06-05 states the 2026-03-04 render-queue rules (200 queued; noindex may skip JS; non-200 may skip render). 09 owns competitor table + Chromium pass. Do not add a second headless lane in 06.",
+    "05-01 skips /author/ via PROGRAMMATIC_PATTERNS — same skip list 06-06 uses for /page/N and facets. When 08-03 seeds sitemap locs, do not skip those locs even if the pattern matches (08 conflicts_to_avoid). 05-04 wants /login usually noindex — 06-04/06-11.",
+    "02-11 Cache-Control immutable on HTML fights recrawl freshness; not a 06 check id. 02-03 client H1 is a first-HTML risk 06-05 will flag if the H1 is absent from the raw document.",
+    "10-06 will GET /robots.txt and /sitemap.xml in CI. Align assertions with 06-01/06-11 (host match, no dashboard locs, no changefreq asserts). 10-08 false-positive list: missing robots/sitemap must stay optional/hint after 06-09 copy fix.",
+    "07-02: do not enqueue image file URLs as HTML pages when validating sitemap locs."
+  ]
+}

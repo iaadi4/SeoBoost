@@ -1,0 +1,439 @@
+{
+  "agent": "09-product-gap-competitors",
+  "as_of": "2026-09-11",
+  "lane": "Product gap vs competitors",
+  "seoBoost_current": {
+    "one_liner": "Cheerio HTML auditor: BFS-crawls 5 pages, runs ~40 static checks, grades A–F. Markets itself as a Next.js SEO engine but has no JS render, no CrUX/Lighthouse, no GSC, and almost no Next.js-specific detection.",
+    "features": [
+      "Domain BFS crawl, default maxPages=5, 500ms politeness, retries, tracking-param strip, robots.txt * Disallow respect — lib/scanner.ts scanDomain",
+      "Skips /_next, /api, assets, feeds, date archives, faceted query strings, checkout/account — lib/scanner.ts PROGRAMMATIC_PATTERNS",
+      "Failed fetches discarded: !res.ok returns null, so 4xx/5xx/redirect chains never become checks — lib/scanner.ts fetchUrl",
+      "Page checks: title, description, canonical, meta/X-Robots, URL structure, keyword-in-URL, H1, heading hierarchy, word count, keyword-in-intro, readability — lib/scanner.ts analysePage",
+      "Technical: doctype, charset, viewport, compression, cache headers, HTML size, favicon — lib/scanner.ts",
+      "Performance heuristics only: img loading=lazy / fetchpriority, inline script/style counts, preconnect/preload — not LCP/INP/CLS — lib/scanner.ts",
+      "Social: OG four tags + twitter:card — lib/scanner.ts",
+      "A11y: html lang, skip-nav, landmarks, form labels, ARIA count — lib/scanner.ts",
+      "Links: internal count, generic anchors, noopener, href=# — not a graph, no status check — lib/scanner.ts",
+      "Images: missing alt count; dimensions only if alt is complete — lib/scanner.ts img-alt",
+      "JSON-LD: JSON.parse + type list; BreadcrumbList presence; FAQ opportunity; VideoObject presence — no Google required-props — lib/scanner.ts",
+      "Domain: HTTPS, robots.txt, sitemap.xml existence/url-count, HSTS, a few security headers — lib/scanner.ts runDomainChecks",
+      "Score: page 100−15/−5, domain mix 80/20, grade A–F — lib/scanner.ts calculatePageScore",
+      "Auth scan POST, free lifetime 3 scans, Pro unlimited, still maxPages=5 — app/api/scan/route.ts",
+      "Report UI: page table, topPriorities action plan, category cards, howToFix + snippet — app/dashboard/report/[id]/page.tsx",
+      "Export PDF = window.print(); LLM prompt = copy failed checks — app/dashboard/report/[id]/report-actions.tsx",
+      "Marketing claims CWV, internal link graph, PDF, Pro-gated categories — none are real product gates; scanner always runs all checks — app/page.tsx app/pricing/page.tsx",
+      "Next.js snippets in howToFix (sitemap.ts, next.config headers) but no Next.js fingerprint or Metadata API audit",
+      "Own site: Next 16.1.6 Metadata API, sitemap.ts stamps lastModified: new Date() on every URL, metadataBase boost-seo.vercel.app vs sitemap seoboost.app — app/layout.tsx app/sitemap.ts"
+    ],
+    "stack": "Next.js 16.1.6 App Router, React 19, Cheerio 1.2, Prisma 7 + Postgres, Supabase Auth, DodoPayments $9/mo Pro, Tailwind 4 / shadcn. No Playwright, no PSI/CrUX SDK, no GSC OAuth, no next-seo.",
+    "key_paths": [
+      "lib/scanner.ts",
+      "app/api/scan/route.ts",
+      "app/dashboard/scan-form.tsx",
+      "app/dashboard/report/[id]/page.tsx",
+      "app/dashboard/report/[id]/report-actions.tsx",
+      "app/dashboard/report/[id]/report-hero.tsx",
+      "app/dashboard/dashboard-client.tsx",
+      "app/page.tsx",
+      "app/pricing/page.tsx",
+      "app/layout.tsx",
+      "app/sitemap.ts",
+      "app/robots.ts",
+      "prisma/schema.prisma",
+      "README.md"
+    ]
+  },
+  "sources": [
+    {
+      "title": "Page indexing report — Search Console Help",
+      "url": "https://support.google.com/webmasters/answer/7440203",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Core Web Vitals report — Search Console Help",
+      "url": "https://support.google.com/webmasters/answer/9205520",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "About PageSpeed Insights (CrUX field + Lighthouse lab)",
+      "url": "https://developers.google.com/speed/docs/insights/v5/about",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Interaction to Next Paint (INP) — web.dev",
+      "url": "https://web.dev/articles/inp",
+      "date": "2025-09-02"
+    },
+    {
+      "title": "Rich Results Test",
+      "url": "https://search.google.com/test/rich-results",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Schema markup testing tools — Rich Results Test vs Schema Markup Validator",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Structured data markup Google Search supports (Search Gallery)",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/search-gallery",
+      "date": "2026-06-15"
+    },
+    {
+      "title": "Google Search documentation updates — FAQ rich result deprecated / docs removed",
+      "url": "https://developers.google.com/search/updates",
+      "date": "2026-06-15"
+    },
+    {
+      "title": "Ahrefs Site Audit (170+ issues, JS render, PSI/CrUX, GSC, always-on)",
+      "url": "https://ahrefs.com/site-audit",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Ahrefs — PageSpeed Insights / CWV columns in Site Audit",
+      "url": "https://help.ahrefs.com/en/articles/5369589-how-to-see-pagespeed-insights-and-other-metrics-in-site-audit-tool",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Ahrefs Always-on audit",
+      "url": "https://help.ahrefs.com/en/articles/10957674-how-always-on-audit-works",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Semrush Site Audit — JS rendering, crawl sources, OpenAI-Search UA",
+      "url": "https://www.semrush.com/kb/539-configuring-site-audit",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Semrush JS Impact report (HTML vs rendered)",
+      "url": "https://www.semrush.com/kb/1369-js-impact-report",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Semrush Site Audit — AI crawler accessibility",
+      "url": "https://www.semrush.com/features/site-audit/",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Screaming Frog SEO Spider — Chromium WRS, schema, PSI",
+      "url": "https://www.screamingfrog.co.uk/seo-spider/",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Clearscope vs Surfer SEO (2026)",
+      "url": "https://toolchase.com/compare/clearscope-vs-surfer-seo/",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "next-seo npm (v7.3.0) — App Router: use generateMetadata for standard tags",
+      "url": "https://www.npmjs.com/package/next-seo",
+      "date": "2026-07-29"
+    },
+    {
+      "title": "next-seo v7.0.0 release notes",
+      "url": "https://github.com/garmeeh/next-seo/releases/tag/v7.0.0",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "next-seo-doctor 0.2.0 — CI Next.js SEO crawler",
+      "url": "https://www.npmjs.com/package/next-seo-doctor",
+      "date": "2026-07-14"
+    },
+    {
+      "title": "Vercel Speed Insights (route-level CWV RUM)",
+      "url": "https://vercel.com/docs/speed-insights",
+      "date": "2026-03-10"
+    },
+    {
+      "title": "Next.js Metadata API — metadata object, generateMetadata, streaming metadata",
+      "url": "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js htmlLimitedBots — blocking vs streaming metadata",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js default HTML-limited bot UA regex (html-bots.ts)",
+      "url": "https://github.com/vercel/next.js/blob/canary/packages/next/src/shared/lib/router/utils/html-bots.ts",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google Search updates — llms.txt does not affect Google rankings",
+      "url": "https://developers.google.com/search/updates",
+      "date": "2026-06-15"
+    }
+  ],
+  "findings": [
+    {
+      "id": "09-01",
+      "priority": "P0",
+      "title": "5-page HTML-only BFS cannot audit Next.js the way Ahrefs, Semrush, or Screaming Frog do",
+      "why_it_ranks": "Google indexes the reachable, renderable document. If title, H1, links, or JSON-LD appear only after client JS — or only in the streamed metadata chunk — a Cheerio GET of the first HTML byte stream will invent or miss ranking issues. Competitors already ship JS rendering (Screaming Frog Chromium WRS; Semrush JS Impact HTML-vs-rendered; Ahrefs optional JS) and sitemap-seeded crawls of hundreds to millions of URLs. SeoBoost default maxPages is 5 and scanDomain is called with no options.",
+      "nextjs_how": "Fingerprint Next (`__NEXT_DATA__`, `/_next/static`, `x-nextjs-cache`, `x-vercel-id`). Seed the queue from sitemap.xml then BFS. For detected Next apps: optional headless pass on the homepage + 3 worst pages comparing raw HTML vs rendered DOM (title, canonical, H1, json-ld, in-body links). Raise Pro maxPages to ≥50; keep Hobby at 5. Do not enqueue `/_next/*`.",
+      "seoBoost_gap": "lib/scanner.ts is static fetch + cheerio only. app/api/scan/route.ts never passes maxPages. Marketing says 'internal link graph' and 'Next.js engine' while skipping the pages and the rendered HTML that decide indexation.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "prisma/schema.prisma"
+      ],
+      "verify_how": "Scan a client-component Next blog where title is set in a client next-seo component. Today the report should show missing/short title. After: raw-vs-rendered diff flags 'title absent in first HTML / present after JS' as critical. Scan a 60-URL sitemap on Pro and confirm pagesScanned > 5.",
+      "sources": [
+        "https://www.screamingfrog.co.uk/seo-spider/",
+        "https://www.semrush.com/kb/1369-js-impact-report",
+        "https://www.semrush.com/kb/539-configuring-site-audit",
+        "https://ahrefs.com/site-audit"
+      ]
+    },
+    {
+      "id": "09-02",
+      "priority": "P0",
+      "title": "Product sells Core Web Vitals; Google gives them away and SeoBoost never measures them",
+      "why_it_ranks": "LCP, INP, and CLS at CrUX p75 are the page-experience ranking inputs. Free baseline: PageSpeed Insights (CrUX + Lighthouse) and the GSC Core Web Vitals report. Ahrefs and Screaming Frog attach the PSI API. Vercel Speed Insights already gives Next/Vercel apps route-level RUM. SeoBoost Pro copy lists 'Performance & Core Web Vitals' while the scanner only counts loading=lazy, inline tags, and preconnect.",
+      "nextjs_how": "Call PSI (or CrUX API) for the homepage plus the LCP-suspect URL. Show field p75 LCP/INP/CLS with insufficient-data state. Map fails to Next fixes: next/image fetchPriority/preload on LCP (not deprecated priority), next/font, split HTML vs immutable asset Cache-Control. Detect missing @vercel/speed-insights as a notice, not a rank fail.",
+      "seoBoost_gap": "False CWV product claim in app/page.tsx and app/pricing/page.tsx. Heuristics in lib/scanner.ts performance category. Implementation owned by lane 02 — this finding is the competitive reason to ship it before any other 'performance' marketing.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/api/scan/route.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "app/page.tsx",
+        "app/pricing/page.tsx"
+      ],
+      "verify_how": "Scan web.dev or a known-poor-LCP Next marketing page. Report must show numeric LCP/INP/CLS (or 'CrUX insufficient'), not only '0 / N images lazy'. Remove or relabel Pro 'Core Web Vitals' until that ships.",
+      "sources": [
+        "https://developers.google.com/speed/docs/insights/v5/about",
+        "https://support.google.com/webmasters/answer/9205520",
+        "https://web.dev/articles/inp",
+        "https://vercel.com/docs/speed-insights",
+        "https://help.ahrefs.com/en/articles/5369589-how-to-see-pagespeed-insights-and-other-metrics-in-site-audit-tool"
+      ]
+    },
+    {
+      "id": "09-03",
+      "priority": "P0",
+      "title": "Crawler throws away 4xx, 5xx, and redirect chains — the first thing Screaming Frog and GSC catch",
+      "why_it_ranks": "Broken internal links, soft 404s, redirect loops, and 5xx host issues waste crawl budget and drop URLs from the index. GSC Page indexing lists server errors, redirects, and soft 404s as exclusion reasons. Screaming Frog's default value is status codes. SeoBoost fetchUrl returns null on !res.ok and scanDomain continues, so the worst indexation bugs are invisible.",
+      "nextjs_how": "Record status, redirect hop list, and finalUrl for every queued URL (including sitemap locs). Flag 404/410, 5xx, chains >1 hop, HTTP→HTTPS misses, and Next soft 404s: 200 + not-found UI / default '404' title without notFound(). Middleware rewrite/redirect to another path should show as a hop, not a healthy 200.",
+      "seoBoost_gap": "lib/scanner.ts fetchUrl + crawl loop. 08-12 is the linking-lane twin; this finding is the competitor-table gap: you cannot beat a free GSC crawl-error list if you delete errors.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Scan a site with a nav link to /missing. Today: page omitted. After: critical '404 inbound from /'. Hit a Next route that returns 200 with the app 404 UI; flag soft 404.",
+      "sources": [
+        "https://support.google.com/webmasters/answer/7440203",
+        "https://www.screamingfrog.co.uk/seo-spider/",
+        "https://ahrefs.com/site-audit"
+      ]
+    },
+    {
+      "id": "09-04",
+      "priority": "P0",
+      "title": "No Search Console overlay — the free baseline already answers 'is it indexed?'",
+      "why_it_ranks": "On-page score without indexation is theater. GSC Page indexing + URL Inspection is the only ground truth for crawled/indexed/excluded. Ahrefs and Screaming Frog connect GSC. Without it SeoBoost cannot tell a noindex accident from 'Google chose not to index thin URLs' and cannot show query/CTR for title tests (the scanner's own title howToFix tells users to A/B in GSC).",
+      "nextjs_how": "OAuth GSC for Pro. Join inspected coverage + last crawl to each PageAnalysis row. Highlight production vs preview hosts (*.vercel.app indexed while apex canonical points elsewhere — this repo's own metadataBase vs sitemap split). Optional: URL Inspection on topPriorities only to stay inside quota.",
+      "seoBoost_gap": "Zero GSC/PSI/oauth code. DomainReport stores only a JSON blob. Competitors treat GSC as table stakes; Google gives the data away.",
+      "files_to_change": [
+        "prisma/schema.prisma",
+        "app/api/scan/route.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "app/dashboard/dashboard-client.tsx"
+      ],
+      "verify_how": "Connect a property, rescan. Each scanned URL shows GSC coverage (indexed / crawled not indexed / excluded:noindex). A vercel.app preview that is indexable while canonical is the apex must warn.",
+      "sources": [
+        "https://support.google.com/webmasters/answer/7440203",
+        "https://ahrefs.com/site-audit",
+        "https://www.screamingfrog.co.uk/seo-spider/"
+      ]
+    },
+    {
+      "id": "09-05",
+      "priority": "P0",
+      "title": "Schema check is JSON.parse; FAQ is still sold as a rich-result win after Google killed it",
+      "why_it_ranks": "Rich results change SERP CTR. Google's free Rich Results Test is the eligibility authority; Schema Markup Validator is syntax-only. Search Gallery (updated 2026-06-15) does not list FAQ. Changelog: FAQ appearance gone 2026-05-07; docs removed 2026-06-15. Ahrefs validates 190+ Google/Schema rules. SeoBoost treats any parseable JSON-LD as good and warns when FAQ-looking headings lack FAQPage — high impact in copy, zero 2026 Google appearance.",
+      "nextjs_how": "Keep JSON.parse. Add required+recommended props for live types only (Organization, WebSite, SoftwareApplication, Article, BreadcrumbList, Product, VideoObject). Link howToFix to Rich Results Test. Demote FAQPage to info ('harmless, not a Google rich result'). Emit RSC `<script type=\"application/ld+json\">` snippets, not next/script.",
+      "seoBoost_gap": "lib/scanner.ts schema / faq-schema / breadcrumb-schema / video-schema. Copy in README and pricing. Deep type map owned by lane 03 — do not fork a second eligibility engine.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "README.md",
+        "app/page.tsx",
+        "app/pricing/page.tsx"
+      ],
+      "verify_how": "Page with `{@type:Organization,name:\"X\"}` only must warn missing url/logo, not pass. Page with visible FAQ and no FAQPage must not be a warning. Report footer links to https://search.google.com/test/rich-results.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data",
+        "https://developers.google.com/search/docs/appearance/structured-data/search-gallery",
+        "https://developers.google.com/search/updates",
+        "https://search.google.com/test/rich-results",
+        "https://ahrefs.com/site-audit"
+      ]
+    },
+    {
+      "id": "09-06",
+      "priority": "P0",
+      "title": "No sitewide duplicate title or canonical collision — the Next.js layout-inheritance failure",
+      "why_it_ranks": "Duplicate titles split CTR and confuse ranking. Duplicate canonicals collapse distinct URLs. next-seo-doctor already flags `duplicate-canonicals`. Next.js metadata merges down the tree: if a dynamic `page.tsx` omits `generateMetadata`, every slug inherits the layout `title.template` / default title and often the same canonical. SeoBoost scores each title in isolation (length only).",
+      "nextjs_how": "After crawl, group title and canonical. Critical when ≥2 indexable paths share a title or a canonical. howToFix: `export async function generateMetadata` on the dynamic segment; set `alternates.canonical` per slug; do not export both static metadata and generateMetadata in one file.",
+      "seoBoost_gap": "lib/scanner.ts title + canonical are per-page. next-seo-doctor does the collision check SeoBoost needs to own in the SaaS report.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Scan a Next blog where /blog/a and /blog/b both title 'My Blog | Brand' and canonical to /blog. After: one aggregated critical with both paths. Unique titles must pass.",
+      "sources": [
+        "https://www.npmjs.com/package/next-seo-doctor",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://www.screamingfrog.co.uk/seo-spider/"
+      ]
+    },
+    {
+      "id": "09-07",
+      "priority": "P0",
+      "title": "No Next.js Metadata API / next-seo / metadataBase audit — the only wedge the big suites will not ship first",
+      "why_it_ranks": "If canonical and og:image are relative, or metadata is injected only on the client, Google may see the wrong URL or no preview. Native Metadata API is the 2026 App Router path. next-seo v7.3.0 (updated 2026-07-29, ~474k weekly downloads) still exists but its own README says use generateMetadata for standard tags. Missing `metadataBase` is the #1 Next footgun (this repo sets metadataBase to boost-seo.vercel.app and og:url to seoboost.app).",
+      "nextjs_how": "New category `nextjs`. Detect Next. Fail relative canonical/og:image/og:url. Fail mixed hosts across canonical, og:url, JSON-LD url, sitemap locs. If `next-seo` markers or client-only title mutation appear, tell App Router users to delete it for titles/canonicals and keep v7 only for JSON-LD if they insist. Snippets: root `metadataBase`, `title.template`, `generateMetadata`, `opengraph-image.tsx`.",
+      "seoBoost_gap": "Zero Next detection. howToFix is generic HTML. LLM prompt says 'use Next.js/React where applicable' without knowing the stack. This is the product that should make Ahrefs look generic on Next sites.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "app/layout.tsx"
+      ],
+      "verify_how": "Scan this repo's production host. Must flag metadataBase/canonical host ≠ sitemap/og host. Scan a Pages-router next-seo app: notice to migrate titles to generateMetadata. Scan a correct Metadata API site: pass.",
+      "sources": [
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://www.npmjs.com/package/next-seo",
+        "https://github.com/garmeeh/next-seo/releases/tag/v7.0.0"
+      ]
+    },
+    {
+      "id": "09-08",
+      "priority": "P0",
+      "title": "Single UA SEOScanBot misses Next.js streaming-metadata vs Googlebot",
+      "why_it_ranks": "Next 15.2+ streams metadata into the document for UAs not on htmlLimitedBots. Default regex includes Chrome-Lighthouse, Bingbot, Twitterbot, `*-Google` / `Google-*`, but not the string `Googlebot` and not `SEOScanBot/2.0`. Googlebot can see metadata appended after `<head>` is sent; many other parsers and this Cheerio crawler only read whatever landed in the first HTML. Sites can look 'missing title' to SeoBoost and fine to Google — or the reverse if streamed tags land in `<body>`.",
+      "nextjs_how": "On Next-detected sites, fetch homepage twice: (1) `Googlebot` and (2) current UA. Diff title, description, canonical, robots, json-ld location (head vs body). Warn if Googlebot HTML has tags the browser UA lacks, or if metadata is in body. Coach `htmlLimitedBots` only when a real bot family is blind — overriding the default list replaces it entirely, so snippets must re-include the default pattern.",
+      "seoBoost_gap": "DEFAULTS.userAgent is `SEOScanBot/2.0 (+https://seoscan.dev/bot)` — not in the default bot list. Unique competitor gap: Semrush JS Impact is render vs HTML; nobody productizes Next streaming-metadata UA split.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Against a Next 16 app with slow generateMetadata: SEOScanBot-only fetch may miss title; Googlebot fetch should include it (or both show body-injected tags). Finding must name the UA pair and point at htmlLimitedBots docs.",
+      "sources": [
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://nextjs.org/docs/app/api-reference/config/next-config-js/htmlLimitedBots",
+        "https://github.com/vercel/next.js/blob/canary/packages/next/src/shared/lib/router/utils/html-bots.ts"
+      ]
+    },
+    {
+      "id": "09-09",
+      "priority": "P1",
+      "title": "Sitemap is 'file exists' — GSC, Ahrefs, and next-seo-doctor check honesty and coverage",
+      "why_it_ranks": "GSC Sitemaps + 'Discovered — not indexed' are how Google actually uses the map. next-seo-doctor `sitemap-honesty` catches Next `sitemap.ts` stamping `lastModified: new Date()` on every build (this repo does that). Coverage vs HTML links finds orphans. SeoBoost counts `<loc>` and lastmod presence, then stops.",
+      "nextjs_how": "Parse sitemap + index. Compare locs to crawled HTML and inbound links (one parser shared with 08-01 and 07-02). Flag identical lastmod across all URLs; snippet: `lastModified: post.updatedAt` not `new Date()`. Flag noindex/canonical-off URLs listed in the sitemap. Seed crawl from locs (09-01).",
+      "seoBoost_gap": "lib/scanner.ts sitemap check + app/sitemap.ts is itself a failing example.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/sitemap.ts"
+      ],
+      "verify_how": "Scan seoboost.app. After: warning 'all lastmod identical (build stamp)'. A sitemap URL never linked from HTML shows as orphan once crawl cap ≥ sitemap size.",
+      "sources": [
+        "https://www.npmjs.com/package/next-seo-doctor",
+        "https://support.google.com/webmasters/answer/7440203",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images"
+      ]
+    },
+    {
+      "id": "09-10",
+      "priority": "P1",
+      "title": "Next soft 404 and empty RSC shells look like scored pages",
+      "why_it_ranks": "GSC excludes soft 404s. A Next dynamic route that fails to call `notFound()` often returns 200 with a 'Not found' title or an empty server shell and a client spinner. Those URLs can enter sitemaps, get crawled, and never rank. Cheerio word-count may still pass if the layout chrome is large.",
+      "nextjs_how": "If status is 200 and (title/h1 matches /404|not found|page not found/i or main text <50 words after stripping nav/footer or `__NEXT_DATA__` page props are empty), mark critical soft 404. howToFix: `notFound()` in page + generateMetadata, omit from sitemap.ts.",
+      "seoBoost_gap": "No status recording (09-03) and no empty-shell heuristic. Layout chrome inflates word-count.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Scan a Next [slug] that renders the not-found UI at 200. After: critical soft 404, not a word-count warning. A real thin landing page (real H1, no 404 copy) must not use this id.",
+      "sources": [
+        "https://support.google.com/webmasters/answer/7440203",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images"
+      ]
+    },
+    {
+      "id": "09-11",
+      "priority": "P1",
+      "title": "No CI / post-deploy gate — next-seo-doctor already owns the Next.js CLI niche",
+      "why_it_ranks": "SEO regressions ship with deploys (noindex on prod, stamped sitemaps, broken canonicals). Ahrefs always-on is the hosted version; next-seo-doctor (0.2.0, 2026-07-14) is a localhost CI crawler with exit codes 0/1/2 and the exact Next checks (canonical, sitemap-honesty, jsonld-graph, duplicate-canonicals) SeoBoost lacks. If SeoBoost stays dashboard-only, the Next.js developer workflow stays with a 7-download/week CLI.",
+      "nextjs_how": "Ship `npx seoboost` (or GitHub Action + Vercel deploy webhook) that crawls the preview URL, rewrites sitemap origin like next-seo-doctor does for localhost, fails CI on P0 ids (noindex on money pages, duplicate canonicals, relative canonical, sitemap lastmod stamp). SaaS report stays the human surface; CLI is how you become the default Next optimizer.",
+      "seoBoost_gap": "SaaS-only. No package bin, no Action, no Vercel hook. Do not reimplement next-seo-doctor's 8 checks under new ids — absorb them into scanner ids and wrap the same engine.",
+      "files_to_change": [
+        "package.json",
+        "lib/scanner.ts",
+        ".github/workflows/main.yml"
+      ],
+      "verify_how": "In CI against a fixture with duplicate canonicals: exit 1. Clean fixture: exit 0. Unreachable host: exit 2. Vercel preview scan must not silently follow production sitemap locs.",
+      "sources": [
+        "https://www.npmjs.com/package/next-seo-doctor",
+        "https://help.ahrefs.com/en/articles/10957674-how-always-on-audit-works",
+        "https://vercel.com/docs/speed-insights"
+      ]
+    },
+    {
+      "id": "09-12",
+      "priority": "P1",
+      "title": "LLM export and howToFix are generic HTML — Surfer wins content, nobody wins Next.js codegen",
+      "why_it_ranks": "Surfer/Clearscope change rankings via topical coverage, not via `<title>` snippets. Do not clone them (weak-to-moderate score↔rank correlation; not a Next wedge). The ranking-adjacent Next job is: emit the exact App Router patch (`generateMetadata`, `sitemap.ts`, `robots.ts`, `next/image`, RSC JSON-LD) so the fix ships. Today's prompt is a bullet list plus 'use Next.js/React where applicable' even when the target is WordPress — and it does not attach snippets from CheckResult.",
+      "nextjs_how": "If Next detected, prompt must include: route guess (`app/[path]/page.tsx`), existing check snippets, Metadata API not next/head, no FAQ-rich-result advice. If not Next, emit HTML/CMS instructions only. Surface snippets already on AggregatedCheck in the copied prompt (report-actions currently drops them).",
+      "seoBoost_gap": "app/dashboard/report/[id]/report-actions.tsx. This is the smallest unique content-adjacent feature that is not a Surfer clone.",
+      "files_to_change": [
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Copy prompt on a Next scan: must contain generateMetadata and must not recommend FAQPage for Google rich results. Copy prompt on a non-Next scan: no app/page.tsx paths.",
+      "sources": [
+        "https://toolchase.com/compare/clearscope-vs-surfer-seo/",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://www.npmjs.com/package/next-seo"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "09-03 + 09-01: keep status/redirects; seed from sitemap; Pro maxPages ≥ 50.",
+    "09-02: CrUX/PSI p75 on homepage (lane 02 owns UX). Stop selling CWV until then.",
+    "09-06 + 09-07: duplicate title/canonical + metadataBase/relative URL + Next fingerprint.",
+    "09-08: Googlebot vs SEOScanBot metadata diff on Next hosts.",
+    "09-05: kill FAQ-as-rich-result copy (lane 03 owns the type map).",
+    "09-09: sitemap lastmod honesty + loc inventory (share parser with 08/07)."
+  ],
+  "unique_nextjs_wedges": [
+    "Dual-UA fetch: Googlebot vs SEOScanBot vs Chrome-Lighthouse for streaming metadata / htmlLimitedBots.",
+    "Metadata API vs next-seo vs client document.title; missing metadataBase; relative canonical/OG.",
+    "Layout-inherited duplicate titles on dynamic routes without generateMetadata.",
+    "sitemap.ts build-stamped lastmod (next-seo-doctor sitemap-honesty).",
+    "next/image LCP coaching in CWV howToFix (ids owned by 02/07 — do not add a third LCP grade).",
+    "Soft 404 from missing notFound() on 200 Next routes.",
+    "CI bin + Vercel preview origin rewrite that absorbs next-seo-doctor checks.",
+    "LLM/howToFix that prints App Router file paths, not generic <title> tags."
+  ],
+  "conflicts_to_avoid": [
+    "Do not clone Surfer/Clearscope NLP scores. Content length/intro stay; SERP-term stuffing is not the Next.js product.",
+    "Do not grade CWV from Cheerio heuristics (02). Hints stay hints; pass/fail is CrUX p75.",
+    "Do not add a second LCP check id (02/07 own LCP/image). 09 only requires the product to call PSI and to stop lying in pricing.",
+    "Do not add a second orphan/graph engine (08-01/08-03). One sitemap parser; 09 consumes coverage for crawl seed.",
+    "Do not add a second schema eligibility engine (03). 09 only requires FAQ demotion + RRT link in the product story.",
+    "Do not recommend next-seo as the App Router source of title/canonical. Native Metadata API first; next-seo v7 JSON-LD optional.",
+    "Do not recommend llms.txt or AI-bot Allow rules as a Google ranking fix — Search Central 2026-06-15: llms.txt does not affect Google rankings. Semrush AI-bot checks are a different product; out of scope here.",
+    "Do not JS-render every URL on the 3-scan Hobby plan. Render sample + raw HTML for the rest.",
+    "Do not crawl /_next, /api, or treat RSC flight payloads as HTML pages.",
+    "Do not overwrite sibling findings JSON. Host decision (seoboost.app vs boost-seo.vercel.app) is one origin; 09-07 must follow it, not pick a third."
+  ],
+  "cross_agent_notes": [
+    "Siblings read 2026-09-11: 02-core-web-vitals.json, 03-structured-data.json, 07-media-seo.json, 08-internal-linking.json. 01/04/05/06/10 were not on disk. This file was not overwritten.",
+    "02-01/02-04: 09-02 is the competitor justification for the same CrUX+PSI work. 02 owns field-first UI and FID-language deletion. 09 owns pricing honesty and the PSI call as a must-ship vs Lighthouse-free-tier Google.",
+    "03-01/03-04/03-11: 09-05 is the same FAQ kill + RRT vs schema.org split. 03 owns required-props and this site's fake AggregateRating. 09 will not invent new schema check ids.",
+    "07-05/07-11: image LCP/CLS stay in 07/02. 09-01 may use next/image only inside CWV howToFix after Next fingerprint.",
+    "08-01/08-03/08-12: one sitemap XML parse and one status-checked href pass. 09-01/09-03/09-09 consume those primitives for crawl seed, 4xx, and lastmod honesty. 08 owns click-depth/orphans/anchors.",
+    "Self-host mess (boost-seo.vercel.app metadataBase vs seoboost.app sitemap/OG) is evidence for 09-07 and is already flagged by 03-03 and 08. Do not 'fix' JSON-LD to a different host than metadata.",
+    "If a JS-rendering agent appears: 09-01 wants a sampled rendered diff, not full-site Playwright on Hobby. Semrush JS Impact is the UX to copy."
+  ]
+}

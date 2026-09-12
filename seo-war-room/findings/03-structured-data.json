@@ -1,0 +1,416 @@
+{
+  "agent": "03-structured-data",
+  "as_of": "2026-09-11",
+  "lane": "Structured data and rich results",
+  "sources": [
+    {
+      "title": "Structured data markup that Google Search supports (Search Gallery)",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/search-gallery",
+      "date": "2026-06-15"
+    },
+    {
+      "title": "Introduction to structured data markup in Google Search",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "General structured data guidelines",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/sd-policies",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Organization structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/organization",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Software app (SoftwareApplication) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/software-app",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Article structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/article",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Breadcrumb (BreadcrumbList) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Product structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/product",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Review snippet (Review, AggregateRating) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/review-snippet",
+      "date": "2026-09-08"
+    },
+    {
+      "title": "Provide a site name to Google Search (WebSite)",
+      "url": "https://developers.google.com/search/docs/appearance/site-names",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Generate structured data with JavaScript",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/generate-structured-data-with-javascript",
+      "date": "2025-12-10"
+    },
+    {
+      "title": "Q&A (QAPage) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/qapage",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Schema markup testing tools (Rich Results Test vs Schema Markup Validator)",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Rich Results Test help",
+      "url": "https://support.google.com/webmasters/answer/7445569",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Schema Markup Validator",
+      "url": "https://validator.schema.org/",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Google Search documentation updates (FAQ rich result removed)",
+      "url": "https://developers.google.com/search/updates",
+      "date": "2026-06-15"
+    },
+    {
+      "title": "Farewell, Sitelinks Search Box",
+      "url": "https://developers.google.com/search/blog/2024/10/sitelinks-search-box",
+      "date": "2024-10-21"
+    },
+    {
+      "title": "Changes to HowTo and FAQ rich results",
+      "url": "https://developers.google.com/search/blog/2023/08/howto-faq-changes",
+      "date": "2023-08-08"
+    },
+    {
+      "title": "Simplifying the search results page (2025 type retirements)",
+      "url": "https://developers.google.com/search/blog/2025/06/simplifying-search-results",
+      "date": "2025-06-12"
+    },
+    {
+      "title": "Next.js App Router JSON-LD guide",
+      "url": "https://nextjs.org/docs/app/guides/json-ld",
+      "date": "2026-09-11"
+    }
+  ],
+  "eligibility_2026": {
+    "still_works_google_rich_results": [
+      "Article / NewsArticle / BlogPosting",
+      "BreadcrumbList (minimum two ListItems)",
+      "Organization (knowledge panel / logo / site identity; homepage or about page only)",
+      "WebSite name + url (site name on homepage; not a sitelinks search box)",
+      "SoftwareApplication / WebApplication / MobileApplication (name + offers.price + real review or aggregateRating)",
+      "Product snippets and merchant listings (plus variants, shipping, returns)",
+      "Review snippet for allowed types only, with visible reviews",
+      "VideoObject",
+      "Event, Recipe, JobPosting, LocalBusiness, Dataset, DiscussionForum, ProfilePage, QAPage (user-submitted answers), Course list, Carousel (with allowed child types)"
+    ],
+    "deprecated_or_not_a_google_rich_result": [
+      {
+        "type": "FAQPage",
+        "status": "Rich result fully removed from Google Search starting 2026-05-07. Docs removed 2026-06-15. Search Console / Rich Results Test / API support torn down June–August 2026. Markup may remain; it does not earn FAQ SERP expansions.",
+        "url": "https://developers.google.com/search/updates"
+      },
+      {
+        "type": "HowTo",
+        "status": "How-to rich results removed on desktop and mobile; documentation removed. Unused markup is harmless but has no Google Search appearance.",
+        "url": "https://developers.google.com/search/blog/2023/08/howto-faq-changes"
+      },
+      {
+        "type": "SearchAction / sitelinks search box",
+        "status": "Sitelinks search box removed globally 2024-11-21. Docs removed November 2024. Keep WebSite for site names; do not implement SearchAction to chase a search box.",
+        "url": "https://developers.google.com/search/blog/2024/10/sitelinks-search-box"
+      },
+      {
+        "type": "Book Actions, Course Info, ClaimReview, Estimated Salary, Learning Video, Special Announcement, Vehicle Listing",
+        "status": "Announced 2025-06-12; documentation removed 2025-09-09. No Google Search appearance.",
+        "url": "https://developers.google.com/search/blog/2025/06/simplifying-search-results"
+      },
+      {
+        "type": "data-vocabulary.org",
+        "status": "Not eligible for Google rich results.",
+        "url": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+      }
+    ],
+    "do_not_confuse": [
+      "FAQPage (site-authored Q&A, no Google rich result) is not QAPage (one question, user-submitted answers; still in the Search Gallery).",
+      "Education Q&A is a separate education feature, not generic FAQ.",
+      "WebSite is for site name, not for SearchAction.",
+      "SaaS pricing pages should use SoftwareApplication / WebApplication, not Product merchant listings, unless a physical/digital SKU is actually sold."
+    ]
+  },
+  "findings": [
+    {
+      "id": "03-01",
+      "priority": "P0",
+      "title": "Scanner and marketing still sell FAQPage as a Google rich-result win after the May 2026 kill",
+      "why_it_ranks": "Google removed FAQ rich results from Search on 2026-05-07 and deleted the FAQ feature docs on 2026-06-15. SeoBoost still warns 'FAQ content found, schema missing', claims expandable SERP Q&A, marks impact high, and ships FAQPage on /pricing plus glossary terms. Users who pay Pro for structured-data advice will ship dead tactics. Google says unused FAQ markup is harmless; it is not a ranking or SERP-real-estate lever.",
+      "nextjs_how": "Keep visible FAQ copy. Do not add FAQPage JSON-LD to chase Google rich results. If a page is one user-answered question, use QAPage per Google's Q&A guide. For glossary/docs, prefer Article (headline, ISO-8601 dates, image, author) in a server component <script type=\"application/ld+json\">.",
+      "seoBoost_gap": "lib/scanner.ts faq-schema check, how-to-fix copy, and snippets are factually wrong as of 2026-05-07. README and pricing still list 'FAQ Schema' as a product capability. No deprecation table exists. Product will generate obsolete markup for customer sites.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "README.md",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "app/glossary/[term]/page.tsx",
+        "app/bento-grid.tsx"
+      ],
+      "verify_how": "1. Confirm FAQ is absent from https://developers.google.com/search/docs/appearance/structured-data/search-gallery. 2. Paste a customer URL into https://search.google.com/test/rich-results — FAQ must not appear as an eligible type. 3. After the scanner change, a page with FAQ headings and no FAQPage must not get a warning framed as a rich-result opportunity.",
+      "sources": [
+        "https://developers.google.com/search/updates",
+        "https://developers.google.com/search/docs/appearance/structured-data/search-gallery",
+        "https://developers.google.com/search/docs/appearance/structured-data/qapage"
+      ]
+    },
+    {
+      "id": "03-02",
+      "priority": "P0",
+      "title": "Root SoftwareApplication ships a 4.9/120 AggregateRating with no visible reviews",
+      "why_it_ranks": "Software-app rich results require name, offers.price, and either review or aggregateRating. Review-snippet rules require that rating to be on the page, from real users, not fake or self-serving. app/layout.tsx hard-codes ratingValue 4.9 and ratingCount 120 on every route. Homepage does not show those reviews. That is a structured-data spam / manual-action path, not a CTR trick. Eligibility is not guaranteed even with valid JSON.",
+      "nextjs_how": "Put SoftwareApplication only on the homepage (and maybe /pricing). Co-type as [\"SoftwareApplication\",\"WebApplication\"]. Keep offers.price in sync with visible $9 Pro pricing (price 0 if you also advertise a free tier as the primary offer). Drop aggregateRating until real ratings are rendered on that page. Link the app to Organization with @id.",
+      "seoBoost_gap": "Scanner never inspects AggregateRating / Review against visible text. It would score this site 'good' because JSON parses. No generator should emit star ratings. Product must refuse to invent ratingCount.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "lib/scanner.ts",
+        "app/page.tsx",
+        "app/pricing/page.tsx"
+      ],
+      "verify_how": "1. Rich Results Test on the homepage: SoftwareApplication must not include aggregateRating unless stars are visible. 2. Confirm ratingCount is not in the raw HTML. 3. Add a scanner check: if JSON-LD has aggregateRating/review and the HTML has no visible rating/review text, status=critical.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/software-app",
+        "https://developers.google.com/search/docs/appearance/structured-data/review-snippet",
+        "https://developers.google.com/search/docs/appearance/structured-data/sd-policies"
+      ]
+    },
+    {
+      "id": "03-03",
+      "priority": "P0",
+      "title": "Organization, WebSite, canonical, and Open Graph disagree on the site URL",
+      "why_it_ranks": "Site name requires WebSite.name + WebSite.url on the crawlable homepage, matching the canonical domain. Organization.url is how Google disambiguates the entity. This repo sets metadataBase and canonical to https://boost-seo.vercel.app, WebSite.url and BreadcrumbList items to the same host, but Organization.url, Organization.logo, and openGraph.url to https://seoboost.app. Google will not confidently pick a site name or logo when the homepage entity is split across two hosts.",
+      "nextjs_how": "Pick one production origin (likely https://seoboost.app). Set metadataBase, alternates.canonical, WebSite.url, Organization.url, logo, and breadcrumb items to that origin. Add WebSite.alternateName (e.g. SeoBoost, seoboost.app). Keep Organization + WebSite on the homepage only, same node if both exist.",
+      "seoBoost_gap": "Scanner does not compare JSON-LD urls to <link rel=canonical> or og:url. It cannot tell a customer their Organization and WebSite identify two different sites. Audit must flag host mismatch as P0.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/seo-audit-login/page.tsx",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1. View source on / and confirm one origin in canonical, og:url, WebSite.url, Organization.url. 2. Schema Markup Validator: no conflicting url. 3. Search Console URL Inspection on the homepage after recrawl.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/site-names",
+        "https://developers.google.com/search/docs/appearance/structured-data/organization"
+      ]
+    },
+    {
+      "id": "03-04",
+      "priority": "P0",
+      "title": "Structured-data audit treats parseable JSON-LD as rich-result eligible",
+      "why_it_ranks": "Google eligibility is type + required properties + quality guidelines, not JSON.parse success. BreadcrumbList needs ≥2 ListItems with position/name/item. SoftwareApplication needs offers.price and a real rating/review. Article wants ISO-8601 datePublished/dateModified, headline, image, author. Product has two tracks (snippet vs merchant listing). Scanner at lib/scanner.ts:1073–1196 only: finds application/ld+json, parses, lists @type, optionally nags FAQ/Video/Breadcrumb presence. A 1-item breadcrumb, fake stars, or Article with no dates all pass as 'good'.",
+      "nextjs_how": "After generating JSON-LD in RSC, validate against the Search Gallery required fields for that type. Never tell users 'valid structured data makes pages eligible' after a parse-only check.",
+      "seoBoost_gap": "No required-property matrix. No ISO-8601 date lint. No Offer price/currency check. No itemListElement length check. Copy at scanner.ts:1121 overclaims eligibility. Report UI just reprints that copy. Pro feature is a syntax linter sold as a rich-result engine.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx",
+        "README.md"
+      ],
+      "verify_how": "1. Fixture: BreadcrumbList with one ListItem → warning, not good. 2. Fixture: Article missing datePublished → warning with ISO-8601 snippet. 3. Fixture: SoftwareApplication missing offers.price → not eligible. 4. Cross-check fixtures in Rich Results Test.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/sd-policies",
+        "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb",
+        "https://developers.google.com/search/docs/appearance/structured-data/article",
+        "https://search.google.com/test/rich-results"
+      ]
+    },
+    {
+      "id": "03-05",
+      "priority": "P0",
+      "title": "JSON-LD is injected globally via next/script with a 1-item BreadcrumbList on every page",
+      "why_it_ranks": "Next.js App Router docs: render a native <script type=\"application/ld+json\"> in page.js/layout.js; next/script is for executable JS, not JSON-LD. Google wants Organization/WebSite on the homepage only, and BreadcrumbList with at least two ListItems that match a real path. app/layout.tsx dumps SoftwareApplication + Organization + WebSite + a single Home crumb into next/script on every route (including login). That duplicates, mis-describes inner pages, and fails breadcrumb eligibility. Inner pages then add more blocks (pricing FAQ, login crumbs, glossary Article+FAQ) → duplicate/conflicting types.",
+      "nextjs_how": "1. Homepage RSC: Organization + WebSite (+ optional WebApplication) with @id links, native script, JSON.stringify(...).replace(/</g, '\\\\u003c'). 2. Inner pages: page-local Article/BreadcrumbList only. 3. Do not put page types in root layout. 4. BreadcrumbList: ≥2 items, last item may omit item, match visible nav.",
+      "seoBoost_gap": "No App Router placement guidance in how-to-fix. Snippets are raw <script> with no RSC/XSS note. Product does not detect layout-level types repeated on every crawled URL. Login page is a client component adding a second BreadcrumbList on top of the root 1-item list.",
+      "files_to_change": [
+        "app/layout.tsx",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "app/seo-audit-login/page.tsx",
+        "app/glossary/[term]/page.tsx",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1. View source: JSON-LD is a raw script tag, not a next/script runtime chunk. 2. Rich Results Test: homepage eligible for Organization/SoftwareApplication; inner pages not claiming a 1-item breadcrumb. 3. Crawl 5 routes — SoftwareApplication appears once (home), not on /seo-audit-login.",
+      "sources": [
+        "https://nextjs.org/docs/app/guides/json-ld",
+        "https://developers.google.com/search/docs/appearance/structured-data/organization",
+        "https://developers.google.com/search/docs/appearance/structured-data/breadcrumb",
+        "https://developers.google.com/search/docs/appearance/structured-data/generate-structured-data-with-javascript"
+      ]
+    },
+    {
+      "id": "03-06",
+      "priority": "P1",
+      "title": "Type detectors miss JSON-LD arrays and array-valued @type — including this site's own graph",
+      "why_it_ranks": "Common Next.js pattern is JSON.stringify([{...},{...}]). Type listing at scanner.ts:1089 handles arrays, but Breadcrumb/FAQ/Video detectors only read data['@type'] and data['@graph']. They miss top-level arrays, nested mainEntity, and @type: [\"SoftwareApplication\",\"WebApplication\"]. SeoBoost's own root layout is an array — a self-scan can miss BreadcrumbList and still nag FAQ.",
+      "nextjs_how": "Normalize every block to a node list: if Array.isArray(data) use it; else if @graph use that; else [data]. Flatten @type to string[]. Walk nested mainEntity / hasPart / about.",
+      "seoBoost_gap": "False missing-breadcrumb and missing-FAQ warnings on valid Next.js sites. False 'good' when types are listed but opportunity checks fail. No @id / same-entity duplicate detection.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Unit fixtures: (1) array of Organization+BreadcrumbList, (2) @graph, (3) @type array, (4) FAQPage nested in @graph. All four must classify correctly.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/sd-policies",
+        "https://schema.org/docs/jsonldfaq.html"
+      ]
+    },
+    {
+      "id": "03-07",
+      "priority": "P1",
+      "title": "Cheerio static fetch misses client-only, GTM, and afterInteractive JSON-LD",
+      "why_it_ranks": "Google can read JSON-LD injected by JavaScript after render. SeoBoost fetchUrl() is a single GET + cheerio. next/script default afterInteractive, useEffect injectors, and GTM custom HTML will be invisible to the audit while Google may still see them (or fail them in Rich Results Test URL mode). Conversely, 'use client' pages that SSR the script (pricing, login) are visible — so the product gives inconsistent advice. Product merchants are explicitly warned that JS-generated Product markup makes Shopping crawls less reliable.",
+      "nextjs_how": "Prefer RSC-emitted JSON-LD in the initial HTML. If a customer must use JS, tell them to test the URL (not code paste) in Rich Results Test. Do not put JSON-LD in useEffect.",
+      "seoBoost_gap": "No rendered-DOM pass. No warning when application/ld+json is absent in raw HTML but the page is a known SPA. Copy still says 'None detected' as if Google agrees. LLM export prompt will tell Next.js users to add client schema.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/report-actions.tsx"
+      ],
+      "verify_how": "1. Fixture page that injects JSON-LD in useEffect → scanner says none, note must say 'static HTML only; confirm with Rich Results Test URL mode'. 2. Do not claim Google cannot read JS schema.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/generate-structured-data-with-javascript",
+        "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data",
+        "https://nextjs.org/docs/app/guides/json-ld"
+      ]
+    },
+    {
+      "id": "03-08",
+      "priority": "P1",
+      "title": "No page-type schema generator or 2026 eligibility map for customer sites",
+      "why_it_ranks": "A useful SEO optimizer emits the right type for the page, not a generic Organization blob. Homepage: Organization (specific subtype) + WebSite name/url/alternateName. Software: WebApplication on the product page. Ecommerce: Product snippet vs merchant listing, plus Organization-level return/shipping policy. Articles: Article with dates/images/author. Inner pages: BreadcrumbList ≥2 matching visible crumbs. Video: VideoObject with uploadDate ISO-8601, thumbnailUrl, name. Today SeoBoost only pastes Organization / FAQPage / VideoObject / BreadcrumbList snippets and never generates a graph.",
+      "nextjs_how": "Ship a lib/schema/ builders module: node objects typed with schema-dts, serialized in RSC. Export the same builders in the audit 'how to fix' as copy-paste App Router components.",
+      "seoBoost_gap": "Zero generation API. Report 'Copy as LLM Prompt' dumps failed checks with stale FAQ/Organization snippets. No Product-vs-SoftwareApplication classifier. No merchant-listing vs snippet fork. Structured data is marketed Pro-only on app/page.tsx but the scanner always runs the weak checks — the gap is quality, not gating.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/report-actions.tsx",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "For a fixture homepage, product PDP, blog post, and SaaS pricing page, the generated snippet type must match the 2026 Search Gallery mapping above. Reject FAQPage/HowTo/SearchAction as default recommendations.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/search-gallery",
+        "https://developers.google.com/search/docs/appearance/structured-data/product",
+        "https://developers.google.com/search/docs/appearance/site-names",
+        "https://nextjs.org/docs/app/guides/json-ld"
+      ]
+    },
+    {
+      "id": "03-09",
+      "priority": "P1",
+      "title": "Glossary Article JSON-LD is incomplete and interpolations are escaped to literal ${}",
+      "why_it_ranks": "Article rich results use headline, image, datePublished/dateModified (ISO-8601 with timezone), and author Person/Organization with url. app/glossary/[term]/page.tsx Article has only headline, description, and author — no dates, no image. Worse, generateMetadata and JSON-LD use \\${termData.title} / \\${termData.slug}, so Google sees the literal string '${termData.title}' instead of the term. Invalid/placeholder dates and headlines are a top Next.js schema failure mode.",
+      "nextjs_how": "Use real template literals. Add datePublished/dateModified from glossary data in ISO-8601. Add relevant images (not only the logo). Use Article or defined-term content; stop wrapping each term as FAQPage.",
+      "seoBoost_gap": "Scanner does not lint datePublished format or placeholder ${} / 1970-01-01 / Invalid Date. Video snippet itself uses uploadDate \"2025-01-01\" as a dummy — the product teaches fake dates.",
+      "files_to_change": [
+        "app/glossary/[term]/page.tsx",
+        "lib/glossary-data.ts",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "1. Open /glossary/<slug> view-source: headline contains the term, not '${termData.title}'. 2. Rich Results Test Article: datePublished present and valid. 3. Scanner flags datePublished not matching ^\\d{4}-\\d{2}-\\d{2}.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/article",
+        "https://nextjs.org/docs/app/guides/json-ld"
+      ]
+    },
+    {
+      "id": "03-10",
+      "priority": "P1",
+      "title": "Product advice still orbits SearchAction, HowTo, and other retired Search appearances",
+      "why_it_ranks": "Sitelinks search box (WebSite.potentialAction SearchAction) died 2024-11-21; WebSite remains only for site names. HowTo rich results are gone. June 2025 retired Book Actions, Course Info, ClaimReview, Estimated Salary, Learning Video, Special Announcement, Vehicle Listing. Scanner comments still say 'FAQ/Video opportunity' and homepage schema advice lists FAQPage. If generation is added, these types must be on a deny/info list, not a recommend list.",
+      "nextjs_how": "Homepage WebSite: name, url, alternateName only. Do not add potentialAction SearchAction unless the site actually has search and you want it for non-Google consumers. Never emit HowTo for Google CTR.",
+      "seoBoost_gap": "No retired-type catalog. A customer with leftover SearchAction/HowTo/FAQPage is told nothing, or (FAQ) told to add more. VideoObject advice is still valid and should stay.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "README.md"
+      ],
+      "verify_how": "Scanner output for a page with only SearchAction or HowTo: informational 'no Google rich result as of 2026-09-11', not a pass and not a 'add this for SERP' warning. VideoObject still recommended when <video> or YouTube iframes exist.",
+      "sources": [
+        "https://developers.google.com/search/blog/2024/10/sitelinks-search-box",
+        "https://developers.google.com/search/blog/2023/08/howto-faq-changes",
+        "https://developers.google.com/search/blog/2025/06/simplifying-search-results",
+        "https://developers.google.com/search/docs/appearance/site-names"
+      ]
+    },
+    {
+      "id": "03-11",
+      "priority": "P2",
+      "title": "Reports never send users to Rich Results Test or distinguish it from schema.org validation",
+      "why_it_ranks": "Google: use Rich Results Test for Google feature eligibility (URL mode if JS is involved); use Schema Markup Validator for generic schema.org syntax. Site names are not supported in Rich Results Test. Scanner only links validator.schema.org on parse errors and never emits a search.google.com/test/rich-results?url= link. Microdata/RDFa are ignored entirely (no itemscope/itemtype scan), so a valid Microdata Product site is told 'None detected'.",
+      "nextjs_how": "After deploy, test the live URL in Rich Results Test and Search Console rich-result reports. For site name, use Schema Markup Validator + URL Inspection, not RRT.",
+      "seoBoost_gap": "No per-check reference to the matching Search Gallery doc. No Microdata/RDFa detection. Report UI has no 'Test this URL' button.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/page.tsx"
+      ],
+      "verify_how": "Report for a scanned URL shows a Rich Results Test deep link and, on parse errors, validator.schema.org. A Microdata-only fixture is not marked 'no structured data'.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data",
+        "https://search.google.com/test/rich-results",
+        "https://validator.schema.org/",
+        "https://support.google.com/webmasters/answer/7445569",
+        "https://developers.google.com/search/docs/appearance/site-names"
+      ]
+    },
+    {
+      "id": "03-12",
+      "priority": "P2",
+      "title": "SeoBoost should generate page-scoped RSC JSON-LD, not a single global blob",
+      "why_it_ranks": "Customers on App Router will copy whatever SeoBoost prints. The correct generator: classify page → pick 2026-eligible types → fill only visible fields → emit one @graph with stable @id → serialize in the page RSC with XSS escaping. Do not emit FAQPage/HowTo/SearchAction for Google. Do not emit AggregateRating without scraped visible reviews. Do not repeat Organization on every URL.",
+      "nextjs_how": "Recommended homepage graph: Organization @id /#org, WebSite @id /#website publisher → /#org, optional WebApplication @id /#app provider → /#org. Inner page: WebPage/Article isPartOf /#website + BreadcrumbList. Types: schema-dts.",
+      "seoBoost_gap": "No lib/schema module. LLM prompt in report-actions.tsx will happily invent FAQPage and next/script blocks from current check copy. That is how bad schema scales to customer sites.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/dashboard/report/[id]/report-actions.tsx"
+      ],
+      "verify_how": "Generated snippet for a Next.js homepage compiles as a server component, passes Schema Markup Validator, and Rich Results Test reports only types that are still in the 2026 gallery.",
+      "sources": [
+        "https://nextjs.org/docs/app/guides/json-ld",
+        "https://developers.google.com/search/docs/appearance/structured-data/sd-policies",
+        "https://developers.google.com/search/docs/appearance/structured-data/search-gallery"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "Stop recommending FAQPage as a Google rich result in lib/scanner.ts, README, and pricing copy (retired 2026-05-07).",
+    "Delete the hard-coded 4.9/120 AggregateRating from app/layout.tsx until reviews are visible and real.",
+    "Unify metadataBase, canonical, Organization.url, WebSite.url, and og:url on one production origin.",
+    "Replace next/script JSON-LD with a native RSC <script type=\"application/ld+json\">; keep Organization/WebSite/SoftwareApplication on the homepage only.",
+    "Remove the 1-item BreadcrumbList from root layout; emit ≥2 ListItems only on inner pages.",
+    "Upgrade the audit from JSON.parse to a 2026 required-property + visible-review + date-format checker."
+  ],
+  "conflicts_to_avoid": [
+    "Do not add WebSite.potentialAction SearchAction to 'fix' site name or sitelinks — the search box is gone; WebSite.name/url remain.",
+    "Do not treat FAQPage and QAPage as interchangeable. QAPage is only for a single question with user-submitted answers.",
+    "Do not mark up a SaaS plan as Product merchant listing. Use SoftwareApplication / WebApplication. Product is for buyable goods (snippets vs merchant listings).",
+    "Do not put Organization JSON-LD on every route. Google says homepage or about page.",
+    "Do not use next/script for JSON-LD. That fights the Next.js JSON-LD guide and any performance-agent advice to wrap all scripts in next/script.",
+    "Do not invent ratingCount, reviewCount, or datePublished. Fake reviews are a manual-action vector.",
+    "Do not tell users to remove leftover FAQ/HowTo/SearchAction markup for ranking reasons. Unused types are harmless; just stop selling them as rich results.",
+    "Canonical/host cleanup overlaps the metadata lane — one origin decision, then both metadata and JSON-LD must match. Do not 'fix' schema to vercel.app if the metadata agent picks seoboost.app.",
+    "08-05 and 03-05 both remove the root-layout 1-item BreadcrumbList. Do that once. 08 owns visible <nav> crumbs; 03 owns ListItem count, dates, and type eligibility."
+  ],
+  "cross_agent_notes": [
+    "Read siblings 02-core-web-vitals, 07-media-seo, 08-internal-linking. 01/04+ were not in the folder yet.",
+    "02-CWV (02-10): same call — JSON-LD must be a raw application/ld+json tag, not next/script. Do not treat the current next/script JSON-LD as an INP failure. Do not wrap JSON-LD in next/script when fixing CWV.",
+    "07-media (07-03): VideoObject required fields (name, thumbnailUrl, uploadDate) belong to the media lane. This file only requires the structured-data scanner to stop presence-only passes and drop the dummy uploadDate 2025-01-01. primaryImageOfPage / Article.image overlap 07-04 — use a content image, not icon.png.",
+    "08-linking (08-05): they own visible breadcrumb HTML + IA; this lane owns BreadcrumbList eligibility (≥2 ListItems, not in root layout, host match). Implement one shared crumb model so JSON-LD and <nav aria-label=Breadcrumb> cannot drift.",
+    "08-linking (08-04): escaped `\\${term.slug}` / `\\${termData.title}` also break glossary Article/FAQ JSON-LD (03-09). Fix interpolations once; do not ship a second FAQPage on terms.",
+    "URL identity (boost-seo.vercel.app vs seoboost.app) is flagged by 08 and 03-03. Schema, sitemap, metadataBase, and breadcrumb item URLs must follow one origin decided with the metadata lane.",
+    "AEO/content: visible FAQ copy is fine; FAQPage is not a 2026 Google appearance. Do not recommend it for AI Overviews either.",
+    "Trust/spam: 4.9/120 AggregateRating in app/layout.tsx is the highest-risk structured-data issue on this site."
+  ]
+}

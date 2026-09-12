@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { SITE_ORIGIN } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/dashboard/', '/api/', '/auth/'],
     },
-    sitemap: 'https://seoboost.app/sitemap.xml',
+    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
   }
 }

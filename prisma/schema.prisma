@@ -26,6 +26,7 @@ model DomainReport {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   domainUrl   String
   score       Int
+  status      String   @default("complete") // running | complete | failed
   reportData  String   // JSON stringified report data
   createdAt   DateTime @default(now())
 }

@@ -1,0 +1,310 @@
+{
+  "agent": "07-media-seo",
+  "as_of": "2026-09-11",
+  "lane": "Image video and media SEO",
+  "sources": [
+    {
+      "title": "Google image SEO best practices",
+      "url": "https://developers.google.com/search/docs/appearance/google-images",
+      "date": "2026-03-02"
+    },
+    {
+      "title": "Image sitemaps",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Video SEO best practices",
+      "url": "https://developers.google.com/search/docs/appearance/video",
+      "date": "2025-12-18"
+    },
+    {
+      "title": "Video (VideoObject, Clip, BroadcastEvent) structured data",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/video",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Video sitemaps and alternatives",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/video-sitemaps",
+      "date": "2026-05-20"
+    },
+    {
+      "title": "Define a favicon to show in search results",
+      "url": "https://developers.google.com/search/docs/appearance/favicon-in-search",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js Image component (App Router)",
+      "url": "https://nextjs.org/docs/app/api-reference/components/image",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js getting started: images",
+      "url": "https://nextjs.org/docs/app/getting-started/images",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js opengraph-image and twitter-image",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/opengraph-image",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js sitemap file convention (images and videos)",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js favicon, icon, apple-icon",
+      "url": "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/app-icons",
+      "date": "2026-09-11"
+    },
+    {
+      "title": "Next.js generateMetadata (openGraph / twitter / icons)",
+      "url": "https://nextjs.org/docs/app/api-reference/functions/generate-metadata",
+      "date": "2026-09-11"
+    }
+  ],
+  "findings": [
+    {
+      "id": "07-01",
+      "priority": "P0",
+      "title": "Image audit is one bundled check and cannot coach Google Images eligibility",
+      "why_it_ranks": "Google Images, Discover, and SERP thumbnails still use alt text, nearby captions, descriptive filenames, HTML <img src>, and page context. CSS background images are not indexed. Keyword-stuffed alt is treated as spam. Product copy sells 'Image optimisation insights' as Pro, but the only images-category check is img-alt.",
+      "nextjs_how": "Use next/image with a required descriptive alt (empty string only for decorative). Prefer real <img> output (next/image does this). Put content images next to relevant copy and wrap in <figure><figcaption>. Name files like red-leather-sofa.jpg, not IMG00023.JPG. Do not put ranking images in CSS backgrounds.",
+      "seoBoost_gap": "lib/scanner.ts analysePage (lines 869-899) only counts missing alt (undefined) and, if alt is complete, warns on width/height when >50% of images lack dims. It never scores: empty vs meaningful alt, keyword stuffing, generic filenames, figcaption/title, <picture>/srcset fallback src, or CSS-only images. Empty alt=\"\" passes as 'all have alt'. No howToFix for Next.js Image.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/page.tsx",
+        "app/pricing/page.tsx",
+        "app/bento-grid.tsx"
+      ],
+      "verify_how": "Scan a page with alt=\"\" decorative, alt=\"seo seo seo\", CSS background hero, and <figure><figcaption>. Expect separate checks (img-alt-quality, img-filename, img-caption) plus a pass for decorative empty alt. Confirm Google Images doc: HTML img src required.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/google-images",
+        "https://nextjs.org/docs/app/api-reference/components/image"
+      ]
+    },
+    {
+      "id": "07-02",
+      "priority": "P0",
+      "title": "No image sitemap audit; SeoBoost sitemap.ts emits no image:image entries",
+      "why_it_ranks": "Google still recommends image sitemaps for images it may miss (especially JS-loaded next/image URLs). Only image:loc is required; caption/title/geo/license tags are deprecated. Next.js MetadataRoute.Sitemap supports images: string[].",
+      "nextjs_how": "In app/sitemap.ts add images: ['https://seoboost.app/opengraph-image'] (absolute, stable) on each URL that has indexable images. Next emits xmlns:image and <image:image><image:loc>. CDN hosts must be verified in Search Console. Do not robots-disallow /_next/image.",
+      "seoBoost_gap": "runDomainChecks (lib/scanner.ts ~1421-1448) only counts <loc> and lastmod. It never looks for image:image / image:loc. app/sitemap.ts lists page URLs only. Scanner also skips .xml/.png/.webp/.avif paths in PROGRAMMATIC_PATTERNS, so it cannot crawl a standalone image sitemap as a page.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/sitemap.ts"
+      ],
+      "verify_how": "Fetch /sitemap.xml and assert image namespace + image:loc. Add scanner check sitemap-images: warning when HTML has content <img> but sitemap has zero image:image. Rich Results / GSC Sitemaps report.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap"
+      ]
+    },
+    {
+      "id": "07-03",
+      "priority": "P0",
+      "title": "VideoObject check is presence-only and misses required fields",
+      "why_it_ranks": "In 2026 videos still appear in Web Search, Video mode, Google Images, Discover, plus Key Moments, LIVE badge, and moving previews. Required VideoObject: name, thumbnailUrl, uploadDate. Recommended: description, duration, contentUrl and/or embedUrl. Presence of @type VideoObject without those fields does not make a video eligible.",
+      "nextjs_how": "On each watch page export JSON-LD VideoObject (Script or generateMetadata-adjacent). thumbnailUrl must be a stable URL (not signed/expiring CDN). Prefer contentUrl to a fetchable MP4/WebM so Google can generate previews. For YouTube/Vimeo embeds set embedUrl to the iframe src. Dedicated watch page if video is the primary content.",
+      "seoBoost_gap": "lib/scanner.ts lines 1173-1195 count iframe[youtube|vimeo] or <video>, then pass if any JSON-LD mentions VideoObject. No parse of name/thumbnailUrl/uploadDate/contentUrl/embedUrl/duration. No watch-page vs complementary-video distinction. No thumbnail stability or poster= check. howToFix snippet uses uploadDate 2025-01-01 and omits embedUrl.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Scan a page with <video> plus incomplete VideoObject (name only). Expect warning listing missing required props. Validate a complete block in https://search.google.com/test/rich-results.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/video",
+        "https://developers.google.com/search/docs/appearance/video"
+      ]
+    },
+    {
+      "id": "07-04",
+      "priority": "P0",
+      "title": "OG/Twitter image audit ignores Google thumbnail metadata; SeoBoost OG assets are missing",
+      "why_it_ranks": "As of 2026-03-02 Google explicitly uses schema.org primaryImageOfPage / mainEntity image and og:image to pick SERP, Discover, and AI Overview thumbnails. Rules: relevant, not a logo, no heavy text, not extreme aspect ratio, high-res (Discover: >=1200px wide, ~16:9, >=300K). Twitter/X still needs twitter:card + twitter:image (summary_large_image ~1200x675).",
+      "nextjs_how": "Prefer app/opengraph-image.tsx and app/twitter-image.tsx with ImageResponse from next/og (export alt, size 1200x630, contentType). Or static opengraph-image.png + opengraph-image.alt.txt. Per-route generateMetadata images for glossary. Do not use the site logo as og:image. Keep og:image URL identical to primaryImageOfPage.",
+      "seoBoost_gap": "Scanner og-tags (901-934) only tests presence of og:title/description/image/type. No og:image:alt, no absolute HTTPS URL, no width/height, no 1200px floor, no logo-as-OG heuristic, no primaryImageOfPage. twitter-cards skips image if card=summary. Product: app/layout.tsx points to /opengraph-image.png, /twitter-image.png, /icon.png; public/ has only googlecfc4c7654c4c969a.html; no app/opengraph-image.* or app/twitter-image.*. Glossary generateMetadata openGraph has no images. Organization JSON-LD logo is icon.png, not a page image.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx",
+        "app/opengraph-image.tsx",
+        "app/twitter-image.tsx",
+        "app/glossary/[term]/page.tsx"
+      ],
+      "verify_how": "curl -I production /opengraph-image and /twitter-image (200, image/*, >=1200 wide). Facebook Sharing Debugger / X Card Validator. Scanner: fail relative og:image, logo-only OG, missing og:image:alt, and missing primaryImageOfPage when og:image exists.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/google-images",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/opengraph-image",
+        "https://ogp.me/"
+      ]
+    },
+    {
+      "id": "07-05",
+      "priority": "P0",
+      "title": "LCP / next/image coaching is pre-Next 16 and the marketing hero mis-prioritizes images",
+      "why_it_ranks": "LCP is a ranking Core Web Vital. Next.js 16 (this repo: next@16.1.6) deprecated Image priority in favor of preload. Docs: for a single LCP hero prefer loading=\"eager\" or fetchPriority=\"high\"; do not combine preload with loading or fetchPriority. sizes missing on fill/responsive images makes the browser assume 100vw and download a huge srcset candidate.",
+      "nextjs_how": "One LCP image per viewport: <Image src={hero} alt=\"…\" width height sizes=\"(max-width: 768px) 100vw, 1200px\" fetchPriority=\"high\" />. Below-fold: default lazy. Remote src requires images.remotePatterns in next.config. next.config has neither remotePatterns nor formats.",
+      "seoBoost_gap": "lazy-loading check (789-815) only reads HTML loading=lazy and fetchpriority=high. It never detects next/image /_next/image URLs, missing sizes, deprecated priority, or preload. howToFix still says add priority. Product hero (app/hero-animations.tsx 206-215) marks four 32px Dicebear SVGs priority + fetchPriority=high + unoptimized — those cannot be LCP and steal bandwidth. No sizes prop.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/hero-animations.tsx",
+        "next.config.ts"
+      ],
+      "verify_how": "Lighthouse/PSI LCP element on /. Expect not the 32px avatars. Scanner: if first large img has loading=lazy → critical; if >1 fetchpriority=high → warning; if srcset without sizes → warning. Next 16 snippets must not recommend priority.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/components/image",
+        "https://nextjs.org/docs/app/getting-started/images"
+      ]
+    },
+    {
+      "id": "07-06",
+      "priority": "P1",
+      "title": "No AVIF/WebP or next/image formats coaching",
+      "why_it_ranks": "Google indexes AVIF, WebP, JPEG, PNG, GIF, SVG, BMP. Modern formats cut bytes and help LCP. Next.js Image Optimization negotiates via Accept; formats: ['image/avif','image/webp'] serves AVIF first. Default without config is typically WebP-only.",
+      "nextjs_how": "next.config.ts images.formats = ['image/avif','image/webp']. Keep a fallback <img src> (or next/image src) in a supported raster. AVIF encodes ~50% slower, ~20% smaller than WebP; cache both. Do not use data: URIs for large heroes.",
+      "seoBoost_gap": "Category comment says 'format hints' but no check inspects src/srcset type, Accept-negotiated /_next/image, or <picture> sources. Pricing still claims image optimisation insights.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "next.config.ts"
+      ],
+      "verify_how": "Request an optimized image with Accept: image/avif and expect image/avif. Scanner: warning if all content images are unoptimized PNG/JPEG >200KB with no picture/webp/avif or /_next/image.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/google-images",
+        "https://nextjs.org/docs/app/api-reference/components/image"
+      ]
+    },
+    {
+      "id": "07-07",
+      "priority": "P1",
+      "title": "No captions, transcripts, or Key Moments (Clip / SeekToAction) coaching",
+      "why_it_ranks": "Key Moments still ship in Search (Clip in all languages; SeekToAction in 12 languages). Google auto-detects chapters; publisher Clip/YouTube timestamps win. Captions/transcripts are a11y (WCAG 1.2.2) and give Google crawlable speech-to-text. Video previews need fetchable bytes + max-video-preview (layout already sets -1).",
+      "nextjs_how": "Native <video>: add <track kind=\"captions\" srclang=\"en\" src=\"/captions/en.vtt\" default /> and a visible transcript. JSON-LD: nest Clip[] (name, startOffset, url?t=) or SeekToAction potentialAction target with {seek_to_second_number}. YouTube: timestamp lines in the description. Video must be >=30s and deep-linkable.",
+      "seoBoost_gap": "Zero checks for <track>, kind=captions/subtitles, transcript text, Clip, SeekToAction, or YouTube chapter timestamps. video-schema howToFix never mentions chapters. No coaching that nosnippet opts out of Key Moments.",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "If <video> or youtube iframe exists: warning when no <track> and no Clip/SeekToAction. Pass when VTT track or Clip hasPart is present. Rich Results Test Key Moments eligibility.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/structured-data/video",
+        "https://developers.google.com/search/docs/appearance/video"
+      ]
+    },
+    {
+      "id": "07-08",
+      "priority": "P1",
+      "title": "No video sitemap detection; Next sitemap videos[] unused",
+      "why_it_ranks": "Google still recommends video sitemaps (or mRSS) for discovery, especially new or JS players. Required: thumbnail_loc, title, description, and content_loc or player_loc. Must match VideoObject. Not a substitute for schema. Skip unrelated complementary clips.",
+      "nextjs_how": "app/sitemap.ts videos: [{ title, thumbnail_loc, description, content_loc or player_loc }]. Next emits xmlns:video. Reference the same URLs as VideoObject.contentUrl/embedUrl/thumbnailUrl.",
+      "seoBoost_gap": "Domain sitemap check never looks for video:video / media:content. app/sitemap.ts has no videos array. Fine for SeoBoost today (no product video) but the auditor cannot coach customer video sites.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/sitemap.ts"
+      ],
+      "verify_how": "When crawled pages contain video and sitemap lacks video:video → warning with Next.js videos[] snippet. Do not fail sites with zero videos.",
+      "sources": [
+        "https://developers.google.com/search/docs/crawling-indexing/sitemaps/video-sitemaps",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap"
+      ]
+    },
+    {
+      "id": "07-09",
+      "priority": "P1",
+      "title": "Favicon / apple-touch audit does not match Google Search rules; product icons are broken",
+      "why_it_ranks": "Google can show one favicon per hostname in organic results. Requirements: square, >=8x8 (recommend >48x48), crawlable by Googlebot-Image, stable URL. Supported Search formats: BMP, GIF, ICO, PNG, JPEG, PPM, TIFF — not SVG. Apple wants 180x180 apple-touch-icon. Next file conventions: app/favicon.ico, app/icon.(png|svg), app/apple-icon.png.",
+      "nextjs_how": "Add app/favicon.ico plus app/icon.svg (browsers) and app/apple-icon.png 180x180. Or ImageResponse icon.tsx (32+) and apple-icon.tsx (180). Do not rely on metadata.icons pointing at a missing /icon.png. Manifest icons need real 192 and 512 PNGs, not one 32px file claimed as both.",
+      "seoBoost_gap": "favicon check (1295-1318) treats any .png/.svg or apple-touch-icon as 'Modern formats' good. It never checks 48x48+, 1:1 ratio, Googlebot crawlability, or that SVG-only fails Google Search favicon. Product: layout icons all /icon.png; manifest 32 and 512 both /icon.png; no app/icon.*, app/apple-icon.*, or public PNG/ICO/SVG.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx",
+        "app/manifest.ts",
+        "app/icon.tsx",
+        "app/apple-icon.tsx",
+        "app/favicon.ico"
+      ],
+      "verify_how": "Home page has <link rel=\"icon\"> to a square PNG/ICO >=48px that 200s. GSC URL Inspection. Scanner: warning for SVG-only or <48px; warning if apple-touch-icon missing.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/favicon-in-search",
+        "https://nextjs.org/docs/app/api-reference/file-conventions/metadata/app-icons"
+      ]
+    },
+    {
+      "id": "07-10",
+      "priority": "P1",
+      "title": "remotePatterns missing; scanner cannot coach Next remote / unoptimized images",
+      "why_it_ranks": "Remote next/image URLs that are not in remotePatterns fail at runtime or force unoptimized, skipping AVIF/WebP, srcset, and width/height CLS protection. domains is deprecated since Next 14. Hero already loads https://api.dicebear.com with unoptimized.",
+      "nextjs_how": "next.config.ts images.remotePatterns: [{ protocol: 'https', hostname: 'api.dicebear.com', pathname: '/7.x/**' }] (or drop remote avatars). Never use images.domains. Keep unoptimized only for SVG/auth images the optimizer cannot process.",
+      "seoBoost_gap": "No check for /_next/image?url= vs raw third-party src, unoptimized, or missing remotePatterns. howToFix never mentions next.config images. remotePatterns also needed if the auditor later fetches customer OG images through this Next host.",
+      "files_to_change": [
+        "next.config.ts",
+        "app/hero-animations.tsx",
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Build without unoptimized remote Image: must error until remotePatterns set. Scanner: if img src is off-origin and not /_next/image → hint to add remotePatterns + sizes + width/height.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/components/image",
+        "https://nextjs.org/docs/app/getting-started/images"
+      ]
+    },
+    {
+      "id": "07-11",
+      "priority": "P1",
+      "title": "CLS-from-images check is gated and incomplete",
+      "why_it_ranks": "CLS is a ranking Core Web Vital. Images without reserved aspect ratio shift the page. next/image prevents this when width+height or fill+positioned parent is set. CSS background heroes and fill without relative parent still shift.",
+      "nextjs_how": "Always set width and height, or fill with a relative/absolute/fixed parent and aspect-ratio / explicit height. placeholder=\"blur\" on LCP is optional. Do not leave height auto without width.",
+      "seoBoost_gap": "Dimensions are only evaluated when every img has an alt attribute and missingDims >= 50% (887-892). A page with 1/4 missing dims and all alts present is marked good. No check for style aspect-ratio, fill without parent, or next/image-generated width/height attributes (which Next does emit — so Next sites may pass even when customers used fill poorly in source).",
+      "files_to_change": [
+        "lib/scanner.ts"
+      ],
+      "verify_how": "Split img-dimensions from img-alt. Warn if any content image lacks width&height and lacks CSS aspect-ratio. PSI CLS < 0.1.",
+      "sources": [
+        "https://nextjs.org/docs/app/api-reference/components/image",
+        "https://developers.google.com/search/docs/appearance/google-images"
+      ]
+    },
+    {
+      "id": "07-12",
+      "priority": "P1",
+      "title": "2026 Google Images / video surfaces are not explained in coaching copy",
+      "why_it_ranks": "Surfaces that still matter on 2026-09-11: (1) Google Images including Product/Recipe/Video badges when image is a required schema field; (2) SERP text-result thumbnails; (3) Discover large images; (4) AI Overview / Search thumbnails via primaryImageOfPage + og:image; (5) Video mode, web video results, Key Moments, LIVE badge, video previews; (6) hostname favicon in organic results. CSS images still do not index. max-image-preview:large is required for large Discover/SERP images.",
+      "nextjs_how": "Keep robots.googleBot max-image-preview: 'large' and max-video-preview: -1 (already in app/layout.tsx). Add WebPage.primaryImageOfPage pointing at the same absolute URL as og:image (not the logo). For Image-badge types include the schema image field. Serve indexable images as <img>/next/image, not CSS.",
+      "seoBoost_gap": "img-alt whyItMatters only mentions 'Google Image Search'. og-tags whyItMatters only mentions Facebook/LinkedIn/Slack. video-schema mentions a carousel only. No Discover 1200px, no AI Overview thumbnail, no CSS-image warning, no Image-rich-result badge types. layout.tsx already sets max-image-preview large — scanner never checks that robots directive on customer sites.",
+      "files_to_change": [
+        "lib/scanner.ts",
+        "app/layout.tsx"
+      ],
+      "verify_how": "Add checks: robots max-image-preview missing/none → warning; CSS-only hero → Images ineligible; og:image <1200px → Discover thumbnail warning. Do not change the existing large preview on SeoBoost itself.",
+      "sources": [
+        "https://developers.google.com/search/docs/appearance/google-images",
+        "https://developers.google.com/search/docs/appearance/video",
+        "https://developers.google.com/search/docs/appearance/favicon-in-search"
+      ]
+    }
+  ],
+  "must_implement_now": [
+    "Split lib/scanner.ts img-alt into img-alt, img-alt-quality, img-dimensions, img-filename, img-caption; keep alt=\"\" as a pass for decorative images.",
+    "Add domain check sitemap-images (image:image / image:loc) and page check for primaryImageOfPage + og:image quality (absolute HTTPS, og:image:alt, >=1200px when discoverable, not logo-only).",
+    "Upgrade video-schema to validate name, thumbnailUrl, uploadDate, and contentUrl or embedUrl; add video-captions and video-chapters (Clip/SeekToAction/<track>) when video exists.",
+    "Rewrite Next.js howToFix snippets for 16.1: fetchPriority/preload not priority; sizes on responsive/fill; remotePatterns; app/opengraph-image.tsx ImageResponse; sitemap images[] / videos[].",
+    "Ship missing SeoBoost media files: app/opengraph-image.tsx, app/twitter-image.tsx, app/icon.tsx (>=48 PNG), app/apple-icon.tsx (180), and stop pointing metadata/manifest at absent /icon.png /opengraph-image.png."
+  ],
+  "conflicts_to_avoid": [
+    "Do not flag alt=\"\" as missing — Google and WCAG 1.1.1 want empty alt on decorative images.",
+    "Do not recommend loading=lazy, preload, and fetchPriority together on the LCP image; Next 16 treats preload as mutually exclusive with loading/fetchPriority. Do not emit priority snippets (deprecated in 16).",
+    "Do not put the site logo in og:image or primaryImageOfPage; Google's 2026-03-02 image doc forbids generic logos and text-heavy cards as preferred thumbnails.",
+    "Do not revive deprecated image sitemap tags (image:caption, image:title, image:geo_location, image:license) or deprecated video sitemap tags (category, gallery_loc, player autoplay/allow_embed).",
+    "Do not fail sites with zero videos for missing VideoObject or video sitemaps. Do not treat complementary blog embeds as dedicated watch pages.",
+    "Do not tell Google Images to index CSS background-image or inlined decorative SVGs. Do not claim SVG favicons satisfy Google Search favicon (raster >=48x48 required).",
+    "Do not overwrite sibling war-room JSON. Coordinate VideoObject / ImageObject / primaryImageOfPage with the structured-data lane; LCP/CLS with the CWV lane; og:title/description with the social/meta lane.",
+    "Do not 'fix' app/layout.tsx robots.googleBot max-image-preview/max-video-preview — those are already correct. Domain mismatch seoboost.app vs boost-seo.vercel.app is out of this lane except where OG image URLs resolve."
+  ],
+  "cross_agent_notes": [
+    "Siblings read: findings/02-core-web-vitals.json, findings/03-structured-data.json, findings/08-internal-linking.json. No 01/04-06/09-10 files yet.",
+    "02-CWV overlap: 02-03, 02-07, and 02-10 already flag the four Dicebear priority avatars, gated img-dimensions, and Next 16 priority deprecation. 07 owns images-category check ids (img-alt, img-dimensions, img-caption, formats, OG image quality). 02 owns CrUX/PSI LCP-INP-CLS grades and non-image CLS (fonts, ads, cookies). Do not add a second LCP numeric grade in 07. Share the img-dimensions split: one check, both lanes reference it.",
+    "02-03 must_implement_now already says remove avatar fetchPriority. 07-05 agrees — one hero change, do not fight over app/hero-animations.tsx. 07 additionally requires sizes/remotePatterns/unoptimized coaching in scanner snippets.",
+    "08-internal-linking overlap: 08-01/08-03 want one sitemap.xml parse used as crawl seed + orphan inventory. 07-02/07-08 need that same parse to also extract image:image and video:video. Build one sitemap parser; do not fetch sitemap.xml twice. Do not enqueue image/video file URLs as HTML pages (PROGRAMMATIC_PATTERNS already skips those extensions).",
+    "03-structured-data overlap: 03-04/03-08 already say VideoObject presence is not eligibility and list required name/thumbnailUrl/uploadDate. Keep one video-schema id; 07 adds field validation, Clip/SeekToAction, captions, and video sitemap. 03 owns the 2026 type map (FAQ dead, VideoObject still live). 03-09 Article.image on glossary is 03's field; 07-04 primaryImageOfPage + og:image is the Images/Discover thumbnail signal — same URL, two properties, do not emit conflicting image URLs. 03-03 host mismatch (seoboost.app vs boost-seo.vercel.app) also breaks OG image absolute URLs; 07 does not pick the canonical host.",
+    "Social / meta lane: og-tags and twitter-cards already exist (lib/scanner.ts 901-957). Extend those ids for image bytes/alt/1200px — do not add og-tags-2. 08-04 also notes glossary generateMetadata OG uses escaped ${} placeholders; 07-04 adds that glossary OG has no images array.",
+    "A11y lane: alt and captions overlap WCAG 1.1.1 / 1.2.2. Keep images-category ids for SEO coaching; a11y should reference the same checks rather than double-penalize.",
+    "Product self-audit: missing /icon.png, /opengraph-image.png, /twitter-image.png plus four priority remote avatars will fail both 02 and 07 once checks ship. Implement media files in the same PR as auditor upgrades."
+  ]
+}

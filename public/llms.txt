@@ -1,0 +1,8 @@
+# SEO Boost
+
+> Optional agent-facing index. Google Search, including AI Overviews and AI Mode, ignores llms.txt. This file is not a ranking factor.
+
+## Docs
+
+- [SEO Glossary](https://seoboost.app/glossary)
+- [Pricing](https://seoboost.app/pricing)

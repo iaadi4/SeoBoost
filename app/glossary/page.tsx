@@ -1,12 +1,16 @@
 import Link from 'next/link'
-import { Zap, BookOpen, ArrowRight } from 'lucide-react'
 import { glossaryTerms } from '@/lib/glossary-data'
 import { Button } from '@/components/ui/button'
 import { Metadata } from 'next'
+import { JsonLd, breadcrumbList } from '@/lib/json-ld'
+import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { PaperGlow } from '@/components/seo-art'
+import { MarketingPhoto } from '@/components/marketing-photo'
 
 export const metadata: Metadata = {
-  title: 'SEO Glossary | Learn SEO Terms | SEO Boost',
-  description: 'Comprehensive SEO glossary explaining essential search engine optimization terms, technical concepts, and best practices. Master SEO with SEO Boost.',
+  title: 'SEO Glossary',
+  description:
+    'SEO glossary explaining essential search engine optimization terms, technical concepts, and best practices.',
   alternates: {
     canonical: '/glossary',
   },
@@ -14,96 +18,82 @@ export const metadata: Metadata = {
 
 export default function GlossaryIndex() {
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-hidden">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 sm:px-8 h-14 flex items-center justify-between max-w-7xl">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-md shadow-primary/30">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-base tracking-tight">
-              SEO Boost
-            </span>
-          </Link>
-          <nav className="flex items-center gap-3">
-             <Link href="/pricing">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground text-sm"
-              >
-                Pricing
-              </Button>
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <SiteHeader />
+      <JsonLd
+        data={breadcrumbList([
+          { name: 'Home', path: '/' },
+          { name: 'Glossary' },
+        ])}
+      />
+      <main id="main-content" className="relative flex-1">
+        <PaperGlow />
+        <section className="container relative mx-auto max-w-4xl px-4 py-20">
+          <nav aria-label="Breadcrumb" className="mb-8 text-sm text-muted-foreground">
+            <Link href="/" className="hover:text-foreground">
+              Home
             </Link>
-            <Link href="/dashboard">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground text-sm"
-              >
-                Dashboard
-              </Button>
-            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-foreground">Glossary</span>
           </nav>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        <section className="container mx-auto px-4 py-20 max-w-4xl">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-6">
-              <BookOpen className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
-              The Ultimate <span className="text-primary">SEO Glossary</span>
+          <div className="mb-16 max-w-2xl">
+            <p className="mb-4 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              Learn
+            </p>
+            <h1 className="font-display text-4xl leading-tight tracking-[-0.03em] md:text-5xl">
+              SEO glossary
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Master the terminology of Search Engine Optimization. From technical on-page ranking factors to advanced off-page strategies, understand exactly what it takes to rank.
+            <p className="mt-5 text-lg text-muted-foreground">
+              Canonicals, snippets, robots, first HTML — the terms this scanner
+              actually checks. We do not invent Core Web Vitals or GEO scores.
             </p>
           </div>
+          <MarketingPhoto
+            src="/images/feature-ai-search.png"
+            alt="Cream paper still life of a search snippet card and a torn note"
+            width={1200}
+            height={900}
+            className="mb-16 aspect-[16/9] max-w-3xl"
+            sizes="(min-width: 768px) 48rem, 100vw"
+          />
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-4 md:grid-cols-2">
             {glossaryTerms.map((term) => (
-              <Link 
-                key={term.slug} 
-                href={`/glossary/\${term.slug}`}
-                className="group p-6 rounded-2xl border border-border/60 bg-card hover:bg-muted/30 transition-all hover:border-primary/50 flex flex-col h-full shadow-sm hover:shadow-md"
+              <Link
+                key={term.slug}
+                href={`/glossary/${term.slug}`}
+                className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 transition-colors hover:bg-muted/40"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <h2 className="text-xl font-bold group-hover:text-primary transition-colors">
-                    {term.title}
-                  </h2>
-                  <span className="text-xs font-semibold px-2 py-1 bg-muted rounded-md text-muted-foreground uppercase tracking-wider">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <h2 className="font-display text-2xl leading-snug">{term.title}</h2>
+                  <span className="rounded-full border border-border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                     {term.category}
                   </span>
                 </div>
-                <p className="text-muted-foreground text-sm leading-relaxed flex-1 mb-6">
+                <p className="mb-6 flex-1 text-sm leading-relaxed text-muted-foreground">
                   {term.description}
                 </p>
-                <div className="flex items-center text-sm font-medium text-primary group-hover:translate-x-1 transition-transform">
-                  Read Guide <ArrowRight className="ml-1 w-4 h-4" />
-                </div>
+                <span className="text-sm text-foreground underline-offset-4 group-hover:underline">
+                  Read guide
+                </span>
               </Link>
             ))}
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="border-t border-border/60 bg-muted/20 py-20">
-          <div className="container mx-auto px-4 text-center max-w-2xl">
-            <h2 className="text-3xl font-bold mb-4">Stop guessing. Start ranking.</h2>
-            <p className="text-muted-foreground mb-8">
-              Knowing the terminology is step one. Applying it is step two. Run a technical SEO audit on your website right now.
+        <section className="border-t border-border py-20">
+          <div className="container mx-auto max-w-2xl px-4 text-center">
+            <h2 className="font-display text-3xl">Stop guessing. Start ranking.</h2>
+            <p className="mt-4 text-muted-foreground">
+              Knowing the term is step one. Run a technical audit on your site.
             </p>
-            <Link href="/sign-up">
-              <Button size="lg" className="h-12 px-8 rounded-full">
-                Scan Your Domain for Free
-              </Button>
+            <Link href="/sign-up" className="mt-8 inline-block">
+              <Button size="lg">Scan your domain for free</Button>
             </Link>
           </div>
         </section>
       </main>
+      <SiteFooter />
     </div>
   )
 }
