@@ -7,6 +7,15 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/dashboard'
+  const type = searchParams.get('type')
+
+  // Recovery links must land on /reset-password with the unused PKCE code.
+  if (
+    code &&
+    (type === 'recovery' || next.startsWith('/reset-password'))
+  ) {
+    redirect(`${origin}/reset-password?code=${encodeURIComponent(code)}`)
+  }
 
   if (code) {
     const supabase = await createClient()
@@ -45,5 +54,5 @@ export async function GET(request: Request) {
   }
 
   // return the user to an error page with instructions
-  redirect(`${origin}/seo-audit-login?error=true`)
+  redirect(`${origin}/seo-audit-login?error=confirm`)
 }

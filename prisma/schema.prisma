@@ -15,9 +15,9 @@ model User {
   updatedAt        DateTime       @updatedAt
   
   // Custom fields
-  dodoCustomerId   String?        @unique
-  subscriptionPlan String         @default("free") // "free", "pro"
-  domainReports    DomainReport[] 
+  dodoCustomerId      String?              @unique
+  subscriptionPlan    String               @default("free") // "free", "pro"
+  domainReports       DomainReport[]
 }
 
 model DomainReport {

@@ -1,6 +1,8 @@
 import { Instrument_Serif, Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SCANNER_CHECK_COUNT } from '@/lib/claims'
+import { JsonLd, organizationJsonLd, webSiteJsonLd } from '@/lib/json-ld'
 import { SITE_ORIGIN } from '@/lib/site'
 import { Metadata } from 'next'
 
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
     template: '%s | SEO Boost',
   },
   description:
-    'Crawl a site up to 50 pages on Hobby or 500 on Pro, run 48 HTML and domain checks, and get an A–F health score with a fix list. Not Core Web Vitals. Not a GEO score.',
+    `Crawl a site up to 50 pages on Hobby or 500 on Pro, run ${SCANNER_CHECK_COUNT} HTML and domain checks, and get an A–F health score with a fix list. Not Core Web Vitals. Not a GEO score.`,
   keywords: [
     'SEO Tool',
     'SEO Audit',
@@ -45,11 +47,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: SITE_ORIGIN,
+    url: '/',
     siteName: 'SEO Boost',
     title: 'SEO Boost | HTML technical SEO audits',
     description:
-      'HTML crawl up to 50/500 pages, 48 HTML and domain checks, A–F health score and a fix list.',
+      `HTML crawl up to 50/500 pages, ${SCANNER_CHECK_COUNT} HTML and domain checks, A–F health score and a fix list.`,
     images: [
       {
         url: '/opengraph-image.png',
@@ -63,7 +65,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SEO Boost | HTML technical SEO audits',
     description:
-      'HTML crawl up to 50/500 pages, 48 HTML and domain checks, A–F health score and a fix list.',
+      `HTML crawl up to 50/500 pages, ${SCANNER_CHECK_COUNT} HTML and domain checks, A–F health score and a fix list.`,
     images: ['/twitter-image.png'],
     creator: '@seoboost',
   },
@@ -102,6 +104,7 @@ export default function RootLayout({
           forcedTheme="light"
           disableTransitionOnChange
         >
+          <JsonLd data={[organizationJsonLd(), webSiteJsonLd()]} />
           {children}
         </ThemeProvider>
       </body>

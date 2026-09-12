@@ -11,10 +11,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label, RequiredMark } from '@/components/ui/label'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { AuthSplit } from '@/components/auth-split'
+import { mapAuthError } from '@/lib/auth-ui'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -22,6 +23,18 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('reset') === '1') {
+      setNotice('Password updated. Sign in with your new password.')
+    } else if (params.get('error')) {
+      setError(
+        mapAuthError(params.get('error_description'), 'confirm')
+      )
+    }
+  }, [])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,17 +42,18 @@ export default function SignInPage() {
     setError(null)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
       password,
     })
 
-    if (error) {
-      setError(error.message)
+    if (signInError) {
+      setError(mapAuthError(signInError.message, 'signin'))
       setIsLoading(false)
-    } else {
-      router.push('/dashboard')
+      return
     }
+
+    router.push('/dashboard')
   }
 
   return (
@@ -47,10 +61,13 @@ export default function SignInPage() {
       <Card className="w-full max-w-md py-8">
         <CardHeader className="space-y-2 px-6 text-left">
           <CardTitle className="text-3xl font-normal">
-            <h1 className="font-display text-3xl tracking-tight">Sign in to SeoBoost</h1>
+            <h1 className="font-display text-3xl tracking-tight">
+              Sign in to SeoBoost
+            </h1>
           </CardTitle>
           <CardDescription className="text-base">
-            Open your reports and run another HTML scan (50 pages Hobby, 500 Pro).
+            Open your reports and run another HTML scan (50 pages Hobby, 500
+            Pro).
           </CardDescription>
         </CardHeader>
         <CardContent className="px-6">
@@ -68,12 +85,21 @@ export default function SignInPage() {
                 required
                 autoComplete="email"
                 aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'signin-error' : undefined}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">
-                Password <RequiredMark />
-              </Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="password">
+                  Password <RequiredMark />
+                </Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-foreground underline underline-offset-4"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -83,23 +109,38 @@ export default function SignInPage() {
                 required
                 autoComplete="current-password"
                 aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'signin-error' : undefined}
               />
             </div>
 
+            {notice && (
+              <p role="status" className="text-sm text-accent">
+                {notice}
+              </p>
+            )}
+
             {error && (
-              <p role="alert" className="field-error">
+              <p id="signin-error" role="alert" className="field-error">
                 {error}
               </p>
             )}
 
-            <Button type="submit" size="lg" className="w-full font-medium" disabled={isLoading}>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full font-medium"
+              disabled={isLoading}
+            >
               {isLoading ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/sign-up" className="text-foreground underline underline-offset-4">
+            <Link
+              href="/sign-up"
+              className="text-foreground underline underline-offset-4"
+            >
               Sign up for free
             </Link>
           </div>

@@ -12,8 +12,7 @@ import {
   SCANNER_CATEGORY_COUNT,
   SCANNER_CHECK_COUNT,
 } from '@/lib/claims'
-import { JsonLd } from '@/lib/json-ld'
-import { SITE_ORIGIN } from '@/lib/site'
+import { JsonLd, softwareApplicationJsonLd } from '@/lib/json-ld'
 import { PaperGlow } from '@/components/seo-art'
 
 function FeatureValue({ value }: { value: boolean | string }) {
@@ -27,38 +26,9 @@ function FeatureValue({ value }: { value: boolean | string }) {
 function HomeJsonLd() {
   return (
     <JsonLd
-      data={[
-        {
-          '@context': 'https://schema.org',
-          '@type': ['SoftwareApplication', 'WebApplication'],
-          name: 'SEO Boost',
-          operatingSystem: 'Web',
-          applicationCategory: 'BusinessApplication',
-          url: SITE_ORIGIN,
-          offers: {
-            '@type': 'Offer',
-            price: '9.00',
-            priceCurrency: 'USD',
-          },
-          description:
-            `HTML technical SEO audits: up to 50 pages on Hobby or 500 on Pro, ${SCANNER_CHECK_COUNT} checks across ${SCANNER_CATEGORY_COUNT} categories, A–F health score and a fix list. Not Core Web Vitals. Not a GEO score.`,
-        },
-        {
-          '@context': 'https://schema.org',
-          '@type': 'Organization',
-          name: 'SEO Boost',
-          url: SITE_ORIGIN,
-          logo: `${SITE_ORIGIN}/icon.png`,
-          sameAs: ['https://twitter.com/seoboost'],
-        },
-        {
-          '@context': 'https://schema.org',
-          '@type': 'WebSite',
-          name: 'SEO Boost',
-          alternateName: ['SeoBoost', 'boost-seo.vercel.app'],
-          url: SITE_ORIGIN,
-        },
-      ]}
+      data={softwareApplicationJsonLd(
+        `HTML technical SEO audits: up to 50 pages on Hobby or 500 on Pro, ${SCANNER_CHECK_COUNT} checks across ${SCANNER_CATEGORY_COUNT} categories, A–F health score and a fix list.`
+      )}
     />
   )
 }
@@ -127,10 +97,9 @@ export default async function Home() {
                 See what search can read on your pages
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-                Paste a URL. We seed from your sitemap, fetch first HTML up to
-                50 pages on Hobby or 500 on Pro, and return an A–F health score
-                with a fix list. Static HTML only — not Core Web Vitals, not a
-                GEO score.
+                Paste a URL. We seed from your sitemap, fetch first HTML — 50
+                pages on Hobby, 500 on Pro — and return an A–F health score
+                with a fix list.
               </p>
             </HeroAnimations>
           </div>
@@ -140,7 +109,7 @@ export default async function Home() {
           <div className="container mx-auto max-w-6xl">
             <MarketingPhoto
               src="/images/hero-product.png"
-              alt="Laptop on a cream desk showing a large B health grade"
+              alt="Printed cream report with a large B health grade and title, meta, canonical checks"
               width={1600}
               height={900}
               priority
@@ -160,33 +129,33 @@ export default async function Home() {
                 What the scan actually does
               </h2>
               <p className="mt-5 text-lg text-muted-foreground">
-                Cheerio reads the HTML Googlebot can get without executing your
+                Cheerio reads the HTML Googlebot can get without executing
                 JavaScript. Hobby stops at 50 pages, Pro at 500. If we hit the
-                cap we say so — that is not a whole-site census.
+                cap, the report says so.
               </p>
             </div>
 
             <FeatureRow
               eyebrow="Crawl"
               title="Sitemap seed, then first HTML"
-              body="We queue the homepage plus same-origin sitemap locs, then follow on-page links. Titles, meta, canonicals, robots, headings, OG tags, and image alts come from that HTML — not a headless browser."
+              body="Homepage plus same-origin sitemap locs, then on-page links. Titles, meta, canonicals, robots, headings, OG tags, and image alts come from that HTML — not a headless browser."
               src="/images/feature-html-crawl.png"
-              alt="Laptop showing first HTML beside printed pages on a cream desk"
+              alt="Laptop showing first HTML next to a printed sitemap list on cream paper"
             />
             <FeatureRow
               reverse
               eyebrow="Score"
               title="An A–F grade from those checks"
-              body="The health score is a weighted roll-up of the on-page findings. It is not Lighthouse, not CrUX, and not a citation percentage for AI Overviews."
+              body="The health score is a weighted roll-up of the on-page findings. Hobby includes the grade plus meta, social, and heading checks."
               src="/images/feature-health-score.png"
-              alt="Printed cream report with a large serif B health grade"
+              alt="Cream report card with A–F letter grades and the letter B circled"
             />
             <FeatureRow
               eyebrow="AI search"
-              title="Snippet eligibility, not a GEO score"
-              body="Pro flags nosnippet, max-snippet:0, data-nosnippet, and training-versus-search robots rules (GPTBot is not OAI-SearchBot). A missing llms.txt is not a fail. Google Search ignores that file."
+              title="Snippet and robots heuristics"
+              body="Pro flags nosnippet, max-snippet:0, data-nosnippet, and training-versus-search robots rules. GPTBot is not OAI-SearchBot. A missing llms.txt is not a fail."
               src="/images/feature-ai-search.png"
-              alt="Cream paper still life of a search snippet card and a torn note"
+              alt="Printed search snippet card with a torn nosnippet note on cream paper"
             />
           </div>
         </section>
@@ -201,10 +170,9 @@ export default async function Home() {
                 A fix list you can act on
               </h2>
               <p className="mt-5 text-lg text-muted-foreground">
-                Hobby includes the score plus meta, social, and heading checks.
-                Pro adds accessibility hints, HTML performance hints, security
-                headers, JSON-LD required properties, image alts, AI-search
-                heuristics, copy-as-prompt, and PDF export.
+                Hobby: score, meta, social, headings. Pro adds accessibility
+                hints, HTML performance hints, security headers, JSON-LD,
+                image alts, AI-search heuristics, copy-as-prompt, and PDF export.
               </p>
             </div>
             <BentoGrid />
@@ -398,7 +366,7 @@ export default async function Home() {
             </div>
             <MarketingPhoto
               src="/images/story-review.png"
-              alt="Hands holding a printed SEO report with a large B grade"
+              alt="Hands holding a printed cream SEO report with a large B grade"
               width={1600}
               height={900}
               className="aspect-[16/9]"

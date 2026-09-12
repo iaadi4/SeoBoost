@@ -1,14 +1,36 @@
 import * as cheerio from 'cheerio'
-import { evaluateLlmsTxt, evaluateRobotsTxt } from '@/lib/ai-search'
+import {
+  evaluateAiSnippetEligible,
+  evaluateExtractableText,
+  evaluateLlmsTxt,
+  evaluateRobotsTxt,
+} from '@/lib/ai-search'
 import {
   HOBBY_MAX_PAGES,
   MAX_SITEMAP_CHILD_FILES,
   MAX_SITEMAP_SEED_LOCS,
   PAGES_PER_TICK,
 } from '@/lib/crawl-limits'
+import {
+  buildFetchChecks,
+  detectSoft404,
+  fetchPage,
+  isHtmlResponse,
+  type FetchPageResult,
+} from '@/lib/fetch-page'
+import {
+  evaluateCrossPageChecks,
+  snapshotFromParsed,
+  type PageMetaSnapshot,
+} from '@/lib/cross-page'
 import { parseSitemapLocs } from '@/lib/sitemap-locs'
 
-export { evaluateLlmsTxt, evaluateRobotsTxt } from '@/lib/ai-search'
+export {
+  evaluateAiSnippetEligible,
+  evaluateExtractableText,
+  evaluateLlmsTxt,
+  evaluateRobotsTxt,
+} from '@/lib/ai-search'
 
 export type CheckStatus = 'good' | 'warning' | 'critical'
 
@@ -49,6 +71,8 @@ export interface CheckResult {
   effort?: 'low' | 'medium' | 'high'
   /** Expected impact if fixed */
   impact?: 'low' | 'medium' | 'high'
+  /** Affected URLs for site-level / cross-page findings */
+  evidence?: string[]
 }
 
 export interface PageAnalysis {
@@ -170,6 +194,8 @@ export interface AnalysePageResult {
   path: string
   checks: CheckResult[]
   outboundLinks: string[]
+  /** Raw title / description / canonical / H1 from this page's HTML */
+  meta: PageMetaSnapshot
 }
 
 const DEFAULTS: Required<ScanOptions> = {
@@ -275,44 +301,54 @@ async function fetchUrl(
   opts: Required<ScanOptions>,
   acceptXml = false
 ): Promise<FetchResult | null> {
-  const maxAttempts = 1 + Math.max(0, opts.fetchRetries)
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    if (attempt > 0) {
-      // Exponential backoff: 500 ms, 1 000 ms, 2 000 ms …
-      await new Promise(r => setTimeout(r, 500 * 2 ** (attempt - 1)))
-    }
-    try {
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'User-Agent': opts.userAgent,
-          Accept: acceptXml
-            ? 'application/xml,text/xml,*/*;q=0.8'
-            : 'text/html,application/xhtml+xml,*/*;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Cache-Control': 'no-cache',
-        },
-        signal: AbortSignal.timeout(opts.fetchTimeoutMs),
-        // Next.js App Router cache control
-        next: { revalidate: opts.revalidate },
-      })
-
-      const headers: Record<string, string> = {}
-      res.headers.forEach((v, k) => { headers[k.toLowerCase()] = v })
-
-      // Retry on server errors (5xx) but not on client errors (4xx)
-      if (res.status >= 500 && attempt < maxAttempts - 1) continue
-      if (!res.ok) return null
-
-      const html = await res.text()
-      return { html, headers, status: res.status, finalUrl: res.url }
-    } catch {
-      // Network / timeout error — retry if attempts remain, otherwise give up
-      if (attempt === maxAttempts - 1) return null
-    }
+  const result = await fetchPage(url, opts, { acceptXml })
+  if (result.error) return null
+  if (result.status < 200 || result.status >= 300) return null
+  return {
+    html: result.html,
+    headers: result.headers,
+    status: result.status,
+    finalUrl: result.finalUrl,
   }
-  return null
+}
+
+function pagePathFromUrl(urlStr: string): string {
+  try {
+    const url = new URL(urlStr)
+    let path = url.pathname || '/'
+    if (path !== '/' && path.endsWith('/')) path = path.slice(0, -1)
+    return path
+  } catch {
+    return '/'
+  }
+}
+
+function pageFromFetch(
+  urlStr: string,
+  checks: AnalysePageResult['checks'],
+  outboundLinks: string[] = []
+): AnalysePageResult {
+  const path = pagePathFromUrl(urlStr)
+  return {
+    url: urlStr,
+    path,
+    checks,
+    outboundLinks,
+    meta: snapshotFromParsed({
+      url: urlStr,
+      path,
+      title: '',
+      description: '',
+      canonical: '',
+      h1: '',
+    }),
+  }
+}
+
+function shouldFollowOutboundLinks(fetched: FetchPageResult): boolean {
+  if (fetched.error) return false
+  if (fetched.status < 200 || fetched.status >= 300) return false
+  return !detectSoft404(fetched.html, fetched.status)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -504,39 +540,19 @@ export function analysePage(
 
   const googleBotMeta = $('meta[name="googlebot"]').attr('content')?.toLowerCase() ?? ''
   const bingBotMeta = $('meta[name="bingbot"]').attr('content')?.toLowerCase() ?? ''
-  const snippetDirectives = `${robotsCombined} ${googleBotMeta} ${bingBotMeta}`
-  const maxSnippetZero = /max-snippet\s*:\s*0/.test(snippetDirectives)
-  const hasNosnippet = snippetDirectives.includes('nosnippet') || maxSnippetZero
-  const hasNoarchive = snippetDirectives.includes('noarchive')
-  const hasNocache = snippetDirectives.includes('nocache')
   const dataNosnippetOnMain =
     $('main[data-nosnippet], article[data-nosnippet]').length > 0 ||
     $('main').closest('[data-nosnippet]').length > 0
 
-  if (hasNosnippet || dataNosnippetOnMain) {
-    checks.push(check('ai-snippet-eligible', 'AI snippet eligibility', 'ai-search', 'warning',
-      hasNosnippet ? (maxSnippetZero ? 'max-snippet:0' : 'nosnippet') : 'data-nosnippet on main',
-      'Page text is withheld from Google AI Overviews / AI Mode as a direct input; the URL may still rank as a result without a snippet',
-      'nosnippet, max-snippet:0, and data-nosnippet on main content block the page as a direct input to AI Overviews and AI Mode. This is an eligibility heuristic, not a ranking penalty and not a GEO score.',
-      'If you want the page usable as AI Overview / AI Mode input, remove nosnippet and max-snippet:0 from public pages, and do not wrap <main> in data-nosnippet. Keep data-nosnippet on paywall or sensitive fragments only.',
-      { reference: 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag', effort: 'low', impact: 'high' }))
-  } else if (hasNoarchive || hasNocache) {
-    checks.push(check('ai-snippet-eligible', 'AI snippet eligibility', 'ai-search', 'warning',
-      hasNoarchive ? 'noarchive' : 'nocache',
-      hasNoarchive
-        ? 'noarchive is a Bing Chat / Copilot control (2023); Google ignores noarchive'
-        : 'nocache limits Bing Chat / Copilot to URL/title/snippet',
-      'Bing noarchive excludes the page from Bing Chat / Copilot answers while Bing Search listings remain. Google documents noarchive as unused. This is not a Google AI opt-out and not a GEO score.',
-      'Do not treat noarchive as a Google AI Overview control. To withhold Google AI-feature input, use nosnippet / max-snippet / noindex. Disallowing bingbot also drops Bing Search, not only Copilot.',
-      { reference: 'https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag', effort: 'low', impact: 'low' }))
-  } else {
-    checks.push(check('ai-snippet-eligible', 'AI snippet eligibility', 'ai-search', 'good',
-      'Snippet allowed',
-      'No nosnippet / max-snippet:0 / main data-nosnippet detected',
-      'Google AI Overviews and AI Mode use indexed, snippet-eligible pages. This check is a heuristic for those preview controls, not a citation rank or GEO score.',
-      'Keep public pages snippet-eligible unless you intend to withhold body text from AI features.',
-      { reference: 'https://developers.google.com/search/docs/appearance/ai-features' }))
-  }
+  checks.push(
+    evaluateAiSnippetEligible({
+      robotsMeta,
+      xRobotsHeader,
+      googleBotMeta,
+      bingBotMeta,
+      dataNosnippetOnMain,
+    })
+  )
 
   // ── META: URL Structure ────────────────────────────────────────────────────
   // Check for truly problematic characters: whitespace, brackets, braces, and 
@@ -1445,6 +1461,14 @@ export function analysePage(
     path,
     checks,
     outboundLinks: [...new Set(outboundLinks)],
+    meta: snapshotFromParsed({
+      url: urlStr,
+      path,
+      title,
+      description: desc,
+      canonical,
+      h1: h1Text,
+    }),
   }
 }
 
@@ -1803,39 +1827,50 @@ export async function crawlTick(
       )
     }
 
-    const fetched = await fetchUrl(normTarget, opts)
+    const fetched = await fetchPage(normTarget, opts)
     session.lastFetchAt = Date.now()
-    if (!fetched) continue
+    const fetchChecks = buildFetchChecks(fetched)
 
+    const finalUrl = fetched.finalUrl || normTarget
+    let sameHost = true
     try {
-      const sameHost =
-        new URL(fetched.finalUrl).hostname.replace(/^www\./, '') ===
+      sameHost =
+        new URL(finalUrl).hostname.replace(/^www\./, '') ===
         new URL(origin).hostname.replace(/^www\./, '')
-      if (!sameHost) continue
     } catch {
-      continue
+      sameHost = false
     }
 
     if (fetched.finalUrl) {
       const finalNorm = normaliseUrl(fetched.finalUrl, origin, opts)
       if (finalNorm !== normTarget) {
         rememberDiscovered(session, finalNorm)
-        if (session.visited.includes(finalNorm)) continue
+        if (session.visited.includes(finalNorm)) {
+          session.rawPages.push(pageFromFetch(normTarget, fetchChecks))
+          added++
+          continue
+        }
         session.visited.push(finalNorm)
       }
     }
 
-    const ct = fetched.headers['content-type'] ?? ''
-    if (!ct.includes('text/html')) continue
+    const canAnalyseHtml =
+      !fetched.error &&
+      sameHost &&
+      isHtmlResponse(fetched.headers['content-type'], fetched.html)
 
-    const analysed = analysePage(
-      fetched.finalUrl || normTarget,
-      fetched.html,
-      fetched.headers,
-      domainUrl
-    )
+    if (!canAnalyseHtml) {
+      session.rawPages.push(pageFromFetch(normTarget, fetchChecks))
+      added++
+      continue
+    }
+
+    const analysed = analysePage(finalUrl, fetched.html, fetched.headers, domainUrl)
+    analysed.checks.unshift(...fetchChecks)
     session.rawPages.push(analysed)
     added++
+
+    if (!shouldFollowOutboundLinks(fetched)) continue
 
     for (const link of analysed.outboundLinks) {
       const normLink = normaliseUrl(link, origin, opts)
@@ -1857,6 +1892,16 @@ export function finalizeReport(session: CrawlSession): SEOReport {
   const { domainChecks, rawPages } = session
   const pagesScanned = rawPages.length
   const coverage = coverageFromSession(session)
+  const crossPageChecks = evaluateCrossPageChecks(
+    rawPages.map((p) => p.meta ?? snapshotFromParsed({
+      url: p.url,
+      path: p.path,
+      title: '',
+      description: '',
+      canonical: '',
+      h1: '',
+    }))
+  )
 
   // ── Aggregation ────────────────────────────────────────────────────────────
   interface AggEntry {
@@ -1915,6 +1960,41 @@ export function finalizeReport(session: CrawlSession): SEOReport {
       entry[c.status]++
       entry.pages.push({ path: page.path, status: c.status, value: c.value, message: c.message })
     }
+  }
+
+  // Site-level uniqueness / canonical-set findings (from crawled HTML only).
+  for (const c of crossPageChecks) {
+    const evidencePages = (c.evidence ?? []).map((url) => ({
+      path: (() => {
+        try {
+          const u = new URL(url)
+          let p = u.pathname || '/'
+          if (p !== '/' && p.endsWith('/')) p = p.slice(0, -1)
+          return p
+        } catch {
+          return url
+        }
+      })(),
+      status: c.status,
+      value: c.value,
+      message: c.message,
+    }))
+    const issueN = c.status === 'good' ? 0 : Math.max(1, evidencePages.length)
+    aggMap.set(c.id, {
+      label: c.label,
+      category: c.category,
+      whyItMatters: c.whyItMatters,
+      howToFix: c.howToFix,
+      snippet: c.snippet,
+      reference: c.reference,
+      effort: c.effort,
+      impact: c.impact,
+      good: c.status === 'good' ? 1 : 0,
+      warning: c.status === 'warning' ? issueN : 0,
+      critical: c.status === 'critical' ? issueN : 0,
+      isDomainLevel: false,
+      pages: evidencePages,
+    })
   }
 
   // Build final array
@@ -2027,6 +2107,7 @@ export function finalizeReport(session: CrawlSession): SEOReport {
   const domainScore = (() => {
     let ds = 100
     for (const dc of domainChecks) ds += SCORE_WEIGHTS[dc.status]
+    for (const xc of crossPageChecks) ds += SCORE_WEIGHTS[xc.status]
     return Math.max(0, Math.min(100, ds))
   })()
 

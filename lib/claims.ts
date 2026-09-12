@@ -2,12 +2,99 @@ export type Measurement = 'html' | 'crux' | 'psi' | 'none'
 
 export type FeatureKind = 'audit' | 'product'
 
+/**
+ * Unique check IDs the scanner can emit (page + domain).
+ * Other lanes should import this list instead of inventing counts.
+ */
+export const CHECK_IDS = [
+  'aggregate-rating',
+  'ai-bots-robots',
+  'ai-extractable-text',
+  'ai-snippet-eligible',
+  'anchor-text',
+  'aria',
+  'breadcrumb-schema',
+  'caching',
+  'canonical',
+  'canonical-conflicts',
+  'canonical-gaps',
+  'charset',
+  'compression',
+  'description',
+  'doctype',
+  'duplicate-descriptions',
+  'duplicate-h1',
+  'duplicate-titles',
+  'external-link-security',
+  'faq-schema',
+  'favicon',
+  'fetch-error',
+  'form-labels',
+  'h1',
+  'heading-hierarchy',
+  'hreflang',
+  'hsts',
+  'html-lang',
+  'http-status',
+  'img-alt',
+  'internal-links',
+  'keyword-in-intro',
+  'lazy-loading',
+  'llms-txt',
+  'meta-robots',
+  'og-tags',
+  'page-size',
+  'placeholder-links',
+  'readability',
+  'redirect-chain',
+  'render-blocking',
+  'resource-hints',
+  'robots-txt',
+  'schema',
+  'security-headers',
+  'semantic-html',
+  'sitemap',
+  'skip-nav',
+  'soft-404',
+  'ssl',
+  'title',
+  'twitter-cards',
+  'url-keywords',
+  'url-structure',
+  'video-schema',
+  'viewport',
+  'word-count',
+] as const
+
+export type CheckId = (typeof CHECK_IDS)[number]
+
+export const CHECK_CATEGORIES = [
+  'meta',
+  'content',
+  'technical',
+  'performance',
+  'social',
+  'accessibility',
+  'security',
+  'links',
+  'images',
+  'structured-data',
+  'ai-search',
+  'domain',
+] as const
+
+export type ClaimCheckCategory = (typeof CHECK_CATEGORIES)[number]
+
+/** Unique check IDs that can fire on a real scan (page + domain). */
+export const SCANNER_CHECK_COUNT = CHECK_IDS.length
+export const SCANNER_CATEGORY_COUNT = CHECK_CATEGORIES.length
+
 export interface FeatureClaim {
   userLabel: string
   free: boolean | string
   pro: boolean | string
   kind: FeatureKind
-  checkIds: string[]
+  checkIds: CheckId[]
   measurement: Measurement
 }
 
@@ -37,7 +124,7 @@ export const FEATURE_CLAIMS: FeatureClaim[] = [
     free: true,
     pro: true,
     kind: 'audit',
-    checkIds: ['title', 'description', 'canonical', 'h1'],
+    checkIds: ['title', 'description', 'canonical', 'h1', 'duplicate-titles', 'duplicate-descriptions', 'duplicate-h1'],
     measurement: 'html',
   },
   {
@@ -45,7 +132,7 @@ export const FEATURE_CLAIMS: FeatureClaim[] = [
     free: true,
     pro: true,
     kind: 'audit',
-    checkIds: ['title', 'description', 'canonical', 'meta-robots'],
+    checkIds: ['title', 'description', 'canonical', 'meta-robots', 'duplicate-titles', 'duplicate-descriptions', 'canonical-gaps', 'canonical-conflicts'],
     measurement: 'html',
   },
   {
@@ -61,7 +148,7 @@ export const FEATURE_CLAIMS: FeatureClaim[] = [
     free: true,
     pro: true,
     kind: 'audit',
-    checkIds: ['h1', 'heading-hierarchy'],
+    checkIds: ['h1', 'heading-hierarchy', 'duplicate-h1'],
     measurement: 'html',
   },
   {
@@ -78,6 +165,14 @@ export const FEATURE_CLAIMS: FeatureClaim[] = [
     pro: true,
     kind: 'audit',
     checkIds: ['lazy-loading', 'render-blocking', 'resource-hints'],
+    measurement: 'html',
+  },
+  {
+    userLabel: 'HTTP status, redirects & soft 404s',
+    free: true,
+    pro: true,
+    kind: 'audit',
+    checkIds: ['http-status', 'redirect-chain', 'fetch-error', 'soft-404'],
     measurement: 'html',
   },
   {
@@ -137,10 +232,6 @@ export const FEATURE_CLAIMS: FeatureClaim[] = [
     measurement: 'html',
   },
 ]
-
-/** Unique check IDs that can fire on a real scan (page + domain). */
-export const SCANNER_CHECK_COUNT = 48
-export const SCANNER_CATEGORY_COUNT = 12
 
 export const HOBBY_BULLETS = [
   '3 scans total',
