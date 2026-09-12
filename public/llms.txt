@@ -4,5 +4,5 @@
 
 ## Docs
 
-- [SEO Glossary](https://seoboost.app/glossary)
-- [Pricing](https://seoboost.app/pricing)
+- [SEO Glossary](https://boost-seo.vercel.app/glossary)
+- [Pricing](https://boost-seo.vercel.app/pricing)

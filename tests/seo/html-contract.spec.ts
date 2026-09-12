@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-const ORIGIN = 'https://seoboost.app'
+const ORIGIN = 'https://boost-seo.vercel.app'
 
 function first(html: string, re: RegExp) {
   return html.match(re)?.[1] ?? ''
@@ -21,7 +21,7 @@ function parseHead(html: string) {
   return { title, canonical, robots, jsonLd, h1 }
 }
 
-test('GET / first HTML has title and seoboost.app canonical', async ({
+test('GET / first HTML has title and boost-seo.vercel.app canonical', async ({
   request,
 }) => {
   const res = await request.get('/')
@@ -31,8 +31,8 @@ test('GET / first HTML has title and seoboost.app canonical', async ({
 
   expect(head.title.length, 'raw HTML must include <title>').toBeGreaterThan(0)
   expect(head.title).toMatch(/SEO Boost/)
-  expect(head.canonical).toMatch(/^https:\/\/seoboost\.app\/?$/)
-  expect(html).not.toContain('boost-seo.vercel.app')
+  expect(head.canonical).toMatch(/^https:\/\/boost-seo\.vercel\.app\/?$/)
+  expect(html).not.toContain('https://seoboost.app')
   expect(html).not.toMatch(/aggregateRating/)
   expect(html).not.toMatch(/ratingValue["']?\s*:\s*["']4\.9["']/)
   expect(head.jsonLd).toBe(true)
@@ -47,7 +47,7 @@ test('GET /pricing first HTML uses the same origin', async ({ request }) => {
   const head = parseHead(html)
   expect(head.title).toMatch(/Pricing/)
   expect(head.canonical).toBe(`${ORIGIN}/pricing`)
-  expect(html).not.toContain('boost-seo.vercel.app')
+  expect(html).not.toContain('https://seoboost.app')
   expect(html).not.toMatch(/"@type":\s*"FAQPage"/)
   expect(head.jsonLd).toBe(true)
 })
@@ -80,8 +80,8 @@ test('GET /seo-audit-login is noindex and not the homepage canonical', async ({
   const html = await (await request.get('/seo-audit-login')).text()
   const head = parseHead(html)
   expect(head.robots.toLowerCase()).toMatch(/noindex/)
-  expect(head.canonical).not.toMatch(/^https:\/\/seoboost\.app\/?$/)
-  expect(html).not.toContain('boost-seo.vercel.app')
+  expect(head.canonical).not.toMatch(/^https:\/\/boost-seo\.vercel\.app\/?$/)
+  expect(html).not.toContain('https://seoboost.app')
   expect(html).not.toMatch(/"@type":\s*"SoftwareApplication"/)
 })
 
@@ -102,18 +102,22 @@ test('GET /llms.txt is optional and not sold as ranking', async ({
   expect(body).toMatch(/not a ranking factor/i)
 })
 
-test('GET /robots.txt and /sitemap.xml share seoboost.app', async ({
+test('GET /robots.txt and /sitemap.xml share boost-seo.vercel.app', async ({
   request,
 }) => {
   const robots = await (await request.get('/robots.txt')).text()
-  expect(robots).toMatch(/Sitemap:\s*https:\/\/seoboost\.app\/sitemap\.xml/)
+  expect(robots).toMatch(
+    /Sitemap:\s*https:\/\/boost-seo\.vercel\.app\/sitemap\.xml/
+  )
   expect(robots).toMatch(/Disallow:\s*\/dashboard/)
   expect(robots).not.toMatch(/Disallow:\s*\/seo-audit-login/)
 
   const sitemap = await (await request.get('/sitemap.xml')).text()
-  expect(sitemap).toContain('https://seoboost.app/pricing')
-  expect(sitemap).toContain('https://seoboost.app/glossary/canonical-tag')
-  expect(sitemap).not.toContain('boost-seo.vercel.app')
+  expect(sitemap).toContain('https://boost-seo.vercel.app/pricing')
+  expect(sitemap).toContain(
+    'https://boost-seo.vercel.app/glossary/canonical-tag'
+  )
+  expect(sitemap).not.toContain('https://seoboost.app')
   expect(sitemap).not.toContain('/dashboard')
 })
 

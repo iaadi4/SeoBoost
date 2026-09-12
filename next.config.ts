@@ -8,7 +8,7 @@ const securityHeaders = [
   {
     key: 'Content-Security-Policy',
     value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://seoboost.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co;",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://boost-seo.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co;",
   },
 ]
 
@@ -17,8 +17,14 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/:path*',
-        has: [{ type: 'host', value: 'boost-seo.vercel.app' }],
-        destination: 'https://seoboost.app/:path*',
+        has: [{ type: 'host', value: 'seoboost.app' }],
+        destination: 'https://boost-seo.vercel.app/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.seoboost.app' }],
+        destination: 'https://boost-seo.vercel.app/:path*',
         permanent: true,
       },
     ]

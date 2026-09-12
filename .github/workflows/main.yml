@@ -34,7 +34,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_APP_URL: https://seoboost.app
+          NEXT_PUBLIC_APP_URL: https://boost-seo.vercel.app
           DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
           DODO_WEBHOOK_KEY: ${{ secrets.DODO_WEBHOOK_KEY }}
           NEXT_PUBLIC_DODO_PRODUCT_ID: ${{ secrets.NEXT_PUBLIC_DODO_PRODUCT_ID }}
@@ -46,7 +46,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_APP_URL: https://seoboost.app
+          NEXT_PUBLIC_APP_URL: https://boost-seo.vercel.app
           DODO_PAYMENTS_API_KEY: ${{ secrets.DODO_PAYMENTS_API_KEY }}
           DODO_WEBHOOK_KEY: ${{ secrets.DODO_WEBHOOK_KEY }}
           NEXT_PUBLIC_DODO_PRODUCT_ID: ${{ secrets.NEXT_PUBLIC_DODO_PRODUCT_ID }}
