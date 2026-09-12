@@ -12,22 +12,39 @@ const securityHeaders = [
   },
 ]
 
+const PUBLIC_HOST = 'https://boost-seo.vercel.app'
+
+/** 308 custom domain → Vercel public host. Never the reverse. */
+export const APEX_HOST_REDIRECTS = [
+  {
+    source: '/',
+    has: [{ type: 'host' as const, value: 'seoboost.app' }],
+    destination: `${PUBLIC_HOST}/`,
+    statusCode: 308 as const,
+  },
+  {
+    source: '/:path*',
+    has: [{ type: 'host' as const, value: 'seoboost.app' }],
+    destination: `${PUBLIC_HOST}/:path*`,
+    statusCode: 308 as const,
+  },
+  {
+    source: '/',
+    has: [{ type: 'host' as const, value: 'www.seoboost.app' }],
+    destination: `${PUBLIC_HOST}/`,
+    statusCode: 308 as const,
+  },
+  {
+    source: '/:path*',
+    has: [{ type: 'host' as const, value: 'www.seoboost.app' }],
+    destination: `${PUBLIC_HOST}/:path*`,
+    statusCode: 308 as const,
+  },
+]
+
 const nextConfig: NextConfig = {
   async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'seoboost.app' }],
-        destination: 'https://boost-seo.vercel.app/:path*',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.seoboost.app' }],
-        destination: 'https://boost-seo.vercel.app/:path*',
-        permanent: true,
-      },
-    ]
+    return APEX_HOST_REDIRECTS
   },
   async headers() {
     return [

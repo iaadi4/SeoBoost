@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma'
 import { ScanForm } from './scan-form'
 import { DashboardClient } from './dashboard-client'
 import { dodopayments } from '@/lib/dodopayments'
+import { toReportListItem } from './report-list-data'
 
 export default async function DashboardPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -32,16 +33,18 @@ export default async function DashboardPage(props: {
 
   // Synchronous webhoook verification fallback for immediate UI state hydration
   if (
-    searchParams?.payment_id && 
+    searchParams?.payment_id &&
     searchParams?.status === 'succeeded' &&
     dbUser.subscriptionPlan !== 'pro'
   ) {
     try {
-      const paymentInfo = await dodopayments.payments.retrieve(searchParams.payment_id as string)
+      const paymentInfo = await dodopayments.payments.retrieve(
+        searchParams.payment_id as string
+      )
       if (paymentInfo.status === 'succeeded') {
         dbUser = await prisma.user.update({
           where: { id: user.id },
-          data: { subscriptionPlan: 'pro' }
+          data: { subscriptionPlan: 'pro' },
         })
       }
     } catch (error) {
@@ -49,34 +52,28 @@ export default async function DashboardPage(props: {
     }
   }
 
-  const totalScans = await prisma.domainReport.count({
-    where: { userId: user.id },
-  })
+  const [totalScans, completeStats, recentReports] = await Promise.all([
+    prisma.domainReport.count({
+      where: { userId: user.id },
+    }),
+    prisma.domainReport.aggregate({
+      where: { userId: user.id, status: 'complete' },
+      _avg: { score: true },
+    }),
+    prisma.domainReport.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+    }),
+  ])
 
-  const recentReports = await prisma.domainReport.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-  })
-
-  const avgScore = recentReports.length
-    ? Math.round(
-        recentReports.reduce((a: number, b: { score: number }) => a + b.score, 0) /
-          recentReports.length
-      )
-    : 0
+  const rawAvg = completeStats._avg.score
+  const avgScore = rawAvg == null ? null : Math.round(Number(rawAvg))
 
   const userName =
     user.user_metadata?.full_name?.split(' ')[0] ||
     user.email?.split('@')[0] ||
     'there'
-
-  const reportsForClient = recentReports.map((r: (typeof recentReports)[number]) => ({
-    id: r.id,
-    domainUrl: r.domainUrl,
-    score: r.score,
-    createdAt: r.createdAt.toISOString(),
-  }))
 
   return (
     <DashboardClient
@@ -84,7 +81,7 @@ export default async function DashboardPage(props: {
       subscriptionPlan={dbUser.subscriptionPlan}
       totalScans={totalScans}
       avgScore={avgScore}
-      recentReports={reportsForClient}
+      recentReports={recentReports.map(toReportListItem)}
     >
       <ScanForm />
     </DashboardClient>

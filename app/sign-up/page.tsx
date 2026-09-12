@@ -14,6 +14,13 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { AuthSplit } from '@/components/auth-split'
+import { SITE_ORIGIN } from '@/lib/site'
+import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_RULE_HINT,
+  mapAuthError,
+  passwordIssue,
+} from '@/lib/auth-ui'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -25,26 +32,34 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError(null)
 
+    const issue = passwordIssue(password)
+    if (issue) {
+      setError(issue)
+      return
+    }
+
+    setIsLoading(true)
+
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
-      email,
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: email.trim(),
       password,
       options: {
-        data: { full_name: name },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        data: { full_name: name.trim() },
+        emailRedirectTo: `${SITE_ORIGIN}/auth/callback?next=/dashboard`,
       },
     })
 
-    if (error) {
-      setError(error.message)
+    if (signUpError) {
+      setError(mapAuthError(signUpError.message, 'signup'))
       setIsLoading(false)
-    } else {
-      setSuccess(true)
-      setIsLoading(false)
+      return
     }
+
+    setSuccess(true)
+    setIsLoading(false)
   }
 
   if (success) {
@@ -53,12 +68,15 @@ export default function SignUpPage() {
         <Card className="w-full max-w-md py-8 text-center">
           <CardHeader className="space-y-2 px-6 pb-2">
             <CardTitle className="font-normal">
-              <h1 className="font-display text-3xl tracking-tight">Check your email</h1>
+              <h1 className="font-display text-3xl tracking-tight">
+                Check your email
+              </h1>
             </CardTitle>
             <CardDescription className="text-base">
-              We&apos;ve sent a confirmation link to{' '}
-              <span className="font-medium text-foreground">{email}</span>.
-              Click it to activate your account.
+              We sent a confirmation link to{' '}
+              <span className="font-medium text-foreground">{email.trim()}</span>
+              . Click it to activate your account. Check spam if it is not in
+              your inbox.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-6">
@@ -78,10 +96,13 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md py-8">
         <CardHeader className="space-y-2 px-6 text-left">
           <CardTitle className="font-normal">
-            <h1 className="font-display text-3xl tracking-tight">Create an account</h1>
+            <h1 className="font-display text-3xl tracking-tight">
+              Create an account
+            </h1>
           </CardTitle>
           <CardDescription className="text-base">
-            Three free HTML audits. Up to 50 pages per Hobby scan. No credit card.
+            Three free HTML audits. Up to 50 pages per Hobby scan. No credit
+            card.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-6">
@@ -110,6 +131,7 @@ export default function SignUpPage() {
                 required
                 autoComplete="email"
                 aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'signup-error' : undefined}
               />
             </div>
             <div className="space-y-2">
@@ -119,30 +141,44 @@ export default function SignUpPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="At least 8 characters"
+                placeholder={PASSWORD_RULE_HINT}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
                 autoComplete="new-password"
                 aria-invalid={error ? true : undefined}
+                aria-describedby={
+                  error ? 'signup-error' : 'signup-password-hint'
+                }
               />
+              <p id="signup-password-hint" className="text-sm text-muted-foreground">
+                {PASSWORD_RULE_HINT}
+              </p>
             </div>
 
             {error && (
-              <p role="alert" className="field-error">
+              <p id="signup-error" role="alert" className="field-error">
                 {error}
               </p>
             )}
 
-            <Button type="submit" size="lg" className="w-full font-medium" disabled={isLoading}>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full font-medium"
+              disabled={isLoading}
+            >
               {isLoading ? 'Creating account…' : 'Create account'}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/seo-audit-login" className="text-foreground underline underline-offset-4">
+            <Link
+              href="/seo-audit-login"
+              className="text-foreground underline underline-offset-4"
+            >
               Sign in
             </Link>
           </div>

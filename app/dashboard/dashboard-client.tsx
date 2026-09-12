@@ -4,58 +4,22 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { SiteHeader } from '@/components/site-chrome'
 import { PaperGlow } from '@/components/seo-art'
-
-const FREE_SCAN_LIMIT = 3
-
-interface Report {
-  id: string
-  domainUrl: string
-  score: number
-  createdAt: string
-}
+import { HOBBY_MAX_PAGES, PRO_MAX_PAGES } from '@/lib/crawl-limits'
+import { AccountWidgets } from './account-widgets'
+import { ReportList, ReportsEmpty } from './report-list'
+import {
+  FREE_SCAN_LIMIT,
+  hobbyScansRemaining,
+  type ReportListItem,
+} from './report-list-data'
 
 interface Props {
   userName: string
   subscriptionPlan: string
   totalScans: number
-  avgScore: number
-  recentReports: Report[]
+  avgScore: number | null
+  recentReports: ReportListItem[]
   children: React.ReactNode
-}
-
-function ScoreRing({ score }: { score: number }) {
-  const color = score >= 80 ? '#3d6b4f' : score >= 50 ? '#c47a4a' : '#b42318'
-  const radius = 18
-  const circumference = 2 * Math.PI * radius
-  const dash = (score / 100) * circumference
-
-  return (
-    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
-      <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-        <circle
-          cx="24"
-          cy="24"
-          r={radius}
-          fill="none"
-          stroke="#e6e1d8"
-          strokeWidth="3"
-        />
-        <circle
-          cx="24"
-          cy="24"
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="3"
-          strokeDasharray={`${dash} ${circumference}`}
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className="absolute text-xs font-medium" style={{ color }}>
-        {score}
-      </span>
-    </div>
-  )
 }
 
 export function DashboardClient({
@@ -67,34 +31,9 @@ export function DashboardClient({
   children,
 }: Props) {
   const isPro = subscriptionPlan === 'pro'
-  const scansRemaining = isPro
-    ? Infinity
-    : Math.max(0, FREE_SCAN_LIMIT - totalScans)
+  const scansRemaining = isPro ? null : hobbyScansRemaining(totalScans)
   const limitReached = !isPro && totalScans >= FREE_SCAN_LIMIT
-
-  const stats = [
-    {
-      label: 'Total scans',
-      value: totalScans,
-      suffix: '',
-      description: 'domains analyzed',
-    },
-    {
-      label: 'Avg. score',
-      value: avgScore,
-      suffix: '/100',
-      description: 'across all reports',
-    },
-    {
-      label: 'Plan',
-      value: isPro ? 'Pro' : 'Free',
-      suffix: '',
-      description: isPro
-        ? 'unlimited scans'
-        : `${scansRemaining} scan${scansRemaining === 1 ? '' : 's'} remaining`,
-      highlight: isPro,
-    },
-  ]
+  const pageCap = isPro ? PRO_MAX_PAGES : HOBBY_MAX_PAGES
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,7 +43,9 @@ export function DashboardClient({
         <PaperGlow className="opacity-70" />
 
         <div className="mb-8">
-          <p className="mb-1 text-sm text-muted-foreground">Welcome back</p>
+          <p className="mb-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            Welcome back
+          </p>
           <h1 className="font-display text-3xl tracking-tight">Hey, {userName}</h1>
         </div>
 
@@ -112,10 +53,10 @@ export function DashboardClient({
           <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-border bg-card p-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground">
-                You&apos;ve used all 3 free scans
+                You&apos;ve used all {FREE_SCAN_LIMIT} Hobby scans
               </p>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Subscribe for $9/mo and get unlimited scans.
+                Pro is $9/mo — unlimited scans, {PRO_MAX_PAGES} pages each.
               </p>
             </div>
             <Link href="/pricing">
@@ -124,46 +65,32 @@ export function DashboardClient({
           </div>
         )}
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="flex items-center gap-4 rounded-3xl border border-border bg-card p-5"
-            >
-              <div>
-                <p className="mb-0.5 text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  {stat.label}
-                </p>
-                <p className="text-2xl font-medium leading-none">
-                  {stat.value}
-                  {stat.suffix && (
-                    <span className="ml-0.5 text-sm font-normal text-muted-foreground">
-                      {stat.suffix}
-                    </span>
-                  )}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <AccountWidgets
+          totalScans={totalScans}
+          avgScore={avgScore}
+          subscriptionPlan={subscriptionPlan}
+        />
 
-        <div className="mb-10 overflow-hidden rounded-3xl border border-border bg-card">
+        <div
+          id="scan"
+          className="mb-10 scroll-mt-24 overflow-hidden rounded-3xl border border-border bg-card"
+        >
           <div className="p-8">
-            <div className="mb-1 flex items-start justify-between">
+            <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
               <h2 className="font-display text-2xl">New domain scan</h2>
-              {!isPro && (
-                <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
-                  {scansRemaining}/{FREE_SCAN_LIMIT} free scans left
-                </span>
-              )}
+              <span className="rounded-full border border-border px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                {isPro
+                  ? `${pageCap} page cap`
+                  : `${scansRemaining}/${FREE_SCAN_LIMIT} scans · ${pageCap} pages`}
+              </span>
             </div>
             <p className="mb-6 max-w-lg text-sm text-muted-foreground">
-              Enter any domain for a technical SEO health report.
+              HTML technical audit. Hobby fetches up to {HOBBY_MAX_PAGES} pages;
+              Pro fetches up to {PRO_MAX_PAGES}.
             </p>
             {limitReached ? (
               <div className="rounded-2xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-                Free scan limit reached.{' '}
+                Hobby scan limit reached.{' '}
                 <Link href="/pricing" className="text-foreground underline underline-offset-4">
                   Upgrade for $9
                 </Link>{' '}
@@ -178,7 +105,9 @@ export function DashboardClient({
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="font-display text-xl">Recent reports</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">3 most recent scans</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              3 most recent scans
+            </p>
           </div>
           <Link href="/dashboard/reports">
             <Button variant="ghost" size="sm">
@@ -188,37 +117,14 @@ export function DashboardClient({
         </div>
 
         {recentReports.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-card py-24 text-center">
-            <h3 className="mb-2 font-display text-xl">No reports yet</h3>
-            <p className="text-sm text-muted-foreground">
-              Run your first scan using the input above.
-            </p>
-          </div>
+          <ReportsEmpty
+            heading="No reports yet"
+            body={`Run your first HTML scan. Hobby covers ${HOBBY_MAX_PAGES} pages per domain; Pro covers ${PRO_MAX_PAGES}.`}
+            ctaHref={limitReached ? '/pricing' : '#scan'}
+            ctaLabel={limitReached ? 'Upgrade to scan' : 'Scan a domain'}
+          />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recentReports.map((report) => {
-              let hostname = report.domainUrl
-              try {
-                hostname = new URL(report.domainUrl).hostname
-              } catch {}
-              const date = new Date(report.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })
-              return (
-                <Link key={report.id} href={`/dashboard/report/${report.id}`}>
-                  <div className="flex items-center gap-4 rounded-3xl border border-border bg-card p-5 transition-colors hover:bg-muted/40">
-                    <ScoreRing score={report.score} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{hostname}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{date}</p>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+          <ReportList reports={recentReports} />
         )}
       </div>
     </div>

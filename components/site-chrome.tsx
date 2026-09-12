@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { SeoBoostWordmark } from '@/components/brand/logo'
 import { Button } from '@/components/ui/button'
 import { SignOutButton } from '@/components/sign-out-button'
+import { SCANNER_CHECK_COUNT } from '@/lib/claims'
 import { cn } from '@/lib/utils'
 
 const marketingLinks = [
@@ -56,12 +57,26 @@ export function SiteHeader({
               >
                 Reports
               </Link>
+              <Link
+                href="/dashboard/account"
+                className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Account
+              </Link>
             </nav>
           )}
 
           <div className="flex items-center gap-2">
             {signedIn ? (
               <>
+                {variant === 'app' && (
+                  <Link
+                    href="/dashboard/account"
+                    className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+                  >
+                    Account
+                  </Link>
+                )}
                 <SignOutButton />
                 {variant === 'marketing' && (
                   <Link href="/dashboard">
@@ -106,9 +121,9 @@ export function SiteFooter({ className }: { className?: string }) {
           <div className="col-span-2 md:col-span-1">
             <SeoBoostWordmark markSize={28} />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              HTML technical SEO audits: up to 50 pages on Hobby or 500 on Pro,
-              48 checks, an A–F score,
-              and a fix list. Not Core Web Vitals. Not a GEO score.
+              HTML technical SEO audits: up to 50 pages on Hobby or 500 on Pro,{' '}
+              {SCANNER_CHECK_COUNT} checks, an A–F score, and a fix list. Not
+              Core Web Vitals. Not a GEO score.
             </p>
           </div>
           <FooterCol
@@ -116,7 +131,6 @@ export function SiteFooter({ className }: { className?: string }) {
             links={[
               { href: '/#features', label: 'Audit checks' },
               { href: '/pricing', label: 'Pricing' },
-              { href: '/dashboard', label: 'Reports' },
             ]}
           />
           <FooterCol

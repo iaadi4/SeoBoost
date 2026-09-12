@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { ReportsClient } from './reports-client'
+import { toReportListItem } from '../report-list-data'
 
 export default async function ReportsPage() {
   const supabase = await createClient()
@@ -13,34 +14,26 @@ export default async function ReportsPage() {
     redirect('/seo-audit-login')
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { subscriptionPlan: true },
-  })
+  const [dbUser, allReports] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { subscriptionPlan: true },
+    }),
+    prisma.domainReport.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ])
 
-  const allReports = await prisma.domainReport.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-  })
-
-  const totalScans = allReports.length
-  const avgScore = totalScans
-    ? Math.round(
-        allReports.reduce((a, b) => a + b.score, 0) / totalScans
-      )
-    : 0
-
-  const reportsForClient = allReports.map((r) => ({
-    id: r.id,
-    domainUrl: r.domainUrl,
-    score: r.score,
-    createdAt: r.createdAt.toISOString(),
-  }))
+  const complete = allReports.filter((r) => r.status === 'complete')
+  const avgScore = complete.length
+    ? Math.round(complete.reduce((sum, r) => sum + r.score, 0) / complete.length)
+    : null
 
   return (
     <ReportsClient
-      reports={reportsForClient}
-      totalScans={totalScans}
+      reports={allReports.map(toReportListItem)}
+      totalScans={allReports.length}
       avgScore={avgScore}
       subscriptionPlan={dbUser?.subscriptionPlan || 'free'}
     />

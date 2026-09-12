@@ -8,7 +8,7 @@ export function BentoGrid() {
       <article className="overflow-hidden rounded-3xl border border-border bg-card md:col-span-2">
         <MarketingPhoto
           src="/images/hero-audit.png"
-          alt="Cream paper card with a circled B health grade"
+          alt="Cream letterpress card with a circled B health grade and Title, Canonical, H1"
           width={1600}
           height={900}
           className="rounded-none border-0 border-b border-border"
@@ -31,7 +31,7 @@ export function BentoGrid() {
       <article className="overflow-hidden rounded-3xl border border-border bg-card">
         <MarketingPhoto
           src="/images/feature-health-score.png"
-          alt="Printed cream report with a large B grade and empty checkboxes"
+          alt="Cream report card with A–F grades and the letter B circled"
           width={1200}
           height={900}
           className="aspect-[4/3] rounded-none border-0 border-b border-border"
@@ -43,7 +43,7 @@ export function BentoGrid() {
           </p>
           <h3 className="font-display text-3xl leading-tight">A–F from HTML</h3>
           <p className="mt-3 text-base text-muted-foreground">
-            Weighted on-page grade. Not field vitals. Not an AI Overview badge.
+            Weighted on-page grade from the checks that ran.
           </p>
         </div>
       </article>
@@ -51,7 +51,7 @@ export function BentoGrid() {
       <article className="overflow-hidden rounded-3xl border border-border bg-card">
         <MarketingPhoto
           src="/images/feature-ai-search.png"
-          alt="Search snippet card and torn paper note on cream"
+          alt="Printed search snippet card and a torn nosnippet note on cream paper"
           width={1200}
           height={900}
           className="aspect-[4/3] rounded-none border-0 border-b border-border"
@@ -63,7 +63,7 @@ export function BentoGrid() {
           </p>
           <h3 className="font-display text-3xl leading-tight">AI search heuristics</h3>
           <p className="mt-3 text-base text-muted-foreground">
-            nosnippet and bot-table warnings. No GEO score. No llms.txt fail.
+            nosnippet and bot-table warnings. A missing llms.txt is not a fail.
           </p>
         </div>
       </article>
@@ -71,7 +71,7 @@ export function BentoGrid() {
       <article className="overflow-hidden rounded-3xl border border-border bg-card md:col-span-2">
         <MarketingPhoto
           src="/images/feature-html-crawl.png"
-          alt="Laptop showing first HTML beside printed pages on a cream desk"
+          alt="Laptop showing first HTML next to a printed sitemap list on cream paper"
           width={1600}
           height={900}
           className="rounded-none border-0 border-b border-border"

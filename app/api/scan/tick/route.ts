@@ -2,9 +2,17 @@ import { createClient } from '@/utils/supabase/server'
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { canTickReport } from '@/lib/crawl-limits'
-import { processScanTick } from '@/lib/scan-job'
+import { processScanTick, scanApiErrorPayload } from '@/lib/scan-job'
 
 export const maxDuration = 60
+
+function jsonError(
+  status: number,
+  code: Parameters<typeof scanApiErrorPayload>[0],
+  message?: string
+) {
+  return NextResponse.json(scanApiErrorPayload(code, message), { status })
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -13,23 +21,32 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    return jsonError(401, 'UNAUTHENTICATED')
   }
 
   const body = (await req.json().catch(() => null)) as { id?: string } | null
   const id = body?.id
   if (!id) {
-    return new NextResponse('Report id is required', { status: 400 })
+    return jsonError(400, 'REPORT_ID_REQUIRED')
   }
 
   const report = await prisma.domainReport.findUnique({ where: { id } })
   if (!report) {
-    return new NextResponse('Not Found', { status: 404 })
+    return jsonError(404, 'NOT_FOUND')
   }
   if (!canTickReport(report, user.id)) {
-    return new NextResponse('Forbidden', { status: 403 })
+    return jsonError(403, 'FORBIDDEN')
   }
 
-  const payload = await processScanTick(id)
-  return NextResponse.json(payload)
+  try {
+    const payload = await processScanTick(id)
+    return NextResponse.json(payload)
+  } catch (error) {
+    console.error('Scan tick error:', error)
+    return jsonError(
+      500,
+      'SCAN_FAILED',
+      error instanceof Error ? error.message : undefined
+    )
+  }
 }

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { SCANNER_CHECK_COUNT } from '../../lib/claims'
 
 const ORIGIN = 'https://boost-seo.vercel.app'
 
@@ -40,6 +41,14 @@ test('GET / first HTML has title and boost-seo.vercel.app canonical', async ({
     0
   )
   expect(html).toContain('href="/glossary"')
+  expect(html).toMatch(/50/)
+  expect(html).toMatch(/500/)
+  expect(html).toContain(String(SCANNER_CHECK_COUNT))
+  expect(html).toMatch(/[Nn]ot Core Web Vitals/)
+  expect(html).toMatch(/not a GEO score/i)
+  if (/45\+/.test(html)) {
+    expect(SCANNER_CHECK_COUNT).toBeGreaterThanOrEqual(45)
+  }
 })
 
 test('GET /pricing first HTML uses the same origin', async ({ request }) => {
@@ -50,6 +59,11 @@ test('GET /pricing first HTML uses the same origin', async ({ request }) => {
   expect(html).not.toContain('https://seoboost.app')
   expect(html).not.toMatch(/"@type":\s*"FAQPage"/)
   expect(head.jsonLd).toBe(true)
+  expect(html).toMatch(/\b50\b/)
+  expect(html).toMatch(/\b500\b/)
+  expect(html).toMatch(/50 pages/)
+  expect(html).toMatch(/[Nn]ot Core Web Vitals/)
+  expect(html).toMatch(/not a GEO score/i)
 })
 
 test('GET /glossary spoke hrefs interpolate', async ({ request }) => {

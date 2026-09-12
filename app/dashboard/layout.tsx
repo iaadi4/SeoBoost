@@ -1,11 +1,9 @@
 import { Metadata } from 'next'
+import { NOINDEX_ROBOTS } from '@/lib/site'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
-  robots: {
-    index: false,
-    follow: false,
-  },
+  robots: NOINDEX_ROBOTS,
   alternates: {
     canonical: '/dashboard',
   },
