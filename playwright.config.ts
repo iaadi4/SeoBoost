@@ -14,7 +14,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       ...process.env,
-      NEXT_PUBLIC_APP_URL: 'https://seoboost.app',
+      NEXT_PUBLIC_APP_URL: 'https://boost-seo.vercel.app',
     },
   },
 })

@@ -55,7 +55,7 @@ function HomeJsonLd() {
           '@context': 'https://schema.org',
           '@type': 'WebSite',
           name: 'SEO Boost',
-          alternateName: ['SeoBoost', 'seoboost.app'],
+          alternateName: ['SeoBoost', 'boost-seo.vercel.app'],
           url: SITE_ORIGIN,
         },
       ]}
